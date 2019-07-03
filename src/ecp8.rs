@@ -17,13 +17,13 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::rom;
 use super::big;
+use super::big::BIG;
 use super::ecp;
 use super::fp2::FP2;
 use super::fp4::FP4;
 use super::fp8::FP8;
-use super::big::BIG;
+use super::rom;
 use types::{SexticTwist, SignOfX};
 
 pub struct ECP8 {
@@ -914,7 +914,7 @@ impl ECP8 {
         // Number of bits
         mt.zero();
         for i in 0..16 {
-	    t[i].norm();
+            t[i].norm();
             mt.or(&t[i]);
         }
 

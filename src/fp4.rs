@@ -17,9 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
+use super::big::BIG;
 use super::fp::FP;
 use super::fp2::FP2;
-use super::big::BIG;
 use std::str::SplitWhitespace;
 
 #[derive(Copy, Clone)]
@@ -29,9 +29,9 @@ pub struct FP4 {
 }
 
 impl PartialEq for FP4 {
-	fn eq(&self, other: &FP4) -> bool {
-		self.equals(other)
-	}
+    fn eq(&self, other: &FP4) -> bool {
+        self.equals(other)
+    }
 }
 
 impl FP4 {
@@ -69,20 +69,20 @@ impl FP4 {
         f.b.zero();
         return f;
     }
-	
-    pub fn set_fp2s(&mut self,c: &FP2, d: &FP2) {
+
+    pub fn set_fp2s(&mut self, c: &FP2, d: &FP2) {
         self.a.copy(&c);
-	self.b.copy(&d);
+        self.b.copy(&d);
     }
 
-    pub fn set_fp2(&mut self,c: &FP2) {
+    pub fn set_fp2(&mut self, c: &FP2) {
         self.a.copy(&c);
-	self.b.zero();
+        self.b.zero();
     }
 
-    pub fn set_fp2h(&mut self,c: &FP2) {
+    pub fn set_fp2h(&mut self, c: &FP2) {
         self.b.copy(&c);
-	self.a.zero();
+        self.a.zero();
     }
 
     /* reduce components mod Modulus */
@@ -125,14 +125,14 @@ impl FP4 {
 
     pub fn geta(&self) -> FP2 {
         return self.a;
-//        let f = FP2::new_copy(&self.a);
-//        return f;
+        //        let f = FP2::new_copy(&self.a);
+        //        return f;
     }
     /* extract imaginary part b */
     pub fn getb(&self) -> FP2 {
         return self.b;
-//        let f = FP2::new_copy(&self.b);
-//        return f;
+        //        let f = FP2::new_copy(&self.b);
+        //        return f;
     }
 
     /* test self=x */
@@ -313,7 +313,7 @@ impl FP4 {
     pub fn from_hex_iter(iter: &mut SplitWhitespace) -> FP4 {
         FP4 {
             a: FP2::from_hex_iter(iter),
-            b: FP2::from_hex_iter(iter)
+            b: FP2::from_hex_iter(iter),
         }
     }
 

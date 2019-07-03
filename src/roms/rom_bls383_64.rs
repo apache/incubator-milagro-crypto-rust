@@ -17,9 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use bls383::big::NLEN;
 use super::super::arch::Chunk;
-use types::{ModType, CurveType, CurvePairingType, SexticTwist, SignOfX};
+use bls383::big::NLEN;
+use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 58
 pub const MODULUS: [Chunk; NLEN] = [

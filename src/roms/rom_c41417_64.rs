@@ -17,9 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use c41417::big::NLEN;
 use super::super::arch::Chunk;
-use types::{ModType, CurveType, CurvePairingType, SexticTwist, SignOfX};
+use c41417::big::NLEN;
+use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 60
 // c41417 Modulus

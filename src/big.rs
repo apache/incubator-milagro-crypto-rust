@@ -25,8 +25,8 @@ use super::super::arch::DChunk;
 use super::dbig::DBIG;
 use rand::RAND;
 
-pub use super::rom::MODBYTES;
 pub use super::rom::BASEBITS;
+pub use super::rom::MODBYTES;
 use std::cmp::Ordering;
 use std::fmt;
 
@@ -44,7 +44,9 @@ pub struct BIG {
 }
 
 impl Clone for BIG {
-    fn clone(&self) -> BIG { *self }
+    fn clone(&self) -> BIG {
+        *self
+    }
 }
 
 impl fmt::Display for BIG {
@@ -63,7 +65,7 @@ impl fmt::Debug for BIG {
 
 impl PartialEq for BIG {
     fn eq(&self, other: &BIG) -> bool {
-        if BIG::comp(self,other)==0 {
+        if BIG::comp(self, other) == 0 {
             return true;
         } else {
             return false;
@@ -84,7 +86,7 @@ impl Ord for BIG {
     }
 }
 
-impl Eq for BIG { }
+impl Eq for BIG {}
 
 impl PartialOrd for BIG {
     fn partial_cmp(&self, other: &BIG) -> Option<Ordering> {
@@ -345,7 +347,7 @@ impl BIG {
         res.w[0] += n as Chunk;
         for i in 1..len {
             res.shl(4);
-            let op = &val[i..i+1];
+            let op = &val[i..i + 1];
             let n = u8::from_str_radix(op, 16).unwrap();
             res.w[0] += n as Chunk;
         }
@@ -355,7 +357,7 @@ impl BIG {
     pub fn from_hex(val: String) -> BIG {
         BIG::fromstring(val)
     }
-    
+
     pub fn to_hex(&mut self) -> String {
         self.tostring()
     }

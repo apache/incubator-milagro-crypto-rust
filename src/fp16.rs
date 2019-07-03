@@ -17,9 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
+use super::big::BIG;
 use super::fp2::FP2;
 use super::fp8::FP8;
-use super::big::BIG;
 //use std::str::SplitWhitespace;
 
 #[derive(Copy, Clone)]
@@ -64,19 +64,19 @@ impl FP16 {
         return f;
     }
 
-    pub fn set_fp8s(&mut self,c: &FP8, d: &FP8) {
+    pub fn set_fp8s(&mut self, c: &FP8, d: &FP8) {
         self.a.copy(&c);
-	self.b.copy(&d);
+        self.b.copy(&d);
     }
 
-    pub fn set_fp8(&mut self,c: &FP8) {
+    pub fn set_fp8(&mut self, c: &FP8) {
         self.a.copy(&c);
-	self.b.zero();
+        self.b.zero();
     }
 
-    pub fn set_fp8h(&mut self,c: &FP8) {
+    pub fn set_fp8h(&mut self, c: &FP8) {
         self.b.copy(&c);
-	self.a.zero();
+        self.a.zero();
     }
 
     /* reduce components mod Modulus */
@@ -119,14 +119,14 @@ impl FP16 {
 
     pub fn geta(&self) -> FP8 {
         return self.a;
-//        let f = FP8::new_copy(&self.a);
-//        return f;
+        //        let f = FP8::new_copy(&self.a);
+        //        return f;
     }
     /* extract imaginary part b */
     pub fn getb(&self) -> FP8 {
         return self.b;
-//        let f = FP8::new_copy(&self.b);
-//        return f;
+        //        let f = FP8::new_copy(&self.b);
+        //        return f;
     }
 
     /* test self=x */

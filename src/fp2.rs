@@ -17,13 +17,13 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::fp;
-use super::fp::FP;
 use super::big::BIG;
 use super::dbig::DBIG;
+use super::fp;
+use super::fp::FP;
 use super::rom;
-use std::str::SplitWhitespace;
 use std::fmt;
+use std::str::SplitWhitespace;
 
 #[derive(Copy, Clone)]
 pub struct FP2 {
@@ -32,21 +32,21 @@ pub struct FP2 {
 }
 
 impl PartialEq for FP2 {
-	fn eq(&self, other: &FP2) -> bool {
-		self.equals(other)
-	}
+    fn eq(&self, other: &FP2) -> bool {
+        self.equals(other)
+    }
 }
 
 impl fmt::Display for FP2 {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f, "FP2: [ {}, {} ]", self.a, self.b)
-	}
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "FP2: [ {}, {} ]", self.a, self.b)
+    }
 }
 
 impl fmt::Debug for FP2 {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f, "FP2: [ {}, {} ]", self.a, self.b)
-	}
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "FP2: [ {}, {} ]", self.a, self.b)
+    }
 }
 
 impl FP2 {
@@ -331,7 +331,7 @@ impl FP2 {
     pub fn from_hex_iter(iter: &mut SplitWhitespace) -> FP2 {
         FP2 {
             a: FP::from_hex_iter(iter),
-            b: FP::from_hex_iter(iter)
+            b: FP::from_hex_iter(iter),
         }
     }
 

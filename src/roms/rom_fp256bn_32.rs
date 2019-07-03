@@ -17,10 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use fp256bn::big::NLEN;
 use super::super::arch::Chunk;
-use types::{ModType, CurveType, CurvePairingType, SexticTwist, SignOfX};
-
+use fp256bn::big::NLEN;
+use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 28
 pub const MODULUS: [Chunk; NLEN] = [

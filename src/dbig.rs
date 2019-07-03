@@ -18,9 +18,9 @@ under the License.
 */
 
 use super::super::arch;
+use super::super::arch::Chunk;
 use super::big;
 use super::big::BIG;
-use super::super::arch::Chunk;
 
 #[derive(Copy)]
 pub struct DBIG {
@@ -28,7 +28,9 @@ pub struct DBIG {
 }
 
 impl Clone for DBIG {
-    fn clone(&self) -> DBIG { *self }
+    fn clone(&self) -> DBIG {
+        *self
+    }
 }
 
 impl DBIG {

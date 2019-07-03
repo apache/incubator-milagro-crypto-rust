@@ -19,9 +19,9 @@ under the License.
 
 /* Fixed Data in ROM - Field and Curve parameters */
 
-use nist256::big::NLEN;
 use super::super::arch::Chunk;
-use types::{ModType, CurveType, CurvePairingType, SexticTwist, SignOfX};
+use nist256::big::NLEN;
+use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 56
 // nist256 modulus
