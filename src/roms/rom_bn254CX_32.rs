@@ -17,9 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use bn254CX::big::NLEN;
 use super::super::arch::Chunk;
-use types::{ModType, CurveType, CurvePairingType, SexticTwist, SignOfX};
+use bn254CX::big::NLEN;
+use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 28
 // bn254CX Modulus

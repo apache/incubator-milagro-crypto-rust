@@ -17,12 +17,12 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::rom;
 use super::big;
+use super::big::BIG;
 use super::ecp;
 use super::fp2::FP2;
 use super::fp4::FP4;
-use super::big::BIG;
+use super::rom;
 use types::{SexticTwist, SignOfX};
 //use std::str::SplitWhitespace;
 

@@ -19,9 +19,9 @@ under the License.
 
 /* Fixed Data in ROM - Field and Curve parameters */
 
-use secp256k1::big::NLEN;
 use super::super::arch::Chunk;
-use types::{ModType, CurveType, CurvePairingType, SexticTwist, SignOfX};
+use secp256k1::big::NLEN;
+use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 28
 // secp256k1 modulus

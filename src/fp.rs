@@ -17,14 +17,14 @@ specific language governing permissions and limitations
 under the License.
 */
 
+use super::super::arch;
+use super::super::arch::Chunk;
 use super::big;
 use super::big::BIG;
 use super::dbig::DBIG;
 use super::rom;
-use super::super::arch::Chunk;
-use super::super::arch;
-use types::ModType;
 use std::str::FromStr;
+use types::ModType;
 
 #[derive(Copy, Clone)]
 pub struct FP {
@@ -50,14 +50,14 @@ impl fmt::Debug for FP {
     }
 }
 
-pub use super::rom::{MODBITS, MOD8, MODTYPE, SH};
-use std::str::SplitWhitespace;
+pub use super::rom::{MOD8, MODBITS, MODTYPE, SH};
 use std::fmt;
+use std::str::SplitWhitespace;
 
-pub const FEXCESS:i32 = (((1 as i32)<<SH)-1);
-pub const OMASK:Chunk = (-1)<<(MODBITS%big::BASEBITS);
-pub const TBITS:usize=MODBITS%big::BASEBITS; // Number of active bits in top word
-pub const TMASK:Chunk=(1<<TBITS)-1;
+pub const FEXCESS: i32 = (((1 as i32) << SH) - 1);
+pub const OMASK: Chunk = (-1) << (MODBITS % big::BASEBITS);
+pub const TBITS: usize = MODBITS % big::BASEBITS; // Number of active bits in top word
+pub const TMASK: Chunk = (1 << TBITS) - 1;
 
 impl FP {
     /* Constructors */
@@ -91,8 +91,8 @@ impl FP {
 
     pub fn nres(&mut self) {
         if MODTYPE != ModType::PSEUDO_MERSENNE && MODTYPE != ModType::GENERALISED_MERSENNE {
-            let r=BIG::new_ints(&rom::R2MODP);
-            let mut d=BIG::mul(&(self.x),&r);
+            let r = BIG::new_ints(&rom::R2MODP);
+            let mut d = BIG::mul(&(self.x), &r);
             self.x.copy(&FP::modulo(&mut d));
             self.xes = 2;
         } else {
@@ -105,7 +105,7 @@ impl FP {
         let x = iter.next().unwrap();
         FP {
             x: BIG::from_hex(x.to_string()),
-            xes
+            xes,
         }
     }
 
@@ -120,10 +120,10 @@ impl FP {
         format!("{} {}", self.xes, big)
     }
 
-/* convert back to regular form */
+    /* convert back to regular form */
     pub fn redc(&mut self) -> BIG {
         if MODTYPE != ModType::PSEUDO_MERSENNE && MODTYPE != ModType::GENERALISED_MERSENNE {
-            let mut d=DBIG::new_scopy(&(self.x));
+            let mut d = DBIG::new_scopy(&(self.x));
             return FP::modulo(&mut d);
         } else {
             let r = BIG::new_copy(&(self.x));
@@ -134,9 +134,9 @@ impl FP {
     /* reduce a DBIG to a BIG using the appropriate form of the modulus */
     /* dd */
     pub fn modulo(d: &mut DBIG) -> BIG {
-        if MODTYPE==ModType::PSEUDO_MERSENNE {
-            let mut b=BIG::new();
-            let mut t=d.split(MODBITS);
+        if MODTYPE == ModType::PSEUDO_MERSENNE {
+            let mut b = BIG::new();
+            let mut t = d.split(MODBITS);
             b.dcopy(&d);
             let v = t.pmul(rom::MCONST as isize);
 
@@ -149,8 +149,8 @@ impl FP {
             t.norm();
             return t;
         }
-    
-        if MODTYPE==ModType::MONTGOMERY_FRIENDLY {
+
+        if MODTYPE == ModType::MONTGOMERY_FRIENDLY {
             let mut b = BIG::new();
             for i in 0..big::NLEN {
                 let x = d.w[i];

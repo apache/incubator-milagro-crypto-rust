@@ -17,10 +17,10 @@ specific language governing permissions and limitations
 under the License.
 */
 
+use super::big::BIG;
 use super::fp::FP;
 use super::fp2::FP2;
 use super::fp4::FP4;
-use super::big::BIG;
 //use std::str::SplitWhitespace;
 
 #[derive(Copy, Clone)]
@@ -65,21 +65,20 @@ impl FP8 {
         return f;
     }
 
-    pub fn set_fp4s(&mut self,c: &FP4, d: &FP4) {
+    pub fn set_fp4s(&mut self, c: &FP4, d: &FP4) {
         self.a.copy(&c);
-	self.b.copy(&d);
+        self.b.copy(&d);
     }
 
-    pub fn set_fp4(&mut self,c: &FP4) {
+    pub fn set_fp4(&mut self, c: &FP4) {
         self.a.copy(&c);
-	self.b.zero();
+        self.b.zero();
     }
 
-    pub fn set_fp4h(&mut self,c: &FP4) {
+    pub fn set_fp4h(&mut self, c: &FP4) {
         self.b.copy(&c);
-	self.a.zero();
+        self.a.zero();
     }
-
 
     /* reduce components mod Modulus */
     pub fn reduce(&mut self) {
@@ -121,14 +120,14 @@ impl FP8 {
 
     pub fn geta(&self) -> FP4 {
         return self.a;
-//        let f = FP4::new_copy(&self.a);
-//        return f;
+        //        let f = FP4::new_copy(&self.a);
+        //        return f;
     }
     /* extract imaginary part b */
     pub fn getb(&self) -> FP4 {
         return self.b;
-//        let f = FP4::new_copy(&self.b);
-//        return f;
+        //        let f = FP4::new_copy(&self.b);
+        //        return f;
     }
 
     /* test self=x */

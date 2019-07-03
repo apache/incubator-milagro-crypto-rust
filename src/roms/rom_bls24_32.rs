@@ -17,9 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use bls24::big::NLEN;
 use super::super::arch::Chunk;
-use types::{ModType, CurveType, CurvePairingType, SexticTwist, SignOfX};
+use bls24::big::NLEN;
+use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 29
 // bls24 Modulus

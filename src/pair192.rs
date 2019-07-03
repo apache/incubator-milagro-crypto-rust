@@ -17,17 +17,16 @@ specific language governing permissions and limitations
 under the License.
 */
 
-
-use super::fp::FP;
-use super::ecp::ECP;
-use super::fp2::FP2;
-use super::ecp4::ECP4;
-use super::fp4::FP4;
-use super::fp8::FP8;
-use super::fp24;
-use super::fp24::FP24;
 use super::big::BIG;
 use super::ecp;
+use super::ecp::ECP;
+use super::ecp4::ECP4;
+use super::fp::FP;
+use super::fp2::FP2;
+use super::fp24;
+use super::fp24::FP24;
+use super::fp4::FP4;
+use super::fp8::FP8;
 use super::rom;
 use types::{SexticTwist, SignOfX};
 
@@ -80,7 +79,7 @@ fn linedbl(A: &mut ECP4, qx: &FP, qy: &FP) -> FP24 {
         c.times_i();
     }
     A.dbl();
-    let mut res= FP24::new_fp8s(&a, &b, &c);
+    let mut res = FP24::new_fp8s(&a, &b, &c);
     res.settype(fp24::SPARSER);
     return res;
 }
@@ -130,14 +129,14 @@ fn lineadd(A: &mut ECP4, B: &ECP4, qx: &FP, qy: &FP) -> FP24 {
     }
 
     A.add(B);
-    let mut res= FP24::new_fp8s(&a, &b, &c);
+    let mut res = FP24::new_fp8s(&a, &b, &c);
     res.settype(fp24::SPARSER);
     return res;
 }
 
 /* prepare ate parameter, n=6u+2 (BN) or n=u (BLS), n3=3*n */
 #[allow(non_snake_case)]
-fn lbits(n3: &mut BIG,n: &mut BIG) -> usize {
+fn lbits(n3: &mut BIG, n: &mut BIG) -> usize {
     n.copy(&BIG::new_ints(&rom::CURVE_BNX));
     n3.copy(&n);
     n3.pmul(3);
@@ -148,18 +147,18 @@ fn lbits(n3: &mut BIG,n: &mut BIG) -> usize {
 /* prepare for multi-pairing */
 pub fn initmp() -> [FP24; rom::ATE_BITS] {
     let r: [FP24; rom::ATE_BITS] = [FP24::new_int(1); rom::ATE_BITS];
-    return r
+    return r;
 }
 
 /* basic Miller loop */
-pub fn miller(r:&[FP24]) -> FP24 {
-    let mut res=FP24::new_int(1);
+pub fn miller(r: &[FP24]) -> FP24 {
+    let mut res = FP24::new_int(1);
     for i in (1..rom::ATE_BITS).rev() {
         res.sqr();
         res.ssmul(&r[i]);
     }
 
-    if ecp::SIGN_OF_X==SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
         res.conj();
     }
     res.ssmul(&r[0]);
@@ -168,11 +167,11 @@ pub fn miller(r:&[FP24]) -> FP24 {
 
 /* Accumulate another set of line functions for n-pairing */
 #[allow(non_snake_case)]
-pub fn another(r:&mut [FP24],P1: &ECP4,Q1: &ECP) {
+pub fn another(r: &mut [FP24], P1: &ECP4, Q1: &ECP) {
     let mut n = BIG::new();
     let mut n3 = BIG::new();
-    
-// P is needed in affine form for line function, Q for (Qx,Qy) extraction
+
+    // P is needed in affine form for line function, Q for (Qx,Qy) extraction
     let mut P = ECP4::new();
     P.copy(P1);
     P.affine();
@@ -189,18 +188,18 @@ pub fn another(r:&mut [FP24],P1: &ECP4,Q1: &ECP) {
     NP.copy(&P);
     NP.neg();
 
-    let nb=lbits(&mut n3,&mut n);
+    let nb = lbits(&mut n3, &mut n);
 
-    for i in (1..nb-1).rev() {
-        let mut lv=linedbl(&mut A,&qx,&qy);
+    for i in (1..nb - 1).rev() {
+        let mut lv = linedbl(&mut A, &qx, &qy);
 
-	let bt=n3.bit(i)-n.bit(i);
-        if bt==1 {
-            let lv2=lineadd(&mut A,&P,&qx,&qy);
+        let bt = n3.bit(i) - n.bit(i);
+        if bt == 1 {
+            let lv2 = lineadd(&mut A, &P, &qx, &qy);
             lv.smul(&lv2);
         }
-        if bt==-1 {
-            let lv2=lineadd(&mut A,&NP,&qx,&qy);
+        if bt == -1 {
+            let lv2 = lineadd(&mut A, &NP, &qx, &qy);
             lv.smul(&lv2);
         }
         r[i].ssmul(&lv);
@@ -231,7 +230,7 @@ pub fn ate(P1: &ECP4, Q1: &ECP) -> FP24 {
     NP.copy(&P);
     NP.neg();
 
-    let nb=lbits(&mut n3,&mut n);
+    let nb = lbits(&mut n3, &mut n);
 
     for i in (1..nb - 1).rev() {
         r.sqr();
@@ -296,25 +295,25 @@ pub fn ate2(P1: &ECP4, Q1: &ECP, R1: &ECP4, S1: &ECP) -> FP24 {
     NR.copy(&R);
     NR.neg();
 
-    let nb=lbits(&mut n3,&mut n);
+    let nb = lbits(&mut n3, &mut n);
 
     for i in (1..nb - 1).rev() {
         r.sqr();
         let mut lv = linedbl(&mut A, &qx, &qy);
         let lv2 = linedbl(&mut B, &sx, &sy);
-	lv.smul(&lv2);
+        lv.smul(&lv2);
         r.ssmul(&lv);
         let bt = n3.bit(i) - n.bit(i);
         if bt == 1 {
             lv = lineadd(&mut A, &P, &qx, &qy);
             let lv2 = lineadd(&mut B, &R, &sx, &sy);
-	    lv.smul(&lv2);
+            lv.smul(&lv2);
             r.ssmul(&lv);
         }
         if bt == -1 {
             lv = lineadd(&mut A, &NP, &qx, &qy);
             let lv2 = lineadd(&mut B, &NR, &sx, &sy);
-	    lv.smul(&lv2);
+            lv.smul(&lv2);
             r.ssmul(&lv);
         }
     }
@@ -341,10 +340,10 @@ pub fn fexp(m: &FP24) -> FP24 {
     lv.copy(&r);
     r.frob(&f, 4);
     r.mul(&lv);
-//    if r.isunity() {
-//	r.zero();
-//	return r;
-//    }
+    //    if r.isunity() {
+    //	r.zero();
+    //	return r;
+    //    }
     /* Hard part of final exp */
     // Ghamman & Fouotsa Method
 

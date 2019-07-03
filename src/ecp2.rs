@@ -17,14 +17,14 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::rom;
 use super::big;
+use super::big::BIG;
 use super::ecp;
 use super::fp2::FP2;
-use super::big::BIG;
-use types::{SexticTwist, CurvePairingType, SignOfX};
-use std::str::SplitWhitespace;
+use super::rom;
 use std::fmt;
+use std::str::SplitWhitespace;
+use types::{CurvePairingType, SexticTwist, SignOfX};
 
 #[derive(Copy, Clone)]
 pub struct ECP2 {
@@ -34,21 +34,21 @@ pub struct ECP2 {
 }
 
 impl PartialEq for ECP2 {
-	fn eq(&self, other: &ECP2) -> bool {
-		self.equals(other)
-	}
+    fn eq(&self, other: &ECP2) -> bool {
+        self.equals(other)
+    }
 }
 
 impl fmt::Display for ECP2 {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f, "ECP2: [ {}, {}, {} ]", self.x, self.y, self.z)
-	}
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "ECP2: [ {}, {}, {} ]", self.x, self.y, self.z)
+    }
 }
 
 impl fmt::Debug for ECP2 {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f, "ECP2: [ {}, {}, {} ]", self.x, self.y, self.z)
-	}
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "ECP2: [ {}, {}, {} ]", self.x, self.y, self.z)
+    }
 }
 
 #[allow(non_snake_case)]
@@ -291,14 +291,19 @@ impl ECP2 {
     }
 
     pub fn to_hex(&self) -> String {
-        format!("{} {} {}", self.x.to_hex(), self.y.to_hex(), self.z.to_hex())
+        format!(
+            "{} {} {}",
+            self.x.to_hex(),
+            self.y.to_hex(),
+            self.z.to_hex()
+        )
     }
 
     pub fn from_hex_iter(iter: &mut SplitWhitespace) -> ECP2 {
         ECP2 {
             x: FP2::from_hex_iter(iter),
             y: FP2::from_hex_iter(iter),
-            z: FP2::from_hex_iter(iter)
+            z: FP2::from_hex_iter(iter),
         }
     }
 

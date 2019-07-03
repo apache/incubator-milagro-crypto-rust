@@ -17,15 +17,15 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::fp::FP;
-use super::big::BIG;
 use super::big;
+use super::big::BIG;
+use super::fp::FP;
 use super::rom;
 
-pub use super::rom::{CURVETYPE, CURVE_PAIRING_TYPE, SEXTIC_TWIST, SIGN_OF_X, HASH_TYPE, AESKEY};
-pub use types::CurveType;
-use std::str::SplitWhitespace;
+pub use super::rom::{AESKEY, CURVETYPE, CURVE_PAIRING_TYPE, HASH_TYPE, SEXTIC_TWIST, SIGN_OF_X};
 use std::fmt;
+use std::str::SplitWhitespace;
+pub use types::CurveType;
 
 #[derive(Copy, Clone)]
 pub struct ECP {
@@ -41,15 +41,15 @@ impl PartialEq for ECP {
 }
 
 impl fmt::Display for ECP {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f, "ECP: [ {}, {}, {} ]", self.x, self.y, self.z)
-	}
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "ECP: [ {}, {}, {} ]", self.x, self.y, self.z)
+    }
 }
 
 impl fmt::Debug for ECP {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f, "ECP: [ {}, {}, {} ]", self.x, self.y, self.z)
-	}
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "ECP: [ {}, {}, {} ]", self.x, self.y, self.z)
+    }
 }
 
 #[allow(non_snake_case)]
@@ -193,7 +193,7 @@ impl ECP {
     /* test for O point-at-infinity */
     pub fn is_infinity(&self) -> bool {
         match CURVETYPE {
-            CurveType::EDWARDS=> self.x.iszilch() && self.y.equals(&self.z),
+            CurveType::EDWARDS => self.x.iszilch() && self.y.equals(&self.z),
             CurveType::WEIERSTRASS => self.x.iszilch() && self.z.iszilch(),
             CurveType::MONTGOMERY => self.z.iszilch(),
         }
@@ -440,7 +440,12 @@ impl ECP {
     }
 
     pub fn to_hex(&self) -> String {
-        format!("{} {} {}", self.x.to_hex(), self.y.to_hex(), self.z.to_hex())
+        format!(
+            "{} {} {}",
+            self.x.to_hex(),
+            self.y.to_hex(),
+            self.z.to_hex()
+        )
     }
 
     pub fn from_hex_iter(iter: &mut SplitWhitespace) -> ECP {
