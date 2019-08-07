@@ -18,8 +18,8 @@ under the License.
 */
 
 use super::big;
-use super::big::BIG;
-use super::dbig::DBIG;
+use super::big::Big;
+use super::dbig::DBig;
 use super::rom;
 use super::super::arch::Chunk;
 use super::super::arch;
@@ -28,7 +28,7 @@ use std::str::FromStr;
 
 #[derive(Copy, Clone)]
 pub struct FP {
-    pub x: BIG,
+    pub x: Big,
     pub xes: i32,
 }
 
@@ -63,7 +63,7 @@ impl FP {
     /* Constructors */
     pub fn new() -> FP {
         FP {
-            x: BIG::new(),
+            x: Big::new(),
             xes: 1,
         }
     }
@@ -82,7 +82,7 @@ impl FP {
         return f;
     }
 
-    pub fn new_big(y: &BIG) -> FP {
+    pub fn new_big(y: &Big) -> FP {
         let mut f = FP::new();
         f.x.copy(y);
         f.nres();
@@ -91,8 +91,8 @@ impl FP {
 
     pub fn nres(&mut self) {
         if MODTYPE != ModType::PSEUDO_MERSENNE && MODTYPE != ModType::GENERALISED_MERSENNE {
-            let r=BIG::new_ints(&rom::R2MODP);
-            let mut d=BIG::mul(&(self.x),&r);
+            let r=Big::new_ints(&rom::R2MODP);
+            let mut d=Big::mul(&(self.x),&r);
             self.x.copy(&FP::modulo(&mut d));
             self.xes = 2;
         } else {
@@ -104,7 +104,7 @@ impl FP {
         let xes = i32::from_str(iter.next().unwrap()).unwrap();
         let x = iter.next().unwrap();
         FP {
-            x: BIG::from_hex(x.to_string()),
+            x: Big::from_hex(x.to_string()),
             xes
         }
     }
@@ -121,21 +121,21 @@ impl FP {
     }
 
 /* convert back to regular form */
-    pub fn redc(&mut self) -> BIG {
+    pub fn redc(&mut self) -> Big {
         if MODTYPE != ModType::PSEUDO_MERSENNE && MODTYPE != ModType::GENERALISED_MERSENNE {
-            let mut d=DBIG::new_scopy(&(self.x));
+            let mut d=DBig::new_scopy(&(self.x));
             return FP::modulo(&mut d);
         } else {
-            let r = BIG::new_copy(&(self.x));
+            let r = Big::new_copy(&(self.x));
             return r;
         }
     }
 
-    /* reduce a DBIG to a BIG using the appropriate form of the modulus */
+    /* reduce a DBig to a Big using the appropriate form of the modulus */
     /* dd */
-    pub fn modulo(d: &mut DBIG) -> BIG {
+    pub fn modulo(d: &mut DBig) -> Big {
         if MODTYPE==ModType::PSEUDO_MERSENNE {
-            let mut b=BIG::new();
+            let mut b=Big::new();
             let mut t=d.split(MODBITS);
             b.dcopy(&d);
             let v = t.pmul(rom::MCONST as isize);
@@ -149,13 +149,13 @@ impl FP {
             t.norm();
             return t;
         }
-    
+
         if MODTYPE==ModType::MONTGOMERY_FRIENDLY {
-            let mut b = BIG::new();
+            let mut b = Big::new();
             for i in 0..big::NLEN {
                 let x = d.w[i];
 
-                let tuple = BIG::muladd(x, rom::MCONST - 1, x, d.w[big::NLEN + i - 1]);
+                let tuple = Big::muladd(x, rom::MCONST - 1, x, d.w[big::NLEN + i - 1]);
                 d.w[big::NLEN + i] += tuple.0;
                 d.w[big::NLEN + i - 1] = tuple.1;
             }
@@ -171,16 +171,16 @@ impl FP {
 
         if MODTYPE == ModType::GENERALISED_MERSENNE {
             // GoldiLocks Only
-            let mut b = BIG::new();
+            let mut b = Big::new();
             let t = d.split(MODBITS);
             let rm2 = (MODBITS / 2) as usize;
             b.dcopy(&d);
             b.add(&t);
-            let mut dd = DBIG::new_scopy(&t);
+            let mut dd = DBig::new_scopy(&t);
             dd.shl(rm2);
 
             let mut tt = dd.split(MODBITS);
-            let lo = BIG::new_dcopy(&dd);
+            let lo = Big::new_dcopy(&dd);
             b.add(&tt);
             b.add(&lo);
             b.norm();
@@ -196,10 +196,10 @@ impl FP {
             return b;
         }
         if MODTYPE == ModType::NOT_SPECIAL {
-            let m = BIG::new_ints(&rom::MODULUS);
-            return BIG::monty(&m, rom::MCONST, d);
+            let m = Big::new_ints(&rom::MODULUS);
+            return Big::monty(&m, rom::MCONST, d);
         }
-        return BIG::new();
+        return Big::new();
     }
 
     /* convert to string */
@@ -210,8 +210,8 @@ impl FP {
 
     /* reduce this mod Modulus */
     pub fn reduce(&mut self) {
-        let mut m = BIG::new_ints(&rom::MODULUS);
-        let mut r = BIG::new_copy(&m);
+        let mut m = Big::new_ints(&rom::MODULUS);
+        let mut r = Big::new_copy(&m);
         let mut sb: usize;
         self.x.norm();
         if self.xes > 16 {
@@ -227,7 +227,7 @@ impl FP {
         m.fshl(sb);
 
         while sb > 0 {
-            let sr = BIG::ssn(&mut r, &self.x, &mut m);
+            let sr = Big::ssn(&mut r, &self.x, &mut m);
             self.x.cmove(&r, 1 - sr);
             sb = sb - 1;
         }
@@ -248,8 +248,8 @@ impl FP {
         self.xes = b.xes;
     }
 
-    /* copy from BIG b */
-    pub fn bcopy(&mut self, b: &BIG) {
+    /* copy from Big b */
+    pub fn bcopy(&mut self, b: &Big) {
         self.x.copy(&b);
         self.nres();
     }
@@ -293,7 +293,7 @@ impl FP {
             self.reduce()
         }
 
-        let mut d = BIG::mul(&(self.x), &(b.x));
+        let mut d = Big::mul(&(self.x), &(b.x));
         self.x.copy(&FP::modulo(&mut d));
         self.xes = 2;
     }
@@ -315,7 +315,7 @@ impl FP {
     // find approximation to quotient of a/m
     // Out by at most 2.
     // Note that MAXXES is bounded to be 2-bits less than half a word
-    fn quo(n: &BIG, m: &BIG) -> isize {
+    fn quo(n: &Big, m: &Big) -> isize {
         let hb = arch::CHUNK / 2;
 
         if TBITS < hb {
@@ -332,7 +332,7 @@ impl FP {
 
     /* this = -this mod Modulus */
     pub fn neg(&mut self) {
-        let mut p = BIG::new_ints(&rom::MODULUS);
+        let mut p = Big::new_ints(&rom::MODULUS);
         let sb = FP::logb2((self.xes - 1) as u32);
 
         p.fshl(sb);
@@ -378,7 +378,7 @@ impl FP {
             self.reduce()
         }
 
-        let mut d = BIG::sqr(&(self.x));
+        let mut d = Big::sqr(&(self.x));
         self.x.copy(&FP::modulo(&mut d));
         self.xes = 2
     }
@@ -419,7 +419,7 @@ impl FP {
         if self.x.parity() == 0 {
             self.x.fshr(1);
         } else {
-            let p = BIG::new_ints(&rom::MODULUS);
+            let p = Big::new_ints(&rom::MODULUS);
             self.x.add(&p);
             self.x.norm();
             self.x.fshr(1);
@@ -592,7 +592,7 @@ impl FP {
         } else {
             // Constant time inversion using Fermat's little theorem.
             // Fermat's little theorem says for a prime p and for any a < p, a^p = a % p => a^(p-1) = 1 % p => a^(p-2) = a^-1 % p
-            let mut m2 = BIG::new_ints(&rom::MODULUS);
+            let mut m2 = Big::new_ints(&rom::MODULUS);
             m2.dec(2);
             m2.norm();
             let inv = self.pow(&mut m2);
@@ -606,14 +606,14 @@ impl FP {
         let mut s = FP::new_copy(a);
         f.reduce();
         s.reduce();
-        if BIG::comp(&(f.x), &(s.x)) == 0 {
+        if Big::comp(&(f.x), &(s.x)) == 0 {
             return true;
         }
         return false;
     }
 
     /* return self^e mod Modulus */
-    pub fn pow(&mut self, e: &mut BIG) -> FP {
+    pub fn pow(&mut self, e: &mut Big) -> FP {
         let mut tb: [FP; 16] = [
             FP::new(),
             FP::new(),
@@ -636,7 +636,7 @@ impl FP {
         let mut w: [i8; CT] = [0; CT];
 
         self.norm();
-        let mut t = BIG::new_copy(e);
+        let mut t = Big::new_copy(e);
         t.norm();
         let nb = 1 + (t.nbits() + 3) / 4;
 
@@ -679,7 +679,7 @@ impl FP {
             if MODTYPE == ModType::PSEUDO_MERSENNE || MODTYPE == ModType::GENERALISED_MERSENNE {
                 v = i.fpow();
             } else {
-                let mut p = BIG::new_ints(&rom::MODULUS);
+                let mut p = Big::new_ints(&rom::MODULUS);
                 p.dec(5);
                 p.norm();
                 p.shr(3);
@@ -699,7 +699,7 @@ impl FP {
                 r = self.fpow();
                 r.mul(self);
             } else {
-                let mut p = BIG::new_ints(&rom::MODULUS);
+                let mut p = Big::new_ints(&rom::MODULUS);
                 p.inc(1);
                 p.norm();
                 p.shr(2);
@@ -710,7 +710,7 @@ impl FP {
     }
     /* return jacobi symbol (this/Modulus) */
     pub fn jacobi(&mut self) -> isize {
-        let mut p = BIG::new_ints(&rom::MODULUS);
+        let mut p = Big::new_ints(&rom::MODULUS);
         let mut w = self.redc();
         return w.jacobi(&mut p);
     }

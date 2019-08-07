@@ -25,7 +25,7 @@ use super::ecp::ECP;
 use super::ecp8::ECP8;
 use super::fp16::FP16;
 use super::fp48::FP48;
-use super::big::BIG;
+use super::big::Big;
 use super::pair256;
 use super::big;
 use super::rom;
@@ -241,10 +241,10 @@ pub fn today() -> usize {
 /* these next two functions help to implement elligator squared - http://eprint.iacr.org/2014/043 */
 /* maps a random u to a point on the curve */
 #[allow(non_snake_case)]
-fn emap(u: &BIG, cb: isize) -> ECP {
+fn emap(u: &Big, cb: isize) -> ECP {
     let mut P: ECP;
-    let mut x = BIG::new_copy(u);
-    let mut p = BIG::new_ints(&rom::MODULUS);
+    let mut x = Big::new_copy(u);
+    let mut p = Big::new_ints(&rom::MODULUS);
     x.rmod(&mut p);
     loop {
         P = ECP::new_bigint(&x, cb);
@@ -259,7 +259,7 @@ fn emap(u: &BIG, cb: isize) -> ECP {
 
 /* returns u derived from P. Random value in range 1 to return value should then be added to u */
 #[allow(non_snake_case)]
-fn unmap(u: &mut BIG, P: &mut ECP) -> isize {
+fn unmap(u: &mut Big, P: &mut ECP) -> isize {
     let s = P.gets();
     let mut R: ECP;
     let mut r = 0;
@@ -291,19 +291,19 @@ pub fn encoding(rng: &mut RAND, e: &mut [u8]) -> isize {
     for i in 0..EFS {
         t[i] = e[i + 1]
     }
-    let mut u = BIG::frombytes(&t);
+    let mut u = Big::frombytes(&t);
     for i in 0..EFS {
         t[i] = e[i + EFS + 1]
     }
-    let mut v = BIG::frombytes(&t);
+    let mut v = Big::frombytes(&t);
 
     let mut P = ECP::new_bigs(&u, &v);
     if P.is_infinity() {
         return INVALID_POINT;
     }
 
-    let p = BIG::new_ints(&rom::MODULUS);
-    u = BIG::randomnum(&p, rng);
+    let p = Big::new_ints(&rom::MODULUS);
+    u = Big::randomnum(&p, rng);
 
     let mut su = rng.getbyte() as isize;
     su %= 2;
@@ -339,11 +339,11 @@ pub fn decoding(d: &mut [u8]) -> isize {
     for i in 0..EFS {
         t[i] = d[i + 1]
     }
-    let mut u = BIG::frombytes(&t);
+    let mut u = Big::frombytes(&t);
     for i in 0..EFS {
         t[i] = d[i + EFS + 1]
     }
-    let mut v = BIG::frombytes(&t);
+    let mut v = Big::frombytes(&t);
 
     let su = (d[0] & 1) as isize;
     let sv = ((d[0] >> 1) & 1) as isize;
@@ -399,8 +399,8 @@ pub fn recombine_g2(w1: &[u8], w2: &[u8], w: &mut [u8]) -> isize {
 
 /* create random secret S */
 pub fn random_generate(rng: &mut RAND, s: &mut [u8]) -> isize {
-    let r = BIG::new_ints(&rom::CURVE_ORDER);
-    let mut sc = BIG::randomnum(&r, rng);
+    let r = Big::new_ints(&rom::CURVE_ORDER);
+    let mut sc = Big::randomnum(&r, rng);
     sc.tobytes(s);
     return 0;
 }
@@ -410,7 +410,7 @@ pub fn random_generate(rng: &mut RAND, s: &mut [u8]) -> isize {
 pub fn get_server_secret(s: &[u8], sst: &mut [u8]) -> isize {
     let mut Q = ECP8::generator();
 
-    let mut sc = BIG::frombytes(s);
+    let mut sc = Big::frombytes(s);
     Q = pair256::g2mul(&mut Q, &mut sc);
     Q.tobytes(sst);
     return 0;
@@ -430,14 +430,14 @@ pub fn get_g1_multiple(
     g: &[u8],
     w: &mut [u8],
 ) -> isize {
-    let mut sx: BIG;
-    let r = BIG::new_ints(&rom::CURVE_ORDER);
+    let mut sx: Big;
+    let r = Big::new_ints(&rom::CURVE_ORDER);
 
     if let Some(rd) = rng {
-        sx = BIG::randomnum(&r, rd);
+        sx = Big::randomnum(&r, rd);
         sx.tobytes(x);
     } else {
-        sx = BIG::frombytes(x);
+        sx = Big::frombytes(x);
     }
     let mut P: ECP;
 
@@ -549,7 +549,7 @@ pub fn get_client_permit(sha: usize, date: usize, s: &[u8], cid: &[u8], ctt: &mu
     hashit(sha, date, cid, &mut h);
     let mut P = ECP::mapit(&h);
 
-    let mut sc = BIG::frombytes(s);
+    let mut sc = Big::frombytes(s);
     pair256::g1mul(&mut P, &mut sc).tobytes(ctt, false);
     return 0;
 }
@@ -569,15 +569,15 @@ pub fn client_1(
     xcid: Option<&mut [u8]>,
     permit: Option<&[u8]>,
 ) -> isize {
-    let r = BIG::new_ints(&rom::CURVE_ORDER);
+    let r = Big::new_ints(&rom::CURVE_ORDER);
 
-    let mut sx: BIG;
+    let mut sx: Big;
 
     if let Some(rd) = rng {
-        sx = BIG::randomnum(&r, rd);
+        sx = Big::randomnum(&r, rd);
         sx.tobytes(x);
     } else {
-        sx = BIG::frombytes(x);
+        sx = Big::frombytes(x);
     }
 
     const RM: usize = big::MODBYTES as usize;
@@ -652,14 +652,14 @@ pub fn server_1(sha: usize, date: usize, cid: &[u8], hid: &mut [u8], htid: Optio
 /* Implement step 2 on client side of MPin protocol */
 #[allow(non_snake_case)]
 pub fn client_2(x: &[u8], y: &[u8], sec: &mut [u8]) -> isize {
-    let mut r = BIG::new_ints(&rom::CURVE_ORDER);
+    let mut r = Big::new_ints(&rom::CURVE_ORDER);
     let mut P = ECP::frombytes(sec);
     if P.is_infinity() {
         return INVALID_POINT;
     }
 
-    let mut px = BIG::frombytes(x);
-    let py = BIG::frombytes(y);
+    let mut px = Big::frombytes(x);
+    let py = Big::frombytes(y);
     px.add(&py);
     px.rmod(&mut r);
 
@@ -685,8 +685,8 @@ pub fn get_y(sha: usize, timevalue: usize, xcid: &[u8], y: &mut [u8]) {
 
     hashit(sha, timevalue, xcid, &mut h);
 
-    let mut sy = BIG::frombytes(&h);
-    let mut q = BIG::new_ints(&rom::CURVE_ORDER);
+    let mut sy = Big::frombytes(&h);
+    let mut q = Big::new_ints(&rom::CURVE_ORDER);
     sy.rmod(&mut q);
     sy.tobytes(y);
 }
@@ -730,7 +730,7 @@ pub fn server_2(
         return INVALID_POINT;
     }
 
-    let mut sy = BIG::frombytes(&y);
+    let mut sy = Big::frombytes(&y);
     let mut P: ECP;
     if date != 0 {
         if let Some(rhtid) = htid {
@@ -912,9 +912,9 @@ pub fn client_key(
 ) -> isize {
     let mut g1 = FP48::frombytes(&g1);
     let mut g2 = FP48::frombytes(&g2);
-    let mut z = BIG::frombytes(&r);
-    let mut x = BIG::frombytes(&x);
-    let h = BIG::frombytes(&h);
+    let mut z = Big::frombytes(&r);
+    let mut x = Big::frombytes(&x);
+    let h = Big::frombytes(&h);
 
     let mut W = ECP::frombytes(&wcid);
     if W.is_infinity() {
@@ -923,7 +923,7 @@ pub fn client_key(
 
     W = pair256::g1mul(&mut W, &mut x);
 
-    let mut r = BIG::new_ints(&rom::CURVE_ORDER);
+    let mut r = Big::new_ints(&rom::CURVE_ORDER);
 
     z.add(&h); //new
     z.rmod(&mut r);
@@ -976,8 +976,8 @@ pub fn server_key(
         return INVALID_POINT;
     }
 
-    let mut w = BIG::frombytes(&w);
-    let mut h = BIG::frombytes(&h);
+    let mut w = Big::frombytes(&w);
+    let mut h = Big::frombytes(&h);
     A = pair256::g1mul(&mut A, &mut h); // new
     R.add(&mut A);
 

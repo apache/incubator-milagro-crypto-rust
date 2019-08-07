@@ -18,7 +18,7 @@ under the License.
 */
 
 use super::fp::FP;
-use super::big::BIG;
+use super::big::Big;
 use super::big;
 use super::rom;
 
@@ -70,8 +70,8 @@ impl ECP {
         return E;
     }
 
-    /* set (x,y) from two BIGs */
-    pub fn new_bigs(ix: &BIG, iy: &BIG) -> ECP {
+    /* set (x,y) from two Bigs */
+    pub fn new_bigs(ix: &Big, iy: &Big) -> ECP {
         let mut E = ECP::new();
         E.x.bcopy(ix);
         E.y.bcopy(iy);
@@ -92,8 +92,8 @@ impl ECP {
         return E;
     }
 
-    /* set (x,y) from BIG and a bit */
-    pub fn new_bigint(ix: &BIG, s: isize) -> ECP {
+    /* set (x,y) from Big and a bit */
+    pub fn new_bigint(ix: &Big, s: isize) -> ECP {
         let mut E = ECP::new();
         E.x.bcopy(ix);
         E.x.norm();
@@ -115,7 +115,7 @@ impl ECP {
 
     #[allow(non_snake_case)]
     /* set from x - calculate y from curve equation */
-    pub fn new_big(ix: &BIG) -> ECP {
+    pub fn new_big(ix: &Big) -> ECP {
         let mut E = ECP::new();
         E.x.bcopy(ix);
         E.x.norm();
@@ -151,7 +151,7 @@ impl ECP {
 
         if CURVETYPE == CurveType::WEIERSTRASS {
             // x^3+Ax+B
-            let b = FP::new_big(&BIG::new_ints(&rom::CURVE_B));
+            let b = FP::new_big(&Big::new_ints(&rom::CURVE_B));
             r.mul(x);
             if rom::CURVE_A == -3 {
                 let mut cx = FP::new_copy(x);
@@ -164,7 +164,7 @@ impl ECP {
         }
         if CURVETYPE == CurveType::EDWARDS {
             // (Ax^2-1)/(Bx^2-1)
-            let mut b = FP::new_big(&BIG::new_ints(&rom::CURVE_B));
+            let mut b = FP::new_big(&Big::new_ints(&rom::CURVE_B));
             let one = FP::new_int(1);
             b.mul(&r);
             b.sub(&one);
@@ -316,16 +316,16 @@ impl ECP {
         self.z.copy(&one);
     }
 
-    /* extract x as a BIG */
-    pub fn getx(&self) -> BIG {
+    /* extract x as a Big */
+    pub fn getx(&self) -> Big {
         let mut W = ECP::new();
         W.copy(self);
         W.affine();
         return W.x.redc();
     }
 
-    /* extract y as a BIG */
-    pub fn gety(&self) -> BIG {
+    /* extract y as a Big */
+    pub fn gety(&self) -> Big {
         let mut W = ECP::new();
         W.copy(self);
         W.affine();
@@ -393,13 +393,13 @@ impl ECP {
     pub fn frombytes(b: &[u8]) -> ECP {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
-        let p = BIG::new_ints(&rom::MODULUS);
+        let p = Big::new_ints(&rom::MODULUS);
 
         for i in 0..mb {
             t[i] = b[i + 1]
         }
-        let px = BIG::frombytes(&t);
-        if BIG::comp(&px, &p) >= 0 {
+        let px = Big::frombytes(&t);
+        if Big::comp(&px, &p) >= 0 {
             return ECP::new();
         }
 
@@ -411,8 +411,8 @@ impl ECP {
             for i in 0..mb {
                 t[i] = b[i + mb + 1]
             }
-            let py = BIG::frombytes(&t);
-            if BIG::comp(&py, &p) >= 0 {
+            let py = Big::frombytes(&t);
+            if Big::comp(&py, &p) >= 0 {
                 return ECP::new();
             }
             return ECP::new_bigs(&px, &py);
@@ -509,7 +509,7 @@ impl ECP {
                 let mut b = FP::new();
 
                 if rom::CURVE_B_I == 0 {
-                    b.copy(&FP::new_big(&BIG::new_ints(&rom::CURVE_B)));
+                    b.copy(&FP::new_big(&Big::new_ints(&rom::CURVE_B)));
                 }
 
                 t0.sqr(); //1    x^2
@@ -742,7 +742,7 @@ impl ECP {
                 let mut b = FP::new();
 
                 if rom::CURVE_B_I == 0 {
-                    b.copy(&FP::new_big(&BIG::new_ints(&rom::CURVE_B)));
+                    b.copy(&FP::new_big(&Big::new_ints(&rom::CURVE_B)));
                 }
 
                 t0.mul(&Q.x); //1
@@ -848,7 +848,7 @@ impl ECP {
             }
         }
         if CURVETYPE == CurveType::EDWARDS {
-            let bb = FP::new_big(&BIG::new_ints(&rom::CURVE_B));
+            let bb = FP::new_big(&Big::new_ints(&rom::CURVE_B));
             let mut a = FP::new_copy(&self.z);
             let mut b = FP::new();
             let mut c = FP::new_copy(&self.x);
@@ -960,7 +960,7 @@ impl ECP {
     /* constant time multiply by small integer of length bts - use ladder */
     pub fn pinmul(&self, e: i32, bts: i32) -> ECP {
         if CURVETYPE == CurveType::MONTGOMERY {
-            return self.mul(&mut BIG::new_int(e as isize));
+            return self.mul(&mut Big::new_int(e as isize));
         } else {
             let mut P = ECP::new();
             let mut R0 = ECP::new();
@@ -984,7 +984,7 @@ impl ECP {
 
     /* return e.self */
 
-    pub fn mul(&self, e: &BIG) -> ECP {
+    pub fn mul(&self, e: &Big) -> ECP {
         if e.iszilch() || self.is_infinity() {
             return ECP::new();
         }
@@ -1013,8 +1013,8 @@ impl ECP {
             P.copy(&R0)
         } else {
             // fixed size windows
-            let mut mt = BIG::new();
-            let mut t = BIG::new();
+            let mut mt = Big::new();
+            let mut t = Big::new();
             let mut Q = ECP::new();
             let mut C = ECP::new();
 
@@ -1084,10 +1084,10 @@ impl ECP {
 
     /* Return e.this+f.Q */
 
-    pub fn mul2(&self, e: &BIG, Q: &ECP, f: &BIG) -> ECP {
-        let mut te = BIG::new();
-        let mut tf = BIG::new();
-        let mut mt = BIG::new();
+    pub fn mul2(&self, e: &Big, Q: &ECP, f: &Big) -> ECP {
+        let mut te = Big::new();
+        let mut tf = Big::new();
+        let mut mt = Big::new();
         let mut S = ECP::new();
         let mut T = ECP::new();
         let mut C = ECP::new();
@@ -1210,7 +1210,7 @@ impl ECP {
             self.dbl();
             return;
         }
-        let c = BIG::new_ints(&rom::CURVE_COF);
+        let c = Big::new_ints(&rom::CURVE_COF);
         let P = self.mul(&c);
         self.copy(&P);
     }
@@ -1218,8 +1218,8 @@ impl ECP {
     // Map a given byte slice to a point on the curve. The byte slice should be atleast the size of the modulus
     #[allow(non_snake_case)]
     pub fn mapit(h: &[u8]) -> ECP {
-        let mut q = BIG::new_ints(&rom::MODULUS);
-        let mut x = BIG::frombytes(h);
+        let mut q = Big::new_ints(&rom::MODULUS);
+        let mut x = Big::frombytes(h);
         x.rmod(&mut q);
         let mut P: ECP;
 
@@ -1248,10 +1248,10 @@ impl ECP {
     pub fn generator() -> ECP {
         let G: ECP;
 
-        let gx = BIG::new_ints(&rom::CURVE_GX);
+        let gx = Big::new_ints(&rom::CURVE_GX);
 
         if CURVETYPE != CurveType::MONTGOMERY {
-            let gy = BIG::new_ints(&rom::CURVE_GY);
+            let gy = Big::new_ints(&rom::CURVE_GY);
             G = ECP::new_bigs(&gx, &gy);
         } else {
             G = ECP::new_big(&gx);

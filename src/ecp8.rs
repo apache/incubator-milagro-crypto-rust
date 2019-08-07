@@ -23,7 +23,7 @@ use super::ecp;
 use super::fp2::FP2;
 use super::fp4::FP4;
 use super::fp8::FP8;
-use super::big::BIG;
+use super::big::Big;
 use types::{SexticTwist, SignOfX};
 
 pub struct ECP8 {
@@ -298,22 +298,22 @@ impl ECP8 {
         for i in 0..mb {
             t[i] = b[i]
         }
-        let mut ra = BIG::frombytes(&t);
+        let mut ra = Big::frombytes(&t);
         for i in 0..mb {
             t[i] = b[i + mb]
         }
-        let mut rb = BIG::frombytes(&t);
+        let mut rb = Big::frombytes(&t);
 
         let mut ra4 = FP2::new_bigs(&ra, &rb);
 
         for i in 0..mb {
             t[i] = b[i + 2 * mb]
         }
-        ra.copy(&BIG::frombytes(&t));
+        ra.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = b[i + 3 * mb]
         }
-        rb.copy(&BIG::frombytes(&t));
+        rb.copy(&Big::frombytes(&t));
 
         let mut rb4 = FP2::new_bigs(&ra, &rb);
 
@@ -322,22 +322,22 @@ impl ECP8 {
         for i in 0..mb {
             t[i] = b[i + 4 * mb]
         }
-        let mut ra = BIG::frombytes(&t);
+        let mut ra = Big::frombytes(&t);
         for i in 0..mb {
             t[i] = b[i + 5 * mb]
         }
-        let mut rb = BIG::frombytes(&t);
+        let mut rb = Big::frombytes(&t);
 
         ra4.copy(&FP2::new_bigs(&ra, &rb));
 
         for i in 0..mb {
             t[i] = b[i + 6 * mb]
         }
-        ra.copy(&BIG::frombytes(&t));
+        ra.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = b[i + 7 * mb]
         }
-        rb.copy(&BIG::frombytes(&t));
+        rb.copy(&Big::frombytes(&t));
 
         rb4.copy(&FP2::new_bigs(&ra, &rb));
 
@@ -348,22 +348,22 @@ impl ECP8 {
         for i in 0..mb {
             t[i] = b[i + 8 * mb]
         }
-        ra.copy(&BIG::frombytes(&t));
+        ra.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = b[i + 9 * mb]
         }
-        rb.copy(&BIG::frombytes(&t));
+        rb.copy(&Big::frombytes(&t));
 
         ra4.copy(&FP2::new_bigs(&ra, &rb));
 
         for i in 0..mb {
             t[i] = b[i + 10 * mb]
         }
-        ra.copy(&BIG::frombytes(&t));
+        ra.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = b[i + 11 * mb]
         }
-        rb.copy(&BIG::frombytes(&t));
+        rb.copy(&Big::frombytes(&t));
 
         rb4.copy(&FP2::new_bigs(&ra, &rb));
 
@@ -372,22 +372,22 @@ impl ECP8 {
         for i in 0..mb {
             t[i] = b[i + 12 * mb]
         }
-        ra.copy(&BIG::frombytes(&t));
+        ra.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = b[i + 13 * mb]
         }
-        rb.copy(&BIG::frombytes(&t));
+        rb.copy(&Big::frombytes(&t));
 
         ra4.copy(&FP2::new_bigs(&ra, &rb));
 
         for i in 0..mb {
             t[i] = b[i + 14 * mb]
         }
-        ra.copy(&BIG::frombytes(&t));
+        ra.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = b[i + 15 * mb]
         }
-        rb.copy(&BIG::frombytes(&t));
+        rb.copy(&Big::frombytes(&t));
 
         rb4.copy(&FP2::new_bigs(&ra, &rb));
 
@@ -413,7 +413,7 @@ impl ECP8 {
     pub fn rhs(x: &FP8) -> FP8 {
         let mut r = FP8::new_copy(x);
         r.sqr();
-        let mut b = FP8::new_fp4(&FP4::new_fp2(&FP2::new_big(&BIG::new_ints(&rom::CURVE_B))));
+        let mut b = FP8::new_fp4(&FP4::new_fp2(&FP2::new_big(&Big::new_ints(&rom::CURVE_B))));
         if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
             b.div_i();
         }
@@ -592,7 +592,7 @@ impl ECP8 {
     }
 
     pub fn frob_constants() -> [FP2; 3] {
-        let f = FP2::new_bigs(&BIG::new_ints(&rom::FRA), &BIG::new_ints(&rom::FRB));
+        let f = FP2::new_bigs(&Big::new_ints(&rom::FRA), &Big::new_ints(&rom::FRB));
 
         let mut f0 = FP2::new_copy(&f);
         f0.sqr();
@@ -648,10 +648,10 @@ impl ECP8 {
     }
 
     /* self*=e */
-    pub fn mul(&self, e: &BIG) -> ECP8 {
+    pub fn mul(&self, e: &Big) -> ECP8 {
         /* fixed size windows */
-        let mut mt = BIG::new();
-        let mut t = BIG::new();
+        let mut mt = Big::new();
+        let mut t = Big::new();
         let mut P = ECP8::new();
         let mut Q = ECP8::new();
         let mut C = ECP8::new();
@@ -729,7 +729,7 @@ impl ECP8 {
     // Faz-Hernandez & Longa & Sanchez  https://eprint.iacr.org/2013/158.pdf
     // Side channel attack secure
 
-    pub fn mul16(Q: &mut [ECP8], u: &[BIG]) -> ECP8 {
+    pub fn mul16(Q: &mut [ECP8], u: &[Big]) -> ECP8 {
         let mut W = ECP8::new();
         let mut P = ECP8::new();
 
@@ -774,25 +774,25 @@ impl ECP8 {
             ECP8::new(),
         ];
 
-        let mut mt = BIG::new();
+        let mut mt = Big::new();
 
-        let mut t: [BIG; 16] = [
-            BIG::new_copy(&u[0]),
-            BIG::new_copy(&u[1]),
-            BIG::new_copy(&u[2]),
-            BIG::new_copy(&u[3]),
-            BIG::new_copy(&u[4]),
-            BIG::new_copy(&u[5]),
-            BIG::new_copy(&u[6]),
-            BIG::new_copy(&u[7]),
-            BIG::new_copy(&u[8]),
-            BIG::new_copy(&u[9]),
-            BIG::new_copy(&u[10]),
-            BIG::new_copy(&u[11]),
-            BIG::new_copy(&u[12]),
-            BIG::new_copy(&u[13]),
-            BIG::new_copy(&u[14]),
-            BIG::new_copy(&u[15]),
+        let mut t: [Big; 16] = [
+            Big::new_copy(&u[0]),
+            Big::new_copy(&u[1]),
+            Big::new_copy(&u[2]),
+            Big::new_copy(&u[3]),
+            Big::new_copy(&u[4]),
+            Big::new_copy(&u[5]),
+            Big::new_copy(&u[6]),
+            Big::new_copy(&u[7]),
+            Big::new_copy(&u[8]),
+            Big::new_copy(&u[9]),
+            Big::new_copy(&u[10]),
+            Big::new_copy(&u[11]),
+            Big::new_copy(&u[12]),
+            Big::new_copy(&u[13]),
+            Big::new_copy(&u[14]),
+            Big::new_copy(&u[15]),
         ];
 
         const CT: usize = 1 + big::NLEN * (big::BASEBITS as usize);
@@ -1031,44 +1031,44 @@ impl ECP8 {
             &FP8::new_fp4s(
                 &FP4::new_fp2s(
                     &FP2::new_bigs(
-                        &BIG::new_ints(&rom::CURVE_PXAAA),
-                        &BIG::new_ints(&rom::CURVE_PXAAB),
+                        &Big::new_ints(&rom::CURVE_PXAAA),
+                        &Big::new_ints(&rom::CURVE_PXAAB),
                     ),
                     &FP2::new_bigs(
-                        &BIG::new_ints(&rom::CURVE_PXABA),
-                        &BIG::new_ints(&rom::CURVE_PXABB),
+                        &Big::new_ints(&rom::CURVE_PXABA),
+                        &Big::new_ints(&rom::CURVE_PXABB),
                     ),
                 ),
                 &FP4::new_fp2s(
                     &FP2::new_bigs(
-                        &BIG::new_ints(&rom::CURVE_PXBAA),
-                        &BIG::new_ints(&rom::CURVE_PXBAB),
+                        &Big::new_ints(&rom::CURVE_PXBAA),
+                        &Big::new_ints(&rom::CURVE_PXBAB),
                     ),
                     &FP2::new_bigs(
-                        &BIG::new_ints(&rom::CURVE_PXBBA),
-                        &BIG::new_ints(&rom::CURVE_PXBBB),
+                        &Big::new_ints(&rom::CURVE_PXBBA),
+                        &Big::new_ints(&rom::CURVE_PXBBB),
                     ),
                 ),
             ),
             &FP8::new_fp4s(
                 &FP4::new_fp2s(
                     &FP2::new_bigs(
-                        &BIG::new_ints(&rom::CURVE_PYAAA),
-                        &BIG::new_ints(&rom::CURVE_PYAAB),
+                        &Big::new_ints(&rom::CURVE_PYAAA),
+                        &Big::new_ints(&rom::CURVE_PYAAB),
                     ),
                     &FP2::new_bigs(
-                        &BIG::new_ints(&rom::CURVE_PYABA),
-                        &BIG::new_ints(&rom::CURVE_PYABB),
+                        &Big::new_ints(&rom::CURVE_PYABA),
+                        &Big::new_ints(&rom::CURVE_PYABB),
                     ),
                 ),
                 &FP4::new_fp2s(
                     &FP2::new_bigs(
-                        &BIG::new_ints(&rom::CURVE_PYBAA),
-                        &BIG::new_ints(&rom::CURVE_PYBAB),
+                        &Big::new_ints(&rom::CURVE_PYBAA),
+                        &Big::new_ints(&rom::CURVE_PYBAB),
                     ),
                     &FP2::new_bigs(
-                        &BIG::new_ints(&rom::CURVE_PYBBA),
-                        &BIG::new_ints(&rom::CURVE_PYBBB),
+                        &Big::new_ints(&rom::CURVE_PYBBA),
+                        &Big::new_ints(&rom::CURVE_PYBBB),
                     ),
                 ),
             ),
@@ -1077,11 +1077,11 @@ impl ECP8 {
 
     #[allow(non_snake_case)]
     pub fn mapit(h: &[u8]) -> ECP8 {
-        let mut q = BIG::new_ints(&rom::MODULUS);
-        let mut x = BIG::frombytes(h);
+        let mut q = Big::new_ints(&rom::MODULUS);
+        let mut x = Big::frombytes(h);
         x.rmod(&mut q);
         let mut Q: ECP8;
-        let one = BIG::new_int(1);
+        let one = Big::new_int(1);
 
         loop {
             let X = FP8::new_fp4(&FP4::new_fp2(&FP2::new_bigs(&one, &x)));
@@ -1094,7 +1094,7 @@ impl ECP8 {
         }
 
         let f = ECP8::frob_constants();
-        x = BIG::new_ints(&rom::CURVE_BNX);
+        x = Big::new_ints(&rom::CURVE_BNX);
 
         let mut xQ = Q.mul(&mut x);
         let mut x2Q = xQ.mul(&mut x);

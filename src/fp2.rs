@@ -19,8 +19,8 @@ under the License.
 
 use super::fp;
 use super::fp::FP;
-use super::big::BIG;
-use super::dbig::DBIG;
+use super::big::Big;
+use super::dbig::DBig;
 use super::rom;
 use std::str::SplitWhitespace;
 use std::fmt;
@@ -78,7 +78,7 @@ impl FP2 {
         return f;
     }
 
-    pub fn new_bigs(c: &BIG, d: &BIG) -> FP2 {
+    pub fn new_bigs(c: &Big, d: &Big) -> FP2 {
         let mut f = FP2::new();
         f.a.copy(&FP::new_big(c));
         f.b.copy(&FP::new_big(d));
@@ -92,7 +92,7 @@ impl FP2 {
         return f;
     }
 
-    pub fn new_big(c: &BIG) -> FP2 {
+    pub fn new_big(c: &Big) -> FP2 {
         let mut f = FP2::new();
         f.a.copy(&FP::new_big(c));
         f.b.zero();
@@ -133,12 +133,12 @@ impl FP2 {
     }
 
     /* extract a */
-    pub fn geta(&mut self) -> BIG {
+    pub fn geta(&mut self) -> Big {
         return self.a.redc();
     }
 
     /* extract b */
-    pub fn getb(&mut self) -> BIG {
+    pub fn getb(&mut self) -> Big {
         return self.b.redc();
     }
 
@@ -248,24 +248,24 @@ impl FP2 {
             }
         }
 
-        let p = BIG::new_ints(&rom::MODULUS);
-        let mut pr = DBIG::new();
+        let p = Big::new_ints(&rom::MODULUS);
+        let mut pr = DBig::new();
 
         pr.ucopy(&p);
 
-        let mut c = BIG::new_copy(&(self.a.x));
-        let mut d = BIG::new_copy(&(y.a.x));
+        let mut c = Big::new_copy(&(self.a.x));
+        let mut d = Big::new_copy(&(y.a.x));
 
-        let mut a = BIG::mul(&self.a.x, &y.a.x);
-        let mut b = BIG::mul(&self.b.x, &y.b.x);
+        let mut a = Big::mul(&self.a.x, &y.a.x);
+        let mut b = Big::mul(&self.b.x, &y.b.x);
 
         c.add(&self.b.x);
         c.norm();
         d.add(&y.b.x);
         d.norm();
 
-        let mut e = BIG::mul(&c, &d);
-        let mut f = DBIG::new_copy(&a);
+        let mut e = Big::mul(&c, &d);
+        let mut f = DBig::new_copy(&a);
         f.add(&b);
         b.rsub(&pr);
 

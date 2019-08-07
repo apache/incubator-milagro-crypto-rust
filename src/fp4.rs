@@ -19,7 +19,7 @@ under the License.
 
 use super::fp::FP;
 use super::fp2::FP2;
-use super::big::BIG;
+use super::big::Big;
 use std::str::SplitWhitespace;
 
 #[derive(Copy, Clone)]
@@ -69,7 +69,7 @@ impl FP4 {
         f.b.zero();
         return f;
     }
-	
+
     pub fn set_fp2s(&mut self,c: &FP2, d: &FP2) {
         self.a.copy(&c);
 	self.b.copy(&d);
@@ -360,10 +360,10 @@ impl FP4 {
     }
 
     /* self=self^e */
-    pub fn pow(&self, e: &BIG) -> FP4 {
+    pub fn pow(&self, e: &Big) -> FP4 {
         let mut w = FP4::new_copy(self);
         w.norm();
-        let mut z = BIG::new_copy(&e);
+        let mut z = Big::new_copy(&e);
         let mut r = FP4::new_int(1);
         z.norm();
         loop {
@@ -412,7 +412,7 @@ impl FP4 {
     }
 
     /* r=x^n using XTR method on traces of FP12s */
-    pub fn xtr_pow(&self, n: &BIG) -> FP4 {
+    pub fn xtr_pow(&self, n: &Big) -> FP4 {
         let mut sf = FP4::new_copy(self);
         sf.norm();
         let mut a = FP4::new_int(3);
@@ -423,7 +423,7 @@ impl FP4 {
         let mut r = FP4::new();
 
         let par = n.parity();
-        let mut v = BIG::new_copy(n);
+        let mut v = Big::new_copy(n);
         v.norm();
         v.fshr(1);
         if par == 0 {
@@ -461,10 +461,10 @@ impl FP4 {
     }
 
     /* r=ck^a.cl^n using XTR double exponentiation method on traces of FP12s. See Stam thesis. */
-    pub fn xtr_pow2(&mut self, ck: &FP4, ckml: &FP4, ckm2l: &FP4, a: &BIG, b: &BIG) -> FP4 {
-        let mut e = BIG::new_copy(a);
-        let mut d = BIG::new_copy(b);
-        let mut w = BIG::new();
+    pub fn xtr_pow2(&mut self, ck: &FP4, ckml: &FP4, ckm2l: &FP4, a: &Big, b: &Big) -> FP4 {
+        let mut e = Big::new_copy(a);
+        let mut d = Big::new_copy(b);
+        let mut w = Big::new();
         e.norm();
         d.norm();
 
@@ -482,12 +482,12 @@ impl FP4 {
             f2 += 1;
         }
 
-        while BIG::comp(&d, &e) != 0 {
-            if BIG::comp(&d, &e) > 0 {
+        while Big::comp(&d, &e) != 0 {
+            if Big::comp(&d, &e) > 0 {
                 w.copy(&e);
                 w.imul(4);
                 w.norm();
-                if BIG::comp(&d, &w) <= 0 {
+                if Big::comp(&d, &w) <= 0 {
                     w.copy(&d);
                     d.copy(&e);
                     e.rsub(&w);
@@ -542,11 +542,11 @@ impl FP4 {
                     }
                 }
             }
-            if BIG::comp(&d, &e) < 0 {
+            if Big::comp(&d, &e) < 0 {
                 w.copy(&d);
                 w.imul(4);
                 w.norm();
-                if BIG::comp(&e, &w) <= 0 {
+                if Big::comp(&e, &w) <= 0 {
                     e.sub(&d);
                     e.norm();
                     t.copy(&cv);

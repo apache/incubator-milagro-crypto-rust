@@ -33,7 +33,7 @@ pub const CTR4: usize = 33;
 pub const CTR8: usize = 37;
 pub const CTR16: usize = 45;
 
-const INCO: [u8; 4] = [0xB, 0xD, 0x9, 0xE]; /* Inverse Coefficients */
+const INCO: [u8; 4] = [0xB, 0xD, 0x9, 0xE]; // Inverse Coefficients
 
 const PTAB: [u8; 256] = [
     1, 3, 5, 15, 17, 51, 85, 255, 26, 46, 114, 150, 161, 248, 19, 53, 95, 225, 56, 72, 216, 115,
@@ -196,7 +196,7 @@ impl AES {
     }
 
     fn pack(b: [u8; 4]) -> u32 {
-        /* pack bytes into a 32-bit Word */
+        // pack bytes into a 32-bit Word
         return ((((b[3]) & 0xff) as u32) << 24)
             | ((((b[2]) & 0xff) as u32) << 16)
             | ((((b[1]) & 0xff) as u32) << 8)
@@ -204,7 +204,7 @@ impl AES {
     }
 
     fn unpack(a: u32) -> [u8; 4] {
-        /* unpack bytes from a word */
+        // unpack bytes from a word
         let b: [u8; 4] = [
             (a & 0xff) as u8,
             ((a >> 8) & 0xff) as u8,
@@ -215,7 +215,7 @@ impl AES {
     }
 
     fn bmul(x: u8, y: u8) -> u8 {
-        /* x.y= AntiLog(Log(x) + Log(y)) */
+        // x.y= AntiLog(Log(x) + Log(y))
         let ix = (x as usize) & 0xff;
         let iy = (y as usize) & 0xff;
         let lx = (LTAB[ix] as usize) & 0xff;
@@ -238,7 +238,7 @@ impl AES {
     }
 
     fn product(x: u32, y: u32) -> u8 {
-        /* dot product of two 4-byte arrays */
+        // dot product of two 4-byte arrays
         let xb = AES::unpack(x);
         let yb = AES::unpack(y);
 
@@ -249,7 +249,7 @@ impl AES {
     }
 
     fn invmixcol(x: u32) -> u32 {
-        /* matrix Multiplication */
+        // matrix Multiplication
         let mut b: [u8; 4] = [0; 4];
         let mut m = AES::pack(INCO);
         b[3] = AES::product(m, x);
@@ -283,9 +283,9 @@ impl AES {
         }
     }
 
-    /* reset cipher */
+    // reset cipher
     pub fn reset(&mut self, m: usize, iv: Option<[u8; 16]>) {
-        /* reset mode, or reset iv */
+        // reset mode, or reset iv
         self.mode = m;
         for i in 0..16 {
             self.f[i] = 0
@@ -300,7 +300,7 @@ impl AES {
     }
 
     pub fn init(&mut self, m: usize, nkey: usize, key: &[u8], iv: Option<[u8; 16]>) -> bool {
-        /* Key Scheduler. Create expanded encryption key */
+        // Key Scheduler. Create expanded encryption key
         let mut cipherkey: [u32; 8] = [0; 8];
         let mut b: [u8; 4] = [0; 4];
         let nk = nkey / 4;
@@ -331,7 +331,7 @@ impl AES {
         while j < n {
             self.fkey[j] =
                 self.fkey[j - nk] ^ AES::subbyte(AES::rotl24(self.fkey[j - 1])) ^ (RCO[k] as u32);
-            if nk<=6 { 
+            if nk<=6 {
 		for i in 1..nk {
 			if (i + j) >= n {
 				break;
@@ -345,7 +345,7 @@ impl AES {
 			}
 			self.fkey[i + j] = self.fkey[i + j - nk] ^ self.fkey[i + j - 1];
 		}
-		
+
 		if (j + 4) < n {
 			self.fkey[j + 4] = self.fkey[j + 4 - nk] ^ AES::subbyte(self.fkey[j + 3]);
 		}
@@ -354,13 +354,13 @@ impl AES {
 				break;
 			}
 			self.fkey[i + j] = self.fkey[i + j - nk] ^ self.fkey[i + j - 1];
-		}	        
+		}
 	    }
             j += nk;
             k += 1;
         }
 
-        /* now for the expanded decrypt key in reverse order */
+        // now for the expanded decrypt key in reverse order
 
         for j in 0..4 {
             self.rkey[j + n - 4] = self.fkey[j]
@@ -387,7 +387,7 @@ impl AES {
         return ir;
     }
 
-    /* Encrypt a single block */
+    // Encrypt a single block
     pub fn ecb_encrypt(&mut self, buff: &mut [u8; 16]) {
         let mut b: [u8; 4] = [0; 4];
         let mut p: [u32; 4] = [0; 4];
@@ -405,7 +405,7 @@ impl AES {
 
         let mut k = 4;
 
-        /* State alternates between p and q */
+        // State alternates between p and q
         for _ in 1..self.nr {
             q[0] = self.fkey[k]
                 ^ FTABLE[(p[0] & 0xff) as usize]
@@ -439,7 +439,7 @@ impl AES {
             }
         }
 
-        /* Last Round */
+        // Last Round
 
         q[0] = self.fkey[k]
             ^ (FBSUB[(p[0] & 0xff) as usize] as u32)
@@ -475,7 +475,7 @@ impl AES {
         }
     }
 
-    /* Decrypt a single block */
+    // Decrypt a single block
     pub fn ecb_decrypt(&mut self, buff: &mut [u8; 16]) {
         let mut b: [u8; 4] = [0; 4];
         let mut p: [u32; 4] = [0; 4];
@@ -493,7 +493,7 @@ impl AES {
 
         let mut k = 4;
 
-        /* State alternates between p and q */
+        // State alternates between p and q
         for _ in 1..self.nr {
             q[0] = self.rkey[k]
                 ^ RTABLE[(p[0] & 0xff) as usize]
@@ -527,7 +527,7 @@ impl AES {
             }
         }
 
-        /* Last Round */
+        // Last Round
 
         q[0] = self.rkey[k]
             ^ (RBSUB[(p[0] & 0xff) as usize] as u32)
@@ -563,7 +563,7 @@ impl AES {
         }
     }
 
-    /* Encrypt using selected mode of operation */
+    // Encrypt using selected mode of operation
     pub fn encrypt(&mut self, buff: &mut [u8; 16]) -> u32 {
         let mut st: [u8; 16] = [0; 16];
 
@@ -643,7 +643,7 @@ impl AES {
         }
     }
 
-    /* Decrypt using selected mode of operation */
+    // Decrypt using selected mode of operation
     pub fn decrypt(&mut self, buff: &mut [u8; 16]) -> u32 {
         let mut st: [u8; 16] = [0; 16];
 
@@ -722,7 +722,7 @@ impl AES {
         }
     }
 
-    /* Clean up and delete left-overs */
+    // Clean up and delete left-overs
     pub fn end(&mut self) {
         // clean up
         for i in 0..4 * (self.nr + 1) {

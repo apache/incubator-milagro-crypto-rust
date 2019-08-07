@@ -19,7 +19,7 @@ under the License.
 
 use super::ecp;
 use super::ecp::ECP;
-use super::big::BIG;
+use super::big::Big;
 use super::rom;
 use super::big;
 
@@ -393,15 +393,15 @@ pub fn cbc_iv0_decrypt(k: &[u8], c: &[u8]) -> Option<Vec<u8>> {
 #[allow(non_snake_case)]
 pub fn key_pair_generate(rng: Option<&mut RAND>, s: &mut [u8], w: &mut [u8]) -> isize {
     let res = 0;
-    let mut sc: BIG;
+    let mut sc: Big;
     let G = ECP::generator();
 
-    let r = BIG::new_ints(&rom::CURVE_ORDER);
+    let r = Big::new_ints(&rom::CURVE_ORDER);
 
     if let Some(mut x) = rng {
-        sc = BIG::randomnum(&r, &mut x);
+        sc = Big::randomnum(&r, &mut x);
     } else {
-        sc = BIG::frombytes(&s);
+        sc = Big::frombytes(&s);
         sc.rmod(&r);
     }
 
@@ -420,15 +420,15 @@ pub fn public_key_validate(w: &[u8]) -> isize {
     let mut WP = ECP::frombytes(w);
     let mut res = 0;
 
-    let r = BIG::new_ints(&rom::CURVE_ORDER);
+    let r = Big::new_ints(&rom::CURVE_ORDER);
 
     if WP.is_infinity() {
         res = INVALID_PUBLIC_KEY
     }
     if res == 0 {
-        let q = BIG::new_ints(&rom::MODULUS);
+        let q = Big::new_ints(&rom::MODULUS);
         let nb = q.nbits();
-        let mut k = BIG::new();
+        let mut k = Big::new();
         k.one();
         k.shl((nb + 4) / 2);
         k.add(&q);
@@ -455,7 +455,7 @@ pub fn ecpsvdp_dh(s: &[u8], wd: &[u8], z: &mut [u8]) -> isize {
     let mut res = 0;
     let mut t: [u8; EFS] = [0; EFS];
 
-    let mut sc = BIG::frombytes(&s);
+    let mut sc = Big::frombytes(&s);
 
     let mut W = ECP::frombytes(&wd);
     if W.is_infinity() {
@@ -463,7 +463,7 @@ pub fn ecpsvdp_dh(s: &[u8], wd: &[u8], z: &mut [u8]) -> isize {
     }
 
     if res == 0 {
-        let r = BIG::new_ints(&rom::CURVE_ORDER);
+        let r = Big::new_ints(&rom::CURVE_ORDER);
         sc.rmod(&r);
         W = W.mul(&mut sc);
         if W.is_infinity() {
@@ -495,19 +495,19 @@ pub fn ecpsp_dsa(
 
     let G = ECP::generator();
 
-    let r = BIG::new_ints(&rom::CURVE_ORDER);
+    let r = Big::new_ints(&rom::CURVE_ORDER);
 
-    let mut sc = BIG::frombytes(s); /* s or &s? */
-    let fb = BIG::frombytes(&b);
+    let mut sc = Big::frombytes(s); /* s or &s? */
+    let fb = Big::frombytes(&b);
 
-    let mut cb = BIG::new();
-    let mut db = BIG::new();
-    let mut tb = BIG::new();
+    let mut cb = Big::new();
+    let mut db = Big::new();
+    let mut tb = Big::new();
     let mut V = ECP::new();
 
     while db.iszilch() {
-        let mut u = BIG::randomnum(&r, rng);
-        let mut w = BIG::randomnum(&r, rng); /* side channel masking */
+        let mut u = Big::randomnum(&r, rng);
+        let mut w = Big::randomnum(&r, rng); /* side channel masking */
 
         V.copy(&G);
         V = V.mul(&mut u);
@@ -518,17 +518,17 @@ pub fn ecpsp_dsa(
             continue;
         }
 
-        tb.copy(&BIG::modmul(&mut u, &mut w, &r));
+        tb.copy(&Big::modmul(&mut u, &mut w, &r));
         u.copy(&tb);
 
         u.invmodp(&r);
-        db.copy(&BIG::modmul(&mut sc, &mut cb, &r));
+        db.copy(&Big::modmul(&mut sc, &mut cb, &r));
         db.add(&fb);
 
-        tb.copy(&BIG::modmul(&mut db, &mut w, &r));
+        tb.copy(&Big::modmul(&mut db, &mut w, &r));
         db.copy(&tb);
 
-        tb.copy(&BIG::modmul(&mut u, &mut db, &r));
+        tb.copy(&Big::modmul(&mut u, &mut db, &r));
         db.copy(&tb);
     }
 
@@ -554,22 +554,22 @@ pub fn ecpvp_dsa(sha: usize, w: &[u8], f: &[u8], c: &[u8], d: &[u8]) -> isize {
 
     let mut G = ECP::generator();
 
-    let r = BIG::new_ints(&rom::CURVE_ORDER);
+    let r = Big::new_ints(&rom::CURVE_ORDER);
 
-    let mut cb = BIG::frombytes(c); /* c or &c ? */
-    let mut db = BIG::frombytes(d); /* d or &d ? */
-    let mut fb = BIG::frombytes(&b);
-    let mut tb = BIG::new();
+    let mut cb = Big::frombytes(c); /* c or &c ? */
+    let mut db = Big::frombytes(d); /* d or &d ? */
+    let mut fb = Big::frombytes(&b);
+    let mut tb = Big::new();
 
-    if cb.iszilch() || BIG::comp(&cb, &r) >= 0 || db.iszilch() || BIG::comp(&db, &r) >= 0 {
+    if cb.iszilch() || Big::comp(&cb, &r) >= 0 || db.iszilch() || Big::comp(&db, &r) >= 0 {
         res = INVALID;
     }
 
     if res == 0 {
         db.invmodp(&r);
-        tb.copy(&BIG::modmul(&mut fb, &mut db, &r));
+        tb.copy(&Big::modmul(&mut fb, &mut db, &r));
         fb.copy(&tb);
-        let h2 = BIG::modmul(&mut cb, &mut db, &r);
+        let h2 = Big::modmul(&mut cb, &mut db, &r);
 
         let WP = ECP::frombytes(&w);
         if WP.is_infinity() {
@@ -586,7 +586,7 @@ pub fn ecpvp_dsa(sha: usize, w: &[u8], f: &[u8], c: &[u8], d: &[u8]) -> isize {
                 db = P.getx();
                 db.rmod(&r);
 
-                if BIG::comp(&db, &cb) != 0 {
+                if Big::comp(&db, &cb) != 0 {
                     res = INVALID
                 }
             }

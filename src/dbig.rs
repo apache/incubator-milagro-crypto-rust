@@ -19,35 +19,35 @@ under the License.
 
 use super::super::arch;
 use super::big;
-use super::big::BIG;
+use super::big::Big;
 use super::super::arch::Chunk;
 
 #[derive(Copy)]
-pub struct DBIG {
+pub struct DBig {
     pub w: [Chunk; big::DNLEN],
 }
 
-impl Clone for DBIG {
-    fn clone(&self) -> DBIG { *self }
+impl Clone for DBig {
+    fn clone(&self) -> DBig { *self }
 }
 
-impl DBIG {
-    pub fn new() -> DBIG {
-        DBIG {
+impl DBig {
+    pub fn new() -> DBig {
+        DBig {
             w: [0; big::DNLEN as usize],
         }
     }
 
-    pub fn new_copy(y: &DBIG) -> DBIG {
-        let mut s = DBIG::new();
+    pub fn new_copy(y: &DBig) -> DBig {
+        let mut s = DBig::new();
         for i in 0..big::DNLEN {
             s.w[i] = y.w[i]
         }
         return s;
     }
 
-    pub fn new_scopy(x: &BIG) -> DBIG {
-        let mut b = DBIG::new();
+    pub fn new_scopy(x: &Big) -> DBig {
+        let mut b = DBig::new();
         for i in 0..big::NLEN {
             b.w[i] = x.w[i];
         }
@@ -60,9 +60,9 @@ impl DBIG {
         return b;
     }
 
-    /* split DBIG at position n, return higher half, keep lower half */
-    pub fn split(&mut self, n: usize) -> BIG {
-        let mut t = BIG::new();
+    /* split DBig at position n, return higher half, keep lower half */
+    pub fn split(&mut self, n: usize) -> Big {
+        let mut t = Big::new();
         let m = n % big::BASEBITS;
         let mut carry = self.w[big::DNLEN - 1] << (big::BASEBITS - m);
 
@@ -106,14 +106,14 @@ impl DBIG {
         }
     }
 
-    /* Copy from another DBIG */
-    pub fn copy(&mut self, x: &DBIG) {
+    /* Copy from another DBig */
+    pub fn copy(&mut self, x: &DBig) {
         for i in 0..big::DNLEN {
             self.w[i] = x.w[i];
         }
     }
 
-    pub fn ucopy(&mut self, x: &BIG) {
+    pub fn ucopy(&mut self, x: &Big) {
         for i in 0..big::NLEN {
             self.w[i] = 0;
         }
@@ -122,7 +122,7 @@ impl DBIG {
         }
     }
 
-    pub fn cmove(&mut self, g: &DBIG, d: isize) {
+    pub fn cmove(&mut self, g: &DBig, d: isize) {
         let b = -d as Chunk;
         for i in 0..big::DNLEN {
             self.w[i] ^= (self.w[i] ^ g.w[i]) & b;
@@ -130,28 +130,28 @@ impl DBIG {
     }
 
     /* self+=x */
-    pub fn add(&mut self, x: &DBIG) {
+    pub fn add(&mut self, x: &DBig) {
         for i in 0..big::DNLEN {
             self.w[i] += x.w[i];
         }
     }
 
     /* self-=x */
-    pub fn sub(&mut self, x: &DBIG) {
+    pub fn sub(&mut self, x: &DBig) {
         for i in 0..big::DNLEN {
             self.w[i] -= x.w[i];
         }
     }
 
     /* self=x-self */
-    pub fn rsub(&mut self, x: &DBIG) {
+    pub fn rsub(&mut self, x: &DBig) {
         for i in 0..big::DNLEN {
             self.w[i] = x.w[i] - self.w[i];
         }
     }
 
     /* Compare a and b, return 0 if a==b, -1 if a<b, +1 if a>b. Inputs must be normalised */
-    pub fn comp(a: &DBIG, b: &DBIG) -> isize {
+    pub fn comp(a: &DBig, b: &DBig) -> isize {
         for i in (0..big::DNLEN).rev() {
             if a.w[i] == b.w[i] {
                 continue;
@@ -165,7 +165,7 @@ impl DBIG {
         return 0;
     }
 
-    /* normalise BIG - force all digits < 2^big::BASEBITS */
+    /* normalise Big - force all digits < 2^big::BASEBITS */
     pub fn norm(&mut self) {
         let mut carry = 0 as Chunk;
         for i in 0..big::DNLEN - 1 {
@@ -176,22 +176,22 @@ impl DBIG {
         self.w[big::DNLEN - 1] += carry
     }
 
-    /* reduces self DBIG mod a BIG, and returns the BIG */
-    pub fn dmod(&mut self, c: &BIG) -> BIG {
+    /* reduces self DBig mod a Big, and returns the Big */
+    pub fn dmod(&mut self, c: &Big) -> Big {
         let mut k = 0;
         self.norm();
-        let mut m = DBIG::new_scopy(c);
-        let mut dr = DBIG::new();
+        let mut m = DBig::new_scopy(c);
+        let mut dr = DBig::new();
 
-        if DBIG::comp(self, &m) < 0 {
-            let r = BIG::new_dcopy(self);
+        if DBig::comp(self, &m) < 0 {
+            let r = Big::new_dcopy(self);
             return r;
         }
 
         loop {
             m.shl(1);
             k += 1;
-            if DBIG::comp(self, &m) < 0 {
+            if DBig::comp(self, &m) < 0 {
                 break;
             }
         }
@@ -209,21 +209,21 @@ impl DBIG {
 
             k -= 1;
         }
-        let r = BIG::new_dcopy(self);
+        let r = Big::new_dcopy(self);
         return r;
     }
 
     /* return this/c */
-    pub fn div(&mut self, c: &BIG) -> BIG {
+    pub fn div(&mut self, c: &Big) -> Big {
         let mut k = 0;
-        let mut m = DBIG::new_scopy(c);
-        let mut a = BIG::new();
-        let mut e = BIG::new_int(1);
-        let mut dr = DBIG::new();
-        let mut r = BIG::new();
+        let mut m = DBig::new_scopy(c);
+        let mut a = Big::new();
+        let mut e = Big::new_int(1);
+        let mut dr = DBig::new();
+        let mut r = Big::new();
         self.norm();
 
-        while DBIG::comp(self, &m) >= 0 {
+        while DBig::comp(self, &m) >= 0 {
             e.fshl(1);
             m.shl(1);
             k += 1;
@@ -262,7 +262,7 @@ impl DBIG {
     /* return number of bits */
     pub fn nbits(&mut self) -> usize {
         let mut k = big::DNLEN - 1;
-        let mut s = DBIG::new_copy(&self);
+        let mut s = DBig::new_copy(&self);
         s.norm();
         while (k as isize) >= 0 && s.w[k] == 0 {
             k = k.wrapping_sub(1)
@@ -292,7 +292,7 @@ impl DBIG {
         }
 
         for i in (0..len).rev() {
-            let mut b = DBIG::new_copy(&self);
+            let mut b = DBig::new_copy(&self);
             b.shr(i * 4);
             s = s + &format!("{:X}", b.w[0] & 15);
         }
