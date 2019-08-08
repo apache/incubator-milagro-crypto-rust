@@ -1,18 +1,18 @@
 pub mod aes;
-pub mod gcm;
-pub mod hash256;
-pub mod hash384;
-pub mod hash512;
-pub mod rand;
-pub mod sha3;
-pub mod nhs;
-pub mod types;
 #[cfg(target_pointer_width = "32")]
 #[path = "arch/arch32.rs"]
 pub mod arch;
 #[cfg(target_pointer_width = "64")]
 #[path = "arch/arch64.rs"]
 pub mod arch;
+pub mod gcm;
+pub mod hash256;
+pub mod hash384;
+pub mod hash512;
+pub mod nhs;
+pub mod rand;
+pub mod sha3;
+pub mod types;
 
 #[cfg(feature = "bls48")]
 #[path = "./"]
@@ -25,18 +25,18 @@ pub mod bls48 {
     pub mod rom;
 
     pub mod big;
+    pub mod bls256;
     pub mod dbig;
-    pub mod fp;
     pub mod ecp;
     pub mod ecp8;
+    pub mod fp;
+    pub mod fp16;
     pub mod fp2;
     pub mod fp4;
-    pub mod fp8;
-    pub mod fp16;
     pub mod fp48;
-    pub mod pair256;
+    pub mod fp8;
     pub mod mpin256;
-    pub mod bls256;
+    pub mod pair256;
 }
 
 #[cfg(feature = "bls461")]
@@ -50,16 +50,16 @@ pub mod bls461 {
     pub mod rom;
 
     pub mod big;
+    pub mod bls;
     pub mod dbig;
-    pub mod fp;
     pub mod ecp;
     pub mod ecp2;
+    pub mod fp;
+    pub mod fp12;
     pub mod fp2;
     pub mod fp4;
-    pub mod fp12;
-    pub mod pair;
     pub mod mpin;
-    pub mod bls;
+    pub mod pair;
 }
 
 #[cfg(feature = "bls383")]
@@ -73,16 +73,16 @@ pub mod bls383 {
     pub mod rom;
 
     pub mod big;
+    pub mod bls;
     pub mod dbig;
-    pub mod fp;
     pub mod ecp;
     pub mod ecp2;
+    pub mod fp;
+    pub mod fp12;
     pub mod fp2;
     pub mod fp4;
-    pub mod fp12;
-    pub mod pair;
     pub mod mpin;
-    pub mod bls;
+    pub mod pair;
 }
 
 #[cfg(feature = "bls381")]
@@ -96,16 +96,16 @@ pub mod bls381 {
     pub mod rom;
 
     pub mod big;
+    pub mod bls;
     pub mod dbig;
-    pub mod fp;
     pub mod ecp;
     pub mod ecp2;
+    pub mod fp;
+    pub mod fp12;
     pub mod fp2;
     pub mod fp4;
-    pub mod fp12;
-    pub mod pair;
     pub mod mpin;
-    pub mod bls;
+    pub mod pair;
 }
 
 #[cfg(feature = "fp512bn")]
@@ -119,16 +119,16 @@ pub mod fp512bn {
     pub mod rom;
 
     pub mod big;
+    pub mod bls;
     pub mod dbig;
-    pub mod fp;
     pub mod ecp;
     pub mod ecp2;
+    pub mod fp;
+    pub mod fp12;
     pub mod fp2;
     pub mod fp4;
-    pub mod fp12;
-    pub mod pair;
     pub mod mpin;
-    pub mod bls;
+    pub mod pair;
 }
 
 #[cfg(feature = "fp256bn")]
@@ -142,16 +142,16 @@ pub mod fp256bn {
     pub mod rom;
 
     pub mod big;
+    pub mod bls;
     pub mod dbig;
-    pub mod fp;
     pub mod ecp;
     pub mod ecp2;
+    pub mod fp;
+    pub mod fp12;
     pub mod fp2;
     pub mod fp4;
-    pub mod fp12;
-    pub mod pair;
     pub mod mpin;
-    pub mod bls;
+    pub mod pair;
 }
 
 #[cfg(feature = "bls24")]
@@ -165,17 +165,17 @@ pub mod bls24 {
     pub mod rom;
 
     pub mod big;
+    pub mod bls192;
     pub mod dbig;
-    pub mod fp;
-    pub mod fp2;
-    pub mod fp4;
-    pub mod fp8;
-    pub mod fp24;
     pub mod ecp;
     pub mod ecp4;
-    pub mod pair192;
+    pub mod fp;
+    pub mod fp2;
+    pub mod fp24;
+    pub mod fp4;
+    pub mod fp8;
     pub mod mpin192;
-    pub mod bls192;
+    pub mod pair192;
 }
 
 #[cfg(feature = "anssi")]
@@ -190,9 +190,9 @@ pub mod anssi {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "brainpool")]
@@ -207,9 +207,9 @@ pub mod brainpool {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "goldilocks")]
@@ -224,9 +224,9 @@ pub mod goldilocks {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "hifive")]
@@ -241,9 +241,9 @@ pub mod hifive {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "nist256")]
@@ -258,9 +258,9 @@ pub mod nist256 {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "nist384")]
@@ -275,9 +275,9 @@ pub mod nist384 {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "nist521")]
@@ -292,9 +292,9 @@ pub mod nist521 {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "nums256e")]
@@ -309,9 +309,9 @@ pub mod nums256e {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "nums256w")]
@@ -326,9 +326,9 @@ pub mod nums256w {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "nums384e")]
@@ -343,9 +343,9 @@ pub mod nums384e {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "nums384w")]
@@ -360,9 +360,9 @@ pub mod nums384w {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "nums512w")]
@@ -377,9 +377,9 @@ pub mod nums512w {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "nums512e")]
@@ -394,9 +394,9 @@ pub mod nums512e {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "secp256k1")]
@@ -411,9 +411,9 @@ pub mod secp256k1 {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "c25519")]
@@ -428,9 +428,9 @@ pub mod c25519 {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "c41417")]
@@ -445,9 +445,9 @@ pub mod c41417 {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "ed25519")]
@@ -462,9 +462,9 @@ pub mod ed25519 {
 
     pub mod big;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
+    pub mod fp;
 }
 
 #[cfg(feature = "bn254CX")]
@@ -478,17 +478,17 @@ pub mod bn254CX {
     pub mod rom;
 
     pub mod big;
+    pub mod bls;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
     pub mod ecp2;
+    pub mod fp;
+    pub mod fp12;
     pub mod fp2;
     pub mod fp4;
-    pub mod fp12;
-    pub mod pair;
     pub mod mpin;
-    pub mod bls;
+    pub mod pair;
 }
 
 #[cfg(feature = "bn254")]
@@ -502,60 +502,60 @@ pub mod bn254 {
     pub mod rom;
 
     pub mod big;
+    pub mod bls;
     pub mod dbig;
-    pub mod fp;
-    pub mod ecp;
     pub mod ecdh;
+    pub mod ecp;
     pub mod ecp2;
+    pub mod fp;
+    pub mod fp12;
     pub mod fp2;
     pub mod fp4;
-    pub mod fp12;
-    pub mod pair;
     pub mod mpin;
-    pub mod bls;
+    pub mod pair;
 }
 
 #[cfg(feature = "rsa2048")]
 #[path = "./"]
 pub mod rsa2048 {
+    pub mod big;
+    pub mod dbig;
+    pub mod ff;
     #[cfg(target_pointer_width = "32")]
     #[path = "roms/rom_rsa2048_32.rs"]
     pub mod rom;
     #[cfg(target_pointer_width = "64")]
     #[path = "roms/rom_rsa2048_64.rs"]
     pub mod rom;
-    pub mod big;
-    pub mod dbig;
-    pub mod ff;
     pub mod rsa;
 }
 
 #[cfg(feature = "rsa3072")]
 #[path = "./"]
 pub mod rsa3072 {
+    pub mod big;
+    pub mod dbig;
+    pub mod ff;
     #[cfg(target_pointer_width = "32")]
     #[path = "roms/rom_rsa3072_32.rs"]
     pub mod rom;
     #[cfg(target_pointer_width = "64")]
     #[path = "roms/rom_rsa3072_64.rs"]
     pub mod rom;
-    pub mod big;
-    pub mod dbig;
-    pub mod ff;
     pub mod rsa;
 }
 
 #[cfg(feature = "rsa4096")]
 #[path = "./"]
 pub mod rsa4096 {
+    pub mod big;
+    pub mod dbig;
+    pub mod ff;
     #[cfg(target_pointer_width = "32")]
     #[path = "roms/rom_rsa4096_32.rs"]
     mod rom;
     #[cfg(target_pointer_width = "64")]
     #[path = "roms/rom_rsa4096_64.rs"]
     mod rom;
-    pub mod big;
-    pub mod dbig;
-    pub mod ff;
     pub mod rsa;
 }

@@ -17,9 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use nist384::big::NLEN;
 use super::super::arch::Chunk;
-use types::{ModType, CurveType, CurvePairingType, SexticTwist, SignOfX};
+use nist384::big::NLEN;
+use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 56
 
@@ -43,7 +43,6 @@ pub const R2MODP: [Chunk; NLEN] = [
     0x0,
 ];
 pub const MCONST: Chunk = 0x100000001;
-
 
 // nist384 Curve
 pub const CURVE_COF_I: isize = 1;
@@ -92,13 +91,13 @@ pub const BASEBITS: usize = 56;
 
 pub const MODBITS: usize = 384;
 pub const MOD8: usize = 7;
-pub const MODTYPE: ModType = ModType::NOT_SPECIAL;
+pub const MODTYPE: ModType = ModType::NotSpecial;
 pub const SH: usize = 8;
 
-pub const CURVETYPE: CurveType = CurveType::WEIERSTRASS;
-pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::NOT;
-pub const SEXTIC_TWIST: SexticTwist = SexticTwist::NOT;
+pub const CURVETYPE: CurveType = CurveType::Weierstrass;
+pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::Not;
+pub const SEXTIC_TWIST: SexticTwist = SexticTwist::Not;
 pub const ATE_BITS: usize = 0;
-pub const SIGN_OF_X: SignOfX = SignOfX::NOT;
+pub const SIGN_OF_X: SignOfX = SignOfX::Not;
 pub const HASH_TYPE: usize = 48;
 pub const AESKEY: usize = 24;

@@ -313,7 +313,7 @@ fn encode(key: &[u8], poly: &mut [i32]) {
         let mut kj = key[j];
         j += 1;
         for _ in 0..8 {
-            let b = (kj & 1) as i32;
+            let b = i32::from(kj & 1);
             poly[i] = b * q2;
             poly[i + 256] = b * q2;
             poly[i + 512] = b * q2;
@@ -359,13 +359,13 @@ fn parse(seed: &[u8], poly: &mut [i32]) {
 
     let mut j = 0;
     for i in 0..DEGREE {
-        let mut n = (hash[j] & 0x7f) as i32;
+        let mut n = i32::from(hash[j] & 0x7f);
         n <<= 8;
-        n += (hash[j + 1]) as i32;
+        n += i32::from(hash[j + 1]);
         n <<= 8;
-        n += (hash[j + 2]) as i32;
+        n += i32::from(hash[j + 2]);
         n <<= 8;
-        n += (hash[j + 3]) as i32;
+        n += i32::from(hash[j + 3]);
         j += 4;
         poly[i] = nres(n);
         //poly[i]=modmul(n,ONE); // reduce 31-bit random number mod q

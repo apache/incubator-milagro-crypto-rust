@@ -184,34 +184,33 @@ pub struct AES {
 
 impl AES {
     fn rotl8(x: u32) -> u32 {
-        return ((x) << 8) | ((x) >> 24);
+        ((x) << 8) | ((x) >> 24)
     }
 
     fn rotl16(x: u32) -> u32 {
-        return ((x) << 16) | ((x) >> 16);
+        ((x) << 16) | ((x) >> 16)
     }
 
     fn rotl24(x: u32) -> u32 {
-        return ((x) << 24) | ((x) >> 8);
+        ((x) << 24) | ((x) >> 8)
     }
 
     fn pack(b: [u8; 4]) -> u32 {
         // pack bytes into a 32-bit Word
-        return ((((b[3]) & 0xff) as u32) << 24)
+        ((((b[3]) & 0xff) as u32) << 24)
             | ((((b[2]) & 0xff) as u32) << 16)
             | ((((b[1]) & 0xff) as u32) << 8)
-            | (((b[0]) & 0xff) as u32);
+            | (((b[0]) & 0xff) as u32)
     }
 
     fn unpack(a: u32) -> [u8; 4] {
         // unpack bytes from a word
-        let b: [u8; 4] = [
+        [
             (a & 0xff) as u8,
             ((a >> 8) & 0xff) as u8,
             ((a >> 16) & 0xff) as u8,
             ((a >> 24) & 0xff) as u8,
-        ];
-        return b;
+        ]
     }
 
     fn bmul(x: u8, y: u8) -> u8 {
@@ -234,7 +233,7 @@ impl AES {
         b[1] = FBSUB[b[1] as usize];
         b[2] = FBSUB[b[2] as usize];
         b[3] = FBSUB[b[3] as usize];
-        return AES::pack(b);
+        AES::pack(b)
     }
 
     fn product(x: u32, y: u32) -> u8 {
@@ -242,10 +241,10 @@ impl AES {
         let xb = AES::unpack(x);
         let yb = AES::unpack(y);
 
-        return AES::bmul(xb[0], yb[0])
+        AES::bmul(xb[0], yb[0])
             ^ AES::bmul(xb[1], yb[1])
             ^ AES::bmul(xb[2], yb[2])
-            ^ AES::bmul(xb[3], yb[3]);
+            ^ AES::bmul(xb[3], yb[3])
     }
 
     fn invmixcol(x: u32) -> u32 {
@@ -260,7 +259,7 @@ impl AES {
         m = AES::rotl24(m);
         b[0] = AES::product(m, x);
         let y = AES::pack(b);
-        return y;
+        y
     }
 
     fn increment(f: &mut [u8; 16]) {
@@ -283,7 +282,7 @@ impl AES {
         }
     }
 
-    // reset cipher
+    /// Reset cipher.
     pub fn reset(&mut self, m: usize, iv: Option<[u8; 16]>) {
         // reset mode, or reset iv
         self.mode = m;
@@ -331,31 +330,31 @@ impl AES {
         while j < n {
             self.fkey[j] =
                 self.fkey[j - nk] ^ AES::subbyte(AES::rotl24(self.fkey[j - 1])) ^ (RCO[k] as u32);
-            if nk<=6 {
-		for i in 1..nk {
-			if (i + j) >= n {
-				break;
-			}
-			self.fkey[i + j] = self.fkey[i + j - nk] ^ self.fkey[i + j - 1];
-		}
-	    } else {
-		for i in 1..4  {
-			if (i + j) >= n {
-				break;
-			}
-			self.fkey[i + j] = self.fkey[i + j - nk] ^ self.fkey[i + j - 1];
-		}
+            if nk <= 6 {
+                for i in 1..nk {
+                    if (i + j) >= n {
+                        break;
+                    }
+                    self.fkey[i + j] = self.fkey[i + j - nk] ^ self.fkey[i + j - 1];
+                }
+            } else {
+                for i in 1..4 {
+                    if (i + j) >= n {
+                        break;
+                    }
+                    self.fkey[i + j] = self.fkey[i + j - nk] ^ self.fkey[i + j - 1];
+                }
 
-		if (j + 4) < n {
-			self.fkey[j + 4] = self.fkey[j + 4 - nk] ^ AES::subbyte(self.fkey[j + 3]);
-		}
-		for i in 5..nk {
-			if (i + j) >= n {
-				break;
-			}
-			self.fkey[i + j] = self.fkey[i + j - nk] ^ self.fkey[i + j - 1];
-		}
-	    }
+                if (j + 4) < n {
+                    self.fkey[j + 4] = self.fkey[j + 4 - nk] ^ AES::subbyte(self.fkey[j + 3]);
+                }
+                for i in 5..nk {
+                    if (i + j) >= n {
+                        break;
+                    }
+                    self.fkey[i + j] = self.fkey[i + j - nk] ^ self.fkey[i + j - 1];
+                }
+            }
             j += nk;
             k += 1;
         }
@@ -376,7 +375,7 @@ impl AES {
         for j in n - 4..n {
             self.rkey[j + 4 - n] = self.fkey[j]
         }
-        return true;
+        true
     }
 
     pub fn getreg(&mut self) -> [u8; 16] {
@@ -384,7 +383,7 @@ impl AES {
         for i in 0..16 {
             ir[i] = self.f[i]
         }
-        return ir;
+        ir
     }
 
     // Encrypt a single block

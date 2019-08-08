@@ -19,9 +19,9 @@ under the License.
 
 /* Fixed Data in ROM - Field and Curve parameters */
 
-use nist256::big::NLEN;
 use super::super::arch::Chunk;
-use types::{ModType, CurveType, CurvePairingType, SexticTwist, SignOfX};
+use nist256::big::NLEN;
+use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 28
 
@@ -45,8 +45,7 @@ pub const CURVE_B: [Chunk; NLEN] = [
     0xAC635D8, 0x5,
 ];
 pub const CURVE_ORDER: [Chunk; NLEN] = [
-    0xC632551, 0xB9CAC2F, 0x79E84F3, 0xFAADA71, 0xFFFBCE6, 0xFFFFFFF, 0xFFFFFF, 0x0, 0xFFFFFFF,
-    0xF,
+    0xC632551, 0xB9CAC2F, 0x79E84F3, 0xFAADA71, 0xFFFBCE6, 0xFFFFFFF, 0xFFFFFF, 0x0, 0xFFFFFFF, 0xF,
 ];
 pub const CURVE_GX: [Chunk; NLEN] = [
     0x898C296, 0xA13945D, 0xB33A0F4, 0x7D812DE, 0xF27703, 0xE563A44, 0x7F8BCE6, 0xE12C424,
@@ -62,13 +61,13 @@ pub const BASEBITS: usize = 28;
 
 pub const MODBITS: usize = 256;
 pub const MOD8: usize = 7;
-pub const MODTYPE: ModType = ModType::NOT_SPECIAL;
+pub const MODTYPE: ModType = ModType::NotSpecial;
 pub const SH: usize = 14;
 
-pub const CURVETYPE: CurveType = CurveType::WEIERSTRASS;
-pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::NOT;
-pub const SEXTIC_TWIST: SexticTwist = SexticTwist::NOT;
+pub const CURVETYPE: CurveType = CurveType::Weierstrass;
+pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::Not;
+pub const SEXTIC_TWIST: SexticTwist = SexticTwist::Not;
 pub const ATE_BITS: usize = 0;
-pub const SIGN_OF_X: SignOfX = SignOfX::NOT;
+pub const SIGN_OF_X: SignOfX = SignOfX::Not;
 pub const HASH_TYPE: usize = 32;
 pub const AESKEY: usize = 16;

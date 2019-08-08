@@ -17,10 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use fp256bn::big::NLEN;
 use super::super::arch::Chunk;
-use types::{ModType, CurveType, CurvePairingType, SexticTwist, SignOfX};
-
+use fp256bn::big::NLEN;
+use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 28
 pub const MODULUS: [Chunk; NLEN] = [
@@ -168,13 +167,13 @@ pub const BASEBITS: usize = 28;
 
 pub const MODBITS: usize = 256;
 pub const MOD8: usize = 3;
-pub const MODTYPE: ModType = ModType::NOT_SPECIAL;
+pub const MODTYPE: ModType = ModType::NotSpecial;
 pub const SH: usize = 14;
 
-pub const CURVETYPE: CurveType = CurveType::WEIERSTRASS;
-pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::BN;
-pub const SEXTIC_TWIST: SexticTwist = SexticTwist::M_TYPE;
+pub const CURVETYPE: CurveType = CurveType::Weierstrass;
+pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::Bn;
+pub const SEXTIC_TWIST: SexticTwist = SexticTwist::MType;
 pub const ATE_BITS: usize = 66;
-pub const SIGN_OF_X: SignOfX = SignOfX::NEGATIVEX;
+pub const SIGN_OF_X: SignOfX = SignOfX::NegativeX;
 pub const HASH_TYPE: usize = 32;
 pub const AESKEY: usize = 16;

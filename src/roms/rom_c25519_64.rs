@@ -17,9 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use c25519::big::NLEN;
 use super::super::arch::Chunk;
-use types::{ModType, CurveType, CurvePairingType, SexticTwist, SignOfX};
+use c25519::big::NLEN;
+use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 56
 // Curve25519 Modulus
@@ -49,13 +49,13 @@ pub const BASEBITS: usize = 56;
 
 pub const MODBITS: usize = 255;
 pub const MOD8: usize = 5;
-pub const MODTYPE: ModType = ModType::PSEUDO_MERSENNE;
+pub const MODTYPE: ModType = ModType::PseudoMersenne;
 pub const SH: usize = 25;
 
-pub const CURVETYPE: CurveType = CurveType::MONTGOMERY;
-pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::NOT;
-pub const SEXTIC_TWIST: SexticTwist = SexticTwist::NOT;
+pub const CURVETYPE: CurveType = CurveType::Montgomery;
+pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::Not;
+pub const SEXTIC_TWIST: SexticTwist = SexticTwist::Not;
 pub const ATE_BITS: usize = 0;
-pub const SIGN_OF_X: SignOfX = SignOfX::NOT;
+pub const SIGN_OF_X: SignOfX = SignOfX::Not;
 pub const HASH_TYPE: usize = 32;
 pub const AESKEY: usize = 16;

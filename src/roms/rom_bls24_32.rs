@@ -17,9 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use bls24::big::NLEN;
 use super::super::arch::Chunk;
-use types::{ModType, CurveType, CurvePairingType, SexticTwist, SignOfX};
+use bls24::big::NLEN;
+use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 29
 // bls24 Modulus
@@ -228,13 +228,13 @@ pub const BASEBITS: usize = 29;
 
 pub const MODBITS: usize = 479;
 pub const MOD8: usize = 3;
-pub const MODTYPE: ModType = ModType::NOT_SPECIAL;
+pub const MODTYPE: ModType = ModType::NotSpecial;
 pub const SH: usize = 14;
 
-pub const CURVETYPE: CurveType = CurveType::WEIERSTRASS;
-pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::BLS;
-pub const SEXTIC_TWIST: SexticTwist = SexticTwist::M_TYPE;
+pub const CURVETYPE: CurveType = CurveType::Weierstrass;
+pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::Bls;
+pub const SEXTIC_TWIST: SexticTwist = SexticTwist::MType;
 pub const ATE_BITS: usize = 49;
-pub const SIGN_OF_X: SignOfX = SignOfX::POSITIVEX;
+pub const SIGN_OF_X: SignOfX = SignOfX::PositiveX;
 pub const HASH_TYPE: usize = 48;
 pub const AESKEY: usize = 24;

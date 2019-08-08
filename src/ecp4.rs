@@ -17,12 +17,12 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::rom;
 use super::big;
+use super::big::Big;
 use super::ecp;
 use super::fp2::FP2;
 use super::fp4::FP4;
-use super::big::Big;
+use super::rom;
 use types::{SexticTwist, SignOfX};
 //use std::str::SplitWhitespace;
 
@@ -328,10 +328,10 @@ impl ECP4 {
         let mut r = FP4::new_copy(x);
         r.sqr();
         let mut b = FP4::new_fp2(&FP2::new_big(&Big::new_ints(&rom::CURVE_B)));
-        if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::DType {
             b.div_i();
         }
-        if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::MType {
             b.times_i();
         }
 
@@ -345,13 +345,13 @@ impl ECP4 {
     /* self+=self */
     pub fn dbl(&mut self) -> isize {
         let mut iy = FP4::new_copy(&self.y);
-        if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::DType {
             iy.times_i(); //iy.norm();
         }
 
         let mut t0 = FP4::new_copy(&self.y);
         t0.sqr();
-        if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::DType {
             t0.times_i();
         }
         let mut t1 = FP4::new_copy(&iy);
@@ -367,7 +367,7 @@ impl ECP4 {
         self.z.norm();
 
         t2.imul(3 * rom::CURVE_B_I);
-        if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::MType {
             t2.times_i();
         }
         let mut x3 = FP4::new_copy(&t2);
@@ -422,7 +422,7 @@ impl ECP4 {
 
         t3.sub(&t4);
         t3.norm();
-        if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::DType {
             t3.times_i(); //t3=(X1+Y1)(X2+Y2)-(X1.X2+Y1.Y2) = X1.Y2+X2.Y1
         }
         t4.copy(&self.y);
@@ -438,7 +438,7 @@ impl ECP4 {
 
         t4.sub(&x3);
         t4.norm();
-        if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::DType {
             t4.times_i(); //t4=(Y1+Z1)(Y2+Z2) - (Y1.Y2+Z1.Z2) = Y1.Z2+Y2.Z1
         }
         x3.copy(&self.x);
@@ -453,7 +453,7 @@ impl ECP4 {
         y3.rsub(&x3);
         y3.norm(); // y3=(X1+Z1)(X2+Z2) - (X1.X2+Z1.Z2) = X1.Z2+X2.Z1
 
-        if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::DType {
             t0.times_i(); // x.Q.x
             t1.times_i(); // y.Q.y
         }
@@ -462,7 +462,7 @@ impl ECP4 {
         t0.add(&x3);
         t0.norm();
         t2.imul(b);
-        if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::MType {
             t2.times_i();
         }
         let mut z3 = FP4::new_copy(&t1);
@@ -471,7 +471,7 @@ impl ECP4 {
         t1.sub(&t2);
         t1.norm();
         y3.imul(b);
-        if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::MType {
             y3.times_i();
         }
         x3.copy(&y3);
@@ -517,7 +517,7 @@ impl ECP4 {
         f1.sqr();
         f2.mul(&f1);
         f1.copy(&f);
-        if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::MType {
             f1.mul_ip();
             f1.inverse();
             f0.copy(&f1);
@@ -835,7 +835,7 @@ impl ECP4 {
         let mut x3Q = x2Q.mul(&mut x);
         let mut x4Q = x3Q.mul(&mut x);
 
-        if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+        if ecp::SIGN_OF_X == SignOfX::NegativeX {
             xQ.neg();
             x3Q.neg();
         }

@@ -19,9 +19,9 @@ under the License.
 
 /* Fixed Data in ROM - Field and Curve parameters */
 
-use secp256k1::big::NLEN;
 use super::super::arch::Chunk;
-use types::{ModType, CurveType, CurvePairingType, SexticTwist, SignOfX};
+use secp256k1::big::NLEN;
+use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 56
 
@@ -69,13 +69,13 @@ pub const BASEBITS: usize = 56;
 
 pub const MODBITS: usize = 256;
 pub const MOD8: usize = 7;
-pub const MODTYPE: ModType = ModType::NOT_SPECIAL;
+pub const MODTYPE: ModType = ModType::NotSpecial;
 pub const SH: usize = 24;
 
-pub const CURVETYPE: CurveType = CurveType::WEIERSTRASS;
-pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::NOT;
-pub const SEXTIC_TWIST: SexticTwist = SexticTwist::NOT;
+pub const CURVETYPE: CurveType = CurveType::Weierstrass;
+pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::Not;
+pub const SEXTIC_TWIST: SexticTwist = SexticTwist::Not;
 pub const ATE_BITS: usize = 0;
-pub const SIGN_OF_X: SignOfX = SignOfX::NOT;
+pub const SIGN_OF_X: SignOfX = SignOfX::Not;
 pub const HASH_TYPE: usize = 32;
 pub const AESKEY: usize = 16;

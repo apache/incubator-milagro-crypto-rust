@@ -17,19 +17,18 @@ specific language governing permissions and limitations
 under the License.
 */
 
+use super::big;
+use super::big::Big;
 use super::ecp;
 use super::ecp::ECP;
-use super::big::Big;
 use super::rom;
-use super::big;
 
-use rand::RAND;
+use aes;
+use aes::AES;
 use hash256::HASH256;
 use hash384::HASH384;
 use hash512::HASH512;
-use aes;
-use aes::AES;
-
+use rand::RAND;
 
 pub const INVALID_PUBLIC_KEY: isize = -2;
 pub const ERROR: isize = -3;
@@ -52,6 +51,7 @@ fn inttobytes(n: usize, b: &mut [u8]) {
     }
 }
 
+/// Hash to curve function using Hash and Test on SHA256, 384 or 512
 fn hashit(sha: usize, a: &[u8], n: usize, b: Option<&[u8]>, pad: usize, w: &mut [u8]) {
     let mut r: [u8; 64] = [0; 64];
     if sha == SHA256 {
@@ -117,11 +117,11 @@ fn hashit(sha: usize, a: &[u8], n: usize, b: Option<&[u8]>, pad: usize, w: &mut 
     }
 }
 
-/* Key Derivation Functions */
-/* Input octet Z */
-/* Output key of length olen */
+// Key Derivation Function 1
+// Input octet Z
+// Output key of length olen
 pub fn kdf1(sha: usize, z: &[u8], olen: usize, k: &mut [u8]) {
-    /* NOTE: the parameter olen is the length of the output K in bytes */
+    // NOTE: the parameter olen is the length of the output K in bytes
     let hlen = sha;
     let mut lk = 0;
 
@@ -147,8 +147,11 @@ pub fn kdf1(sha: usize, z: &[u8], olen: usize, k: &mut [u8]) {
     }
 }
 
+// Key Derivation Function 2
+// Input octet Z
+// Output key of length olen
 pub fn kdf2(sha: usize, z: &[u8], p: Option<&[u8]>, olen: usize, k: &mut [u8]) {
-    /* NOTE: the parameter olen is the length of the output K in bytes */
+    // NOTE: the parameter olen is the length of the output K in bytes
     let hlen = sha;
     let mut lk = 0;
 
@@ -157,7 +160,7 @@ pub fn kdf2(sha: usize, z: &[u8], p: Option<&[u8]>, olen: usize, k: &mut [u8]) {
         cthreshold += 1
     }
 
-    for counter in 1..cthreshold + 1 {
+    for counter in 1..=cthreshold {
         let mut b: [u8; 64] = [0; 64];
         hashit(sha, z, counter, p, 0, &mut b);
         if lk + hlen > olen {
@@ -174,9 +177,9 @@ pub fn kdf2(sha: usize, z: &[u8], p: Option<&[u8]>, olen: usize, k: &mut [u8]) {
     }
 }
 
-/* Password based Key Derivation Function */
-/* Input password p, salt s, and repeat count */
-/* Output key of length olen */
+/// Password based Key Derivation Function
+/// Input password p, salt s, and repeat count
+/// Output key of length olen
 pub fn pbkdf2(sha: usize, pass: &[u8], salt: &[u8], rep: usize, olen: usize, k: &mut [u8]) {
     let mut d = olen / sha;
     if olen % sha != 0 {
@@ -205,7 +208,7 @@ pub fn pbkdf2(sha: usize, pass: &[u8], salt: &[u8], rep: usize, olen: usize, k: 
             u[j] = f[j]
         }
         for _ in 1..rep {
-            hmac(sha, &mut u, pass, sha, &mut ku);
+            hmac(sha, &u, pass, sha, &mut ku);
             for k in 0..sha {
                 u[k] = ku[k];
                 f[k] ^= u[k]
@@ -220,7 +223,7 @@ pub fn pbkdf2(sha: usize, pass: &[u8], salt: &[u8], rep: usize, olen: usize, k: 
     }
 }
 
-/* Calculate HMAC of m using key k. HMAC is tag of length olen (which is length of tag) */
+/// Calculate HMAC of m using key k. HMAC is tag of length olen (which is length of tag)
 pub fn hmac(sha: usize, m: &[u8], k: &[u8], olen: usize, tag: &mut [u8]) -> bool {
     /* Input is from an octet m        *
     	* olen is requested output length in bytes. k is the key  *
@@ -255,17 +258,17 @@ pub fn hmac(sha: usize, m: &[u8], k: &[u8], olen: usize, tag: &mut [u8]) -> bool
     for i in 0..lb {
         k0[i] ^= 0x36
     }
-    hashit(sha, &mut k0[0..lb], 0, Some(m), 0, &mut b);
+    hashit(sha, &k0[0..lb], 0, Some(m), 0, &mut b);
 
     for i in 0..lb {
         k0[i] ^= 0x6a
     }
-    hashit(sha, &mut k0[0..lb], 0, Some(&b[0..sha]), olen, tag);
+    hashit(sha, &k0[0..lb], 0, Some(&b[0..sha]), olen, tag);
 
     return true;
 }
 
-/* AES encryption/decryption. Encrypt byte array m using key k and returns ciphertext c */
+/// AES encryption/decryption. Encrypt byte array m using key k and returns ciphertext c
 pub fn cbc_iv0_encrypt(k: &[u8], m: &[u8]) -> Vec<u8> {
     /* AES CBC encryption, with Null IV and key K */
     /* Input is from an octet string m, output is to an octet string c */
@@ -314,10 +317,10 @@ pub fn cbc_iv0_encrypt(k: &[u8], m: &[u8]) -> Vec<u8> {
         c.push(buff[j]);
     }
     a.end();
-    return c;
+    c
 }
 
-/* returns plaintext if all consistent, else returns null string */
+/// Returns plaintext if all consistent, else returns null string
 pub fn cbc_iv0_decrypt(k: &[u8], c: &[u8]) -> Option<Vec<u8>> {
     /* padding is removed */
     let mut a = AES::new();
@@ -382,14 +385,14 @@ pub fn cbc_iv0_decrypt(k: &[u8], c: &[u8]) -> Option<Vec<u8>> {
     if bad {
         return None;
     }
-    return Some(m);
+    Some(m)
 }
 
-/* Calculate a public/private EC GF(p) key pair w,s where W=s.G mod EC(p),
- * where s is the secret key and W is the public key
- * and G is fixed generator.
- * If RNG is NULL then the private key is provided externally in s
- * otherwise it is generated randomly internally */
+/// Calculate a public/private EC GF(p) key pair w,s where W=s.G mod EC(p),
+/// where s is the secret key and W is the public key
+/// and G is fixed generator.
+/// If RNG is NULL then the private key is provided externally in s
+/// otherwise it is generated randomly internally
 #[allow(non_snake_case)]
 pub fn key_pair_generate(rng: Option<&mut RAND>, s: &mut [u8], w: &mut [u8]) -> isize {
     let res = 0;
@@ -407,14 +410,14 @@ pub fn key_pair_generate(rng: Option<&mut RAND>, s: &mut [u8], w: &mut [u8]) -> 
 
     sc.tobytes(s);
 
-    let WP = G.mul(&mut sc);
+    let WP = G.mul(&sc);
 
     WP.tobytes(w, false); // To use point compression on public keys, change to true
 
-    return res;
+    res
 }
 
-/* validate public key */
+/// Validate public key
 #[allow(non_snake_case)]
 pub fn public_key_validate(w: &[u8]) -> isize {
     let mut WP = ECP::frombytes(w);
@@ -440,16 +443,16 @@ pub fn public_key_validate(w: &[u8]) -> isize {
         }
 
         if !k.isunity() {
-            WP = WP.mul(&mut k)
+            WP = WP.mul(&k)
         }
         if WP.is_infinity() {
             res = INVALID_PUBLIC_KEY
         }
     }
-    return res;
+    res
 }
 
-/* IEEE-1363 Diffie-Hellman online calculation Z=S.WD */
+/// IEEE-1363 Diffie-Hellman online calculation Z=S.WD
 #[allow(non_snake_case)]
 pub fn ecpsvdp_dh(s: &[u8], wd: &[u8], z: &mut [u8]) -> isize {
     let mut res = 0;
@@ -465,7 +468,7 @@ pub fn ecpsvdp_dh(s: &[u8], wd: &[u8], z: &mut [u8]) -> isize {
     if res == 0 {
         let r = Big::new_ints(&rom::CURVE_ORDER);
         sc.rmod(&r);
-        W = W.mul(&mut sc);
+        W = W.mul(&sc);
         if W.is_infinity() {
             res = ERROR;
         } else {
@@ -475,10 +478,10 @@ pub fn ecpsvdp_dh(s: &[u8], wd: &[u8], z: &mut [u8]) -> isize {
             }
         }
     }
-    return res;
+    res
 }
 
-/* IEEE ECDSA Signature, C and D are signature on F using private key S */
+/// IEEE ECDSA Signature, C and D are signature on F using private key S
 #[allow(non_snake_case)]
 pub fn ecpsp_dsa(
     sha: usize,
@@ -497,7 +500,7 @@ pub fn ecpsp_dsa(
 
     let r = Big::new_ints(&rom::CURVE_ORDER);
 
-    let mut sc = Big::frombytes(s); /* s or &s? */
+    let sc = Big::frombytes(s); /* s or &s? */
     let fb = Big::frombytes(&b);
 
     let mut cb = Big::new();
@@ -507,10 +510,10 @@ pub fn ecpsp_dsa(
 
     while db.iszilch() {
         let mut u = Big::randomnum(&r, rng);
-        let mut w = Big::randomnum(&r, rng); /* side channel masking */
+        let w = Big::randomnum(&r, rng); /* side channel masking */
 
         V.copy(&G);
-        V = V.mul(&mut u);
+        V = V.mul(&u);
         let vx = V.getx();
         cb.copy(&vx);
         cb.rmod(&r);
@@ -518,17 +521,17 @@ pub fn ecpsp_dsa(
             continue;
         }
 
-        tb.copy(&Big::modmul(&mut u, &mut w, &r));
+        tb.copy(&Big::modmul(&u, &w, &r));
         u.copy(&tb);
 
         u.invmodp(&r);
-        db.copy(&Big::modmul(&mut sc, &mut cb, &r));
+        db.copy(&Big::modmul(&sc, &cb, &r));
         db.add(&fb);
 
-        tb.copy(&Big::modmul(&mut db, &mut w, &r));
+        tb.copy(&Big::modmul(&db, &w, &r));
         db.copy(&tb);
 
-        tb.copy(&Big::modmul(&mut u, &mut db, &r));
+        tb.copy(&Big::modmul(&u, &db, &r));
         db.copy(&tb);
     }
 
@@ -540,10 +543,10 @@ pub fn ecpsp_dsa(
     for i in 0..EFS {
         d[i] = t[i]
     }
-    return 0;
+    0
 }
 
-/* IEEE1363 ECDSA Signature Verification. Signature C and D on F is verified using public key W */
+/// IEEE1363 ECDSA Signature Verification. Signature C and D on F is verified using public key W
 #[allow(non_snake_case)]
 pub fn ecpvp_dsa(sha: usize, w: &[u8], f: &[u8], c: &[u8], d: &[u8]) -> isize {
     let mut res = 0;
@@ -552,11 +555,11 @@ pub fn ecpvp_dsa(sha: usize, w: &[u8], f: &[u8], c: &[u8], d: &[u8]) -> isize {
 
     hashit(sha, f, 0, None, big::MODBYTES as usize, &mut b);
 
-    let mut G = ECP::generator();
+    let G = ECP::generator();
 
     let r = Big::new_ints(&rom::CURVE_ORDER);
 
-    let mut cb = Big::frombytes(c); /* c or &c ? */
+    let cb = Big::frombytes(c); /* c or &c ? */
     let mut db = Big::frombytes(d); /* d or &d ? */
     let mut fb = Big::frombytes(&b);
     let mut tb = Big::new();
@@ -567,9 +570,9 @@ pub fn ecpvp_dsa(sha: usize, w: &[u8], f: &[u8], c: &[u8], d: &[u8]) -> isize {
 
     if res == 0 {
         db.invmodp(&r);
-        tb.copy(&Big::modmul(&mut fb, &mut db, &r));
+        tb.copy(&Big::modmul(&fb, &db, &r));
         fb.copy(&tb);
-        let h2 = Big::modmul(&mut cb, &mut db, &r);
+        let h2 = Big::modmul(&cb, &db, &r);
 
         let WP = ECP::frombytes(&w);
         if WP.is_infinity() {
@@ -578,7 +581,7 @@ pub fn ecpvp_dsa(sha: usize, w: &[u8], f: &[u8], c: &[u8], d: &[u8]) -> isize {
             let mut P = ECP::new();
             P.copy(&WP);
 
-            P = P.mul2(&h2, &mut G, &fb);
+            P = P.mul2(&h2, &G, &fb);
 
             if P.is_infinity() {
                 res = INVALID;
@@ -593,10 +596,10 @@ pub fn ecpvp_dsa(sha: usize, w: &[u8], f: &[u8], c: &[u8], d: &[u8]) -> isize {
         }
     }
 
-    return res;
+    res
 }
 
-/* IEEE1363 ECIES encryption. Encryption of plaintext M uses public key W and produces ciphertext V,C,T */
+/// IEEE1363 ECIES encryption. Encryption of plaintext M uses public key W and produces ciphertext V,C,T
 #[allow(non_snake_case)]
 pub fn ecies_encrypt(
     sha: usize,
@@ -622,7 +625,7 @@ pub fn ecies_encrypt(
         return None;
     }
 
-    for i in 0..2 * EFS + 1 {
+    for i in 0..=2 * EFS {
         vz[i] = v[i]
     }
     for i in 0..EFS {
@@ -656,10 +659,10 @@ pub fn ecies_encrypt(
         c.pop();
     }
 
-    return Some(c);
+    Some(c)
 }
 
-/* constant time n-byte compare */
+/// constant time n-byte compare
 fn ncomp(t1: &[u8], t2: &[u8], n: usize) -> bool {
     let mut res = 0;
     for i in 0..n {
@@ -668,10 +671,10 @@ fn ncomp(t1: &[u8], t2: &[u8], n: usize) -> bool {
     if res == 0 {
         return true;
     }
-    return false;
+    false
 }
 
-/* IEEE1363 ECIES decryption. Decryption of ciphertext V,C,T using private key U outputs plaintext M */
+/// IEEE1363 ECIES decryption. Decryption of ciphertext V,C,T using private key U outputs plaintext M
 #[allow(non_snake_case)]
 pub fn ecies_decrypt(
     sha: usize,
@@ -740,5 +743,5 @@ pub fn ecies_decrypt(
         return None;
     }
 
-    return m;
+    m
 }

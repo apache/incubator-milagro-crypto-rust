@@ -1,45 +1,44 @@
 #[derive(PartialEq)]
 pub enum ModType {
-    NOT_SPECIAL,
-    PSEUDO_MERSENNE,
-    MONTGOMERY_FRIENDLY,
-    GENERALISED_MERSENNE,
+    NotSpecial,
+    PseudoMersenne,
+    MontgomeryFriendly,
+    GeneralisedMersenne,
 }
 
 #[derive(PartialEq)]
 pub enum CurveType {
-    EDWARDS,
-    WEIERSTRASS,
-    MONTGOMERY,
+    Edwards,
+    Weierstrass,
+    Montgomery,
 }
 
 #[derive(PartialEq)]
 pub enum CurvePairingType {
-    NOT,
-    BN,
-    BLS,
+    Not,
+    Bn,
+    Bls,
 }
 
 #[derive(PartialEq)]
 pub enum SexticTwist {
-    NOT,
-    D_TYPE,
-    M_TYPE,
+    Not,
+    DType,
+    MType,
 }
 impl Into<usize> for SexticTwist {
     fn into(self) -> usize {
         match self {
-            SexticTwist::NOT => 0,
-            SexticTwist::D_TYPE => 0,
-            SexticTwist::M_TYPE => 1,
+            SexticTwist::Not => 0,
+            SexticTwist::DType => 0,
+            SexticTwist::MType => 1,
         }
     }
 }
 
 #[derive(PartialEq)]
 pub enum SignOfX {
-    NOT,
-    POSITIVEX,
-    NEGATIVEX,
+    Not,
+    PositiveX,
+    NegativeX,
 }
-

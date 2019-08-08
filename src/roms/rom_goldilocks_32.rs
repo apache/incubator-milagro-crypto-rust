@@ -17,9 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use goldilocks::big::NLEN;
 use super::super::arch::Chunk;
-use types::{ModType, CurveType, CurvePairingType, SexticTwist, SignOfX};
+use goldilocks::big::NLEN;
+use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 29
 // Goldilocks modulus
@@ -61,13 +61,13 @@ pub const BASEBITS: usize = 29;
 
 pub const MODBITS: usize = 448;
 pub const MOD8: usize = 7;
-pub const MODTYPE: ModType = ModType::GENERALISED_MERSENNE;
+pub const MODTYPE: ModType = ModType::GeneralisedMersenne;
 pub const SH: usize = 14;
 
-pub const CURVETYPE: CurveType = CurveType::EDWARDS;
-pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::NOT;
-pub const SEXTIC_TWIST: SexticTwist = SexticTwist::NOT;
+pub const CURVETYPE: CurveType = CurveType::Edwards;
+pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::Not;
+pub const SEXTIC_TWIST: SexticTwist = SexticTwist::Not;
 pub const ATE_BITS: usize = 0;
-pub const SIGN_OF_X: SignOfX = SignOfX::NOT;
+pub const SIGN_OF_X: SignOfX = SignOfX::Not;
 pub const HASH_TYPE: usize = 64;
 pub const AESKEY: usize = 32;

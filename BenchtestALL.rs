@@ -231,10 +231,10 @@ fn bn254(mut rng: &mut RAND) {
 	let mut fail = false;
 	println!("\nTesting/Timing BN254 Pairings");
 
-	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::BN {
+	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::Bn {
 		println!("BN Pairing-Friendly Curve");
 	}
-	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::BLS {
+	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::Bls {
 		println!("BLS Pairing-Friendly Curve");
 	}
 
@@ -391,10 +391,10 @@ fn bls383(mut rng: &mut RAND) {
 	let mut fail = false;
 	println!("\nTesting/Timing BLS383 Pairings");
 
-	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::BN {
+	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::Bn {
 		println!("BN Pairing-Friendly Curve");
 	}
-	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::BLS {
+	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::Bls {
 		println!("BLS Pairing-Friendly Curve");
 	}
 
@@ -551,10 +551,10 @@ fn bls24(mut rng: &mut RAND) {
 	let mut fail = false;
 	println!("\nTesting/Timing BLS24 Pairings");
 
-	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::BN {
+	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::Bn {
 		println!("BN Pairing-Friendly Curve");
 	}
-	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::BLS {
+	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::Bls {
 		println!("BLS24 Pairing-Friendly Curve");
 	}
 
@@ -711,10 +711,10 @@ fn bls48(mut rng: &mut RAND) {
 	let mut fail = false;
 	println!("\nTesting/Timing BLS48 Pairings");
 
-	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::BN {
+	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::Bn {
 		println!("BN Pairing-Friendly Curve");
 	}
-	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::BLS {
+	if ecp::CURVE_PAIRING_TYPE == CurvePairingType::Bls {
 		println!("BLS48 Pairing-Friendly Curve");
 	}
 

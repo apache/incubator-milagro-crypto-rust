@@ -17,19 +17,18 @@ specific language governing permissions and limitations
 under the License.
 */
 
-
-use super::fp::FP;
-use super::ecp::ECP;
-use super::fp2::FP2;
-use super::ecp8::ECP8;
-use super::fp8::FP8;
-use super::fp16::FP16;
-use super::fp48;
-use super::fp48::FP48;
 use super::big::Big;
 use super::ecp;
+use super::ecp::ECP;
+use super::ecp8::ECP8;
+use super::fp::FP;
+use super::fp16::FP16;
+use super::fp2::FP2;
+use super::fp48;
+use super::fp48::FP48;
+use super::fp8::FP8;
 use super::rom;
-use types::{SignOfX, SexticTwist};
+use types::{SexticTwist, SignOfX};
 
 #[allow(non_snake_case)]
 fn linedbl(A: &mut ECP8, qx: &FP, qy: &FP) -> FP48 {
@@ -56,10 +55,10 @@ fn linedbl(A: &mut ECP8, qx: &FP, qy: &FP) -> FP48 {
 
     let sb = 3 * rom::CURVE_B_I;
     zz.imul(sb);
-    if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+    if ecp::SEXTIC_TWIST == SexticTwist::DType {
         zz.div_2i();
     }
-    if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+    if ecp::SEXTIC_TWIST == SexticTwist::MType {
         zz.times_i();
         zz.dbl();
         yz.times_i();
@@ -72,15 +71,15 @@ fn linedbl(A: &mut ECP8, qx: &FP, qy: &FP) -> FP48 {
     zz.norm(); // 3b.Z^2-Y^2
 
     a.copy(&FP16::new_fp8s(&yz, &zz)); // -2YZ.Ys | 3b.Z^2-Y^2 | 3X^2.Xs
-    if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+    if ecp::SEXTIC_TWIST == SexticTwist::DType {
         b.copy(&FP16::new_fp8(&xx)); // L(0,1) | L(0,0) | L(1,0)
     }
-    if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+    if ecp::SEXTIC_TWIST == SexticTwist::MType {
         c.copy(&FP16::new_fp8(&xx));
         c.times_i();
     }
     A.dbl();
-    let mut res= FP48::new_fp16s(&a, &b, &c);
+    let mut res = FP48::new_fp16s(&a, &b, &c);
     res.settype(fp48::SPARSER);
     return res;
 }
@@ -106,7 +105,7 @@ fn lineadd(A: &mut ECP8, B: &ECP8, qx: &FP, qy: &FP) -> FP48 {
 
     t1.copy(&x1); // T1=X1-Z1.X2
     x1.tmul(qy); // X1=(X1-Z1.X2).Ys
-    if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+    if ecp::SEXTIC_TWIST == SexticTwist::MType {
         x1.times_i();
     }
 
@@ -121,23 +120,23 @@ fn lineadd(A: &mut ECP8, B: &ECP8, qx: &FP, qy: &FP) -> FP48 {
     y1.norm(); // Y1=-(Y1-Z1.Y2).Xs
 
     a.copy(&FP16::new_fp8s(&x1, &t2)); // (X1-Z1.X2).Ys  |  (Y1-Z1.Y2).X2 - (X1-Z1.X2).Y2  | - (Y1-Z1.Y2).Xs
-    if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+    if ecp::SEXTIC_TWIST == SexticTwist::DType {
         b.copy(&FP16::new_fp8(&y1));
     }
-    if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+    if ecp::SEXTIC_TWIST == SexticTwist::MType {
         c.copy(&FP16::new_fp8(&y1));
         c.times_i();
     }
 
     A.add(B);
-    let mut res= FP48::new_fp16s(&a, &b, &c);
+    let mut res = FP48::new_fp16s(&a, &b, &c);
     res.settype(fp48::SPARSER);
     return res;
 }
 
 /* prepare ate parameter, n=6u+2 (BN) or n=u (BLS), n3=3*n */
 #[allow(non_snake_case)]
-fn lbits(n3: &mut Big,n: &mut Big) -> usize {
+fn lbits(n3: &mut Big, n: &mut Big) -> usize {
     n.copy(&Big::new_ints(&rom::CURVE_BNX));
     n3.copy(&n);
     n3.pmul(3);
@@ -148,18 +147,18 @@ fn lbits(n3: &mut Big,n: &mut Big) -> usize {
 /* prepare for multi-pairing */
 pub fn initmp() -> [FP48; rom::ATE_BITS] {
     let r: [FP48; rom::ATE_BITS] = [FP48::new_int(1); rom::ATE_BITS];
-    return r
+    return r;
 }
 
 /* basic Miller loop */
-pub fn miller(r:&[FP48]) -> FP48 {
-    let mut res=FP48::new_int(1);
+pub fn miller(r: &[FP48]) -> FP48 {
+    let mut res = FP48::new_int(1);
     for i in (1..rom::ATE_BITS).rev() {
         res.sqr();
         res.ssmul(&r[i]);
     }
 
-    if ecp::SIGN_OF_X==SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         res.conj();
     }
     res.ssmul(&r[0]);
@@ -168,11 +167,11 @@ pub fn miller(r:&[FP48]) -> FP48 {
 
 /* Accumulate another set of line functions for n-pairing */
 #[allow(non_snake_case)]
-pub fn another(r:&mut [FP48],P1: &ECP8,Q1: &ECP) {
+pub fn another(r: &mut [FP48], P1: &ECP8, Q1: &ECP) {
     let mut n = Big::new();
     let mut n3 = Big::new();
 
-// P is needed in affine form for line function, Q for (Qx,Qy) extraction
+    // P is needed in affine form for line function, Q for (Qx,Qy) extraction
     let mut P = ECP8::new();
     P.copy(P1);
     P.affine();
@@ -189,18 +188,18 @@ pub fn another(r:&mut [FP48],P1: &ECP8,Q1: &ECP) {
     NP.copy(&P);
     NP.neg();
 
-    let nb=lbits(&mut n3,&mut n);
+    let nb = lbits(&mut n3, &mut n);
 
-    for i in (1..nb-1).rev() {
-        let mut lv=linedbl(&mut A,&qx,&qy);
+    for i in (1..nb - 1).rev() {
+        let mut lv = linedbl(&mut A, &qx, &qy);
 
-	let bt=n3.bit(i)-n.bit(i);
-        if bt==1 {
-            let lv2=lineadd(&mut A,&P,&qx,&qy);
+        let bt = n3.bit(i) - n.bit(i);
+        if bt == 1 {
+            let lv2 = lineadd(&mut A, &P, &qx, &qy);
             lv.smul(&lv2);
         }
-        if bt==-1 {
-            let lv2=lineadd(&mut A,&NP,&qx,&qy);
+        if bt == -1 {
+            let lv2 = lineadd(&mut A, &NP, &qx, &qy);
             lv.smul(&lv2);
         }
         r[i].ssmul(&lv);
@@ -231,7 +230,7 @@ pub fn ate(P1: &ECP8, Q1: &ECP) -> FP48 {
     NP.copy(&P);
     NP.neg();
 
-    let nb=lbits(&mut n3,&mut n);
+    let nb = lbits(&mut n3, &mut n);
 
     for i in (1..nb - 1).rev() {
         r.sqr();
@@ -248,7 +247,7 @@ pub fn ate(P1: &ECP8, Q1: &ECP) -> FP48 {
         r.ssmul(&lv);
     }
 
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         r.conj();
     }
 
@@ -294,30 +293,30 @@ pub fn ate2(P1: &ECP8, Q1: &ECP, R1: &ECP8, S1: &ECP) -> FP48 {
     NR.copy(&R);
     NR.neg();
 
-     let nb=lbits(&mut n3,&mut n);
+    let nb = lbits(&mut n3, &mut n);
 
     for i in (1..nb - 1).rev() {
         r.sqr();
         let mut lv = linedbl(&mut A, &qx, &qy);
         let lv2 = linedbl(&mut B, &sx, &sy);
-	lv.smul(&lv2);
+        lv.smul(&lv2);
         r.ssmul(&lv);
         let bt = n3.bit(i) - n.bit(i);
         if bt == 1 {
             lv = lineadd(&mut A, &P, &qx, &qy);
             let lv2 = lineadd(&mut B, &R, &sx, &sy);
-	    lv.smul(&lv2);
+            lv.smul(&lv2);
             r.ssmul(&lv);
         }
         if bt == -1 {
             lv = lineadd(&mut A, &NP, &qx, &qy);
             let lv2 = lineadd(&mut B, &NR, &sx, &sy);
-	    lv.smul(&lv2);
+            lv.smul(&lv2);
             r.ssmul(&lv);
         }
     }
 
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         r.conj();
     }
 
@@ -339,10 +338,10 @@ pub fn fexp(m: &FP48) -> FP48 {
     lv.copy(&r);
     r.frob(&f, 8);
     r.mul(&lv);
-//    if r.isunity() {
-//	r.zero();
-//	return r;
-//    }
+    //    if r.isunity() {
+    //	r.zero();
+    //	return r;
+    //    }
     /* Hard part of final exp */
     // Ghamman & Fouotsa Method
 
@@ -354,7 +353,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     let mut t2 = t1.pow(&mut x);
     x.fshl(1);
 
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -367,7 +366,7 @@ pub fn fexp(m: &FP48) -> FP48 {
 
     t1.copy(&t2.pow(&mut x));
 
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
     t3.copy(&t1);
@@ -375,7 +374,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     r.mul(&t3);
     lv.copy(&t1.pow(&mut x));
     t1.copy(&lv);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -384,7 +383,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     r.mul(&t3);
     lv.copy(&t1.pow(&mut x));
     t1.copy(&lv);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -393,7 +392,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     r.mul(&t3);
     lv.copy(&t1.pow(&mut x));
     t1.copy(&lv);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -402,7 +401,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     r.mul(&t3);
     lv.copy(&t1.pow(&mut x));
     t1.copy(&lv);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -411,7 +410,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     r.mul(&t3);
     lv.copy(&t1.pow(&mut x));
     t1.copy(&lv);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -420,7 +419,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     r.mul(&t3);
     lv.copy(&t1.pow(&mut x));
     t1.copy(&lv);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -429,7 +428,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     r.mul(&t3);
     lv.copy(&t1.pow(&mut x));
     t1.copy(&lv);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -441,7 +440,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     r.mul(&t3);
     lv.copy(&t1.pow(&mut x));
     t1.copy(&lv);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -450,7 +449,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     r.mul(&t3);
     lv.copy(&t1.pow(&mut x));
     t1.copy(&lv);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -459,7 +458,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     r.mul(&t3);
     lv.copy(&t1.pow(&mut x));
     t1.copy(&lv);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -468,7 +467,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     r.mul(&t3);
     lv.copy(&t1.pow(&mut x));
     t1.copy(&lv);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -477,7 +476,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     r.mul(&t3);
     lv.copy(&t1.pow(&mut x));
     t1.copy(&lv);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -486,7 +485,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     r.mul(&t3);
     lv.copy(&t1.pow(&mut x));
     t1.copy(&lv);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -495,7 +494,7 @@ pub fn fexp(m: &FP48) -> FP48 {
     r.mul(&t3);
     lv.copy(&t1.pow(&mut x));
     t1.copy(&lv);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         t1.conj();
     }
 
@@ -555,7 +554,7 @@ pub fn gs(e: &Big) -> [Big; 16] {
         w.div(&x);
     }
     u[15].copy(&w);
-    if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+    if ecp::SIGN_OF_X == SignOfX::NegativeX {
         let mut t = Big::new();
         t.copy(&Big::modneg(&mut u[1], &q));
         u[1].copy(&t);

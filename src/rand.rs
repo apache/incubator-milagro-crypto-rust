@@ -158,7 +158,7 @@ impl RAND {
         if self.pool_ptr >= 32 {
             self.fill_pool()
         }
-        return (r & 0xff) as u8;
+        return u8::from(r);
     }
 }
 

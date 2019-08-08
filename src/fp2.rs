@@ -17,13 +17,13 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::fp;
-use super::fp::FP;
 use super::big::Big;
 use super::dbig::DBig;
+use super::fp;
+use super::fp::FP;
 use super::rom;
-use std::str::SplitWhitespace;
 use std::fmt;
+use std::str::SplitWhitespace;
 
 #[derive(Copy, Clone)]
 pub struct FP2 {
@@ -32,21 +32,21 @@ pub struct FP2 {
 }
 
 impl PartialEq for FP2 {
-	fn eq(&self, other: &FP2) -> bool {
-		self.equals(other)
-	}
+    fn eq(&self, other: &FP2) -> bool {
+        self.equals(other)
+    }
 }
 
 impl fmt::Display for FP2 {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f, "FP2: [ {}, {} ]", self.a, self.b)
-	}
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "FP2: [ {}, {} ]", self.a, self.b)
+    }
 }
 
 impl fmt::Debug for FP2 {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f, "FP2: [ {}, {} ]", self.a, self.b)
-	}
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "FP2: [ {}, {} ]", self.a, self.b)
+    }
 }
 
 impl FP2 {
@@ -239,7 +239,9 @@ impl FP2 {
 
     /* this*=y */
     pub fn mul(&mut self, y: &FP2) {
-        if ((self.a.xes + self.b.xes) as i64) * ((y.a.xes + y.b.xes) as i64) > fp::FEXCESS as i64 {
+        if i64::from(self.a.xes + self.b.xes) * i64::from(y.a.xes + y.b.xes)
+            > i64::from(fp::FEXCESS)
+        {
             if self.a.xes > 1 {
                 self.a.reduce()
             }
@@ -331,7 +333,7 @@ impl FP2 {
     pub fn from_hex_iter(iter: &mut SplitWhitespace) -> FP2 {
         FP2 {
             a: FP::from_hex_iter(iter),
-            b: FP::from_hex_iter(iter)
+            b: FP::from_hex_iter(iter),
         }
     }
 
