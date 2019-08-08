@@ -61,13 +61,13 @@ pub const BASEBITS: usize = 29;
 
 pub const MODBITS: usize = 384;
 pub const MOD8: usize = 3;
-pub const MODTYPE: ModType = ModType::PSEUDO_MERSENNE;
+pub const MODTYPE: ModType = ModType::PseudoMersenne;
 pub const SH: usize = 14;
 
-pub const CURVETYPE: CurveType = CurveType::WEIERSTRASS;
-pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::NOT;
-pub const SEXTIC_TWIST: SexticTwist = SexticTwist::NOT;
+pub const CURVETYPE: CurveType = CurveType::Weierstrass;
+pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::Not;
+pub const SEXTIC_TWIST: SexticTwist = SexticTwist::Not;
 pub const ATE_BITS: usize = 0;
-pub const SIGN_OF_X: SignOfX = SignOfX::NOT;
+pub const SIGN_OF_X: SignOfX = SignOfX::Not;
 pub const HASH_TYPE: usize = 48;
 pub const AESKEY: usize = 24;

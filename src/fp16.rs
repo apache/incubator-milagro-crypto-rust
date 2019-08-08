@@ -17,7 +17,7 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::big::BIG;
+use super::big::Big;
 use super::fp2::FP2;
 use super::fp8::FP8;
 //use std::str::SplitWhitespace;
@@ -349,17 +349,17 @@ impl FP16 {
     }
 
     /* self=self^e */
-    pub fn pow(&self, e: &BIG) -> FP16 {
+    pub fn pow(&self, e: &Big) -> FP16 {
         let mut w = FP16::new_copy(self);
         w.norm();
-        let mut z = BIG::new_copy(&e);
+        let mut z = Big::new_copy(&e);
         let mut r = FP16::new_int(1);
         z.norm();
         loop {
             let bt = z.parity();
             z.fshr(1);
             if bt == 1 {
-                r.mul(&mut w)
+                r.mul(&w)
             };
             if z.iszilch() {
                 break;
@@ -401,7 +401,7 @@ impl FP16 {
     }
 
     /* r=x^n using XTR method on traces of FP24s */
-    pub fn xtr_pow(&self, n: &BIG) -> FP16 {
+    pub fn xtr_pow(&self, n: &Big) -> FP16 {
         let mut sf = FP16::new_copy(self);
         sf.norm();
         let mut a = FP16::new_int(3);
@@ -412,7 +412,7 @@ impl FP16 {
         let mut r = FP16::new();
 
         let par = n.parity();
-        let mut v = BIG::new_copy(n);
+        let mut v = Big::new_copy(n);
         v.norm();
         v.fshr(1);
         if par == 0 {
@@ -450,10 +450,10 @@ impl FP16 {
     }
 
     /* r=ck^a.cl^n using XTR double exponentiation method on traces of FP12s. See Stam thesis. */
-    pub fn xtr_pow2(&mut self, ck: &FP16, ckml: &FP16, ckm2l: &FP16, a: &BIG, b: &BIG) -> FP16 {
-        let mut e = BIG::new_copy(a);
-        let mut d = BIG::new_copy(b);
-        let mut w = BIG::new();
+    pub fn xtr_pow2(&mut self, ck: &FP16, ckml: &FP16, ckm2l: &FP16, a: &Big, b: &Big) -> FP16 {
+        let mut e = Big::new_copy(a);
+        let mut d = Big::new_copy(b);
+        let mut w = Big::new();
         d.norm();
         e.norm();
 
@@ -471,12 +471,12 @@ impl FP16 {
             f2 += 1;
         }
 
-        while BIG::comp(&d, &e) != 0 {
-            if BIG::comp(&d, &e) > 0 {
+        while Big::comp(&d, &e) != 0 {
+            if Big::comp(&d, &e) > 0 {
                 w.copy(&e);
                 w.imul(4);
                 w.norm();
-                if BIG::comp(&d, &w) <= 0 {
+                if Big::comp(&d, &w) <= 0 {
                     w.copy(&d);
                     d.copy(&e);
                     e.rsub(&w);
@@ -531,11 +531,11 @@ impl FP16 {
                     }
                 }
             }
-            if BIG::comp(&d, &e) < 0 {
+            if Big::comp(&d, &e) < 0 {
                 w.copy(&d);
                 w.imul(4);
                 w.norm();
-                if BIG::comp(&e, &w) <= 0 {
+                if Big::comp(&e, &w) <= 0 {
                     e.sub(&d);
                     e.norm();
                     t.copy(&cv);

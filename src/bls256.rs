@@ -16,12 +16,13 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 */
+
 use super::ecp::ECP;
 use super::ecp8::ECP8;
 use std::str;
 //use super::fp48::FP48;
 use super::big;
-use super::big::BIG;
+use super::big::Big;
 use super::pair256;
 use super::rom;
 
@@ -29,15 +30,13 @@ use rand::RAND;
 use sha3::SHA3;
 use sha3::SHAKE256;
 
-/* BLS API Functions */
-
+// BLS API Functions
 pub const BFS: usize = big::MODBYTES as usize;
 pub const BGS: usize = big::MODBYTES as usize;
 pub const BLS_OK: isize = 0;
 pub const BLS_FAIL: isize = -1;
 
-/* hash a message to an ECP point, using SHA3 */
-
+// hash a message to an ECP point, using SHA3
 #[allow(non_snake_case)]
 fn bls_hashit(m: &str) -> ECP {
     let mut sh = SHA3::new(SHAKE256);
@@ -48,30 +47,28 @@ fn bls_hashit(m: &str) -> ECP {
     }
     sh.shake(&mut hm, BFS);
     let P = ECP::mapit(&hm);
-    return P;
+    P
 }
 
-/* generate key pair, private key s, public key w */
+/// Generate key pair, private key s, public key w
 pub fn key_pair_generate(mut rng: &mut RAND, s: &mut [u8], w: &mut [u8]) -> isize {
-    let q = BIG::new_ints(&rom::CURVE_ORDER);
+    let q = Big::new_ints(&rom::CURVE_ORDER);
     let g = ECP8::generator();
-    let mut sc = BIG::randomnum(&q, &mut rng);
+    let mut sc = Big::randomnum(&q, &mut rng);
     sc.tobytes(s);
     pair256::g2mul(&g, &mut sc).tobytes(w);
-    return BLS_OK;
+    BLS_OK
 }
 
-/* Sign message m using private key s to produce signature sig */
-
+// Sign message m using private key s to produce signature sig
 pub fn sign(sig: &mut [u8], m: &str, s: &[u8]) -> isize {
     let d = bls_hashit(m);
-    let mut sc = BIG::frombytes(&s);
+    let mut sc = Big::frombytes(&s);
     pair256::g1mul(&d, &mut sc).tobytes(sig, true);
-    return BLS_OK;
+    BLS_OK
 }
 
-/* Verify signature given message m, the signature sig, and the public key w */
-
+/// Verify signature given message m, the signature sig, and the public key w
 pub fn verify(sig: &[u8], m: &str, w: &[u8]) -> isize {
     let hm = bls_hashit(m);
     let mut d = ECP::frombytes(&sig);
@@ -92,5 +89,5 @@ pub fn verify(sig: &[u8], m: &str, w: &[u8]) -> isize {
     if v.isunity() {
         return BLS_OK;
     }
-    return BLS_FAIL;
+    BLS_FAIL
 }

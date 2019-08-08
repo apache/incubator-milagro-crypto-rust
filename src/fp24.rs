@@ -18,7 +18,7 @@ under the License.
 */
 
 use super::big;
-use super::big::BIG;
+use super::big::Big;
 use super::ecp;
 use super::fp2::FP2;
 use super::fp4::FP4;
@@ -395,7 +395,7 @@ impl FP24 {
             let mut z3 = FP8::new_int(0);
             z0.mul(&y.a);
 
-            if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+            if ecp::SEXTIC_TWIST == SexticTwist::MType {
                 if y.stype == SPARSE || self.stype == SPARSE {
                     let mut ga = FP4::new_int(0);
                     let mut gb = FP4::new_int(0);
@@ -462,7 +462,7 @@ impl FP24 {
             t0.mul(&t1);
             z2.add(&t0);
 
-            if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+            if ecp::SEXTIC_TWIST == SexticTwist::DType {
                 if y.stype == SPARSE || self.stype == SPARSE {
                     let mut ga = FP4::new_int(0);
                     let mut gb = FP4::new_int(0);
@@ -504,7 +504,7 @@ impl FP24 {
                 self.smul(&y);
                 return;
             }
-            if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+            if ecp::SEXTIC_TWIST == SexticTwist::DType {
                 // dense by sparser - 13m
                 let mut z0 = FP8::new_copy(&self.a);
                 let mut z2 = FP8::new_copy(&self.b);
@@ -547,7 +547,7 @@ impl FP24 {
                 self.a.copy(&z0);
                 self.a.add(&z3);
             }
-            if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+            if ecp::SEXTIC_TWIST == SexticTwist::MType {
                 let mut z0 = FP8::new_copy(&self.a);
                 let mut z1 = FP8::new();
                 let mut z2 = FP8::new();
@@ -608,7 +608,7 @@ impl FP24 {
 
     /* Special case of multiplication arises from special form of ATE pairing line function */
     pub fn smul(&mut self, y: &FP24) {
-        if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::DType {
             let mut w1 = FP4::new_copy(&self.a.geta());
             let mut w2 = FP4::new_copy(&self.a.getb());
             let mut w3 = FP4::new_copy(&self.b.geta());
@@ -821,21 +821,21 @@ impl FP24 {
         for i in 0..mb {
             t[i] = w[i]
         }
-        let mut a = BIG::frombytes(&t);
+        let mut a = Big::frombytes(&t);
         for i in 0..mb {
             t[i] = w[i + mb]
         }
-        let mut b = BIG::frombytes(&t);
+        let mut b = Big::frombytes(&t);
         let mut c = FP2::new_bigs(&a, &b);
 
         for i in 0..mb {
             t[i] = w[i + 2 * mb]
         }
-        a.copy(&BIG::frombytes(&t));
+        a.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = w[i + 3 * mb]
         }
-        b.copy(&BIG::frombytes(&t));
+        b.copy(&Big::frombytes(&t));
         let mut d = FP2::new_bigs(&a, &b);
 
         let mut ea = FP4::new_fp2s(&c, &d);
@@ -843,21 +843,21 @@ impl FP24 {
         for i in 0..mb {
             t[i] = w[i + 4 * mb]
         }
-        a.copy(&BIG::frombytes(&t));
+        a.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = w[i + 5 * mb]
         }
-        b.copy(&BIG::frombytes(&t));
+        b.copy(&Big::frombytes(&t));
         c.copy(&FP2::new_bigs(&a, &b));
 
         for i in 0..mb {
             t[i] = w[i + 6 * mb]
         }
-        a.copy(&BIG::frombytes(&t));
+        a.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = w[i + 7 * mb]
         }
-        b.copy(&BIG::frombytes(&t));
+        b.copy(&Big::frombytes(&t));
         d.copy(&FP2::new_bigs(&a, &b));
 
         let mut eb = FP4::new_fp2s(&c, &d);
@@ -867,21 +867,21 @@ impl FP24 {
         for i in 0..mb {
             t[i] = w[i + 8 * mb]
         }
-        a.copy(&BIG::frombytes(&t));
+        a.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = w[i + 9 * mb]
         }
-        b.copy(&BIG::frombytes(&t));
+        b.copy(&Big::frombytes(&t));
         c.copy(&FP2::new_bigs(&a, &b));
 
         for i in 0..mb {
             t[i] = w[i + 10 * mb]
         }
-        a.copy(&BIG::frombytes(&t));
+        a.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = w[i + 11 * mb]
         }
-        b.copy(&BIG::frombytes(&t));
+        b.copy(&Big::frombytes(&t));
         d.copy(&FP2::new_bigs(&a, &b));
 
         ea.copy(&FP4::new_fp2s(&c, &d));
@@ -889,21 +889,21 @@ impl FP24 {
         for i in 0..mb {
             t[i] = w[i + 12 * mb]
         }
-        a.copy(&BIG::frombytes(&t));
+        a.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = w[i + 13 * mb]
         }
-        b.copy(&BIG::frombytes(&t));
+        b.copy(&Big::frombytes(&t));
         c.copy(&FP2::new_bigs(&a, &b));
 
         for i in 0..mb {
             t[i] = w[i + 14 * mb]
         }
-        a.copy(&BIG::frombytes(&t));
+        a.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = w[i + 15 * mb]
         }
-        b.copy(&BIG::frombytes(&t));
+        b.copy(&Big::frombytes(&t));
         d.copy(&FP2::new_bigs(&a, &b));
 
         eb.copy(&FP4::new_fp2s(&c, &d));
@@ -913,22 +913,22 @@ impl FP24 {
         for i in 0..mb {
             t[i] = w[i + 16 * mb]
         }
-        a.copy(&BIG::frombytes(&t));
+        a.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = w[i + 17 * mb]
         }
-        b.copy(&BIG::frombytes(&t));
+        b.copy(&Big::frombytes(&t));
 
         c.copy(&FP2::new_bigs(&a, &b));
 
         for i in 0..mb {
             t[i] = w[i + 18 * mb]
         }
-        a.copy(&BIG::frombytes(&t));
+        a.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = w[i + 19 * mb]
         }
-        b.copy(&BIG::frombytes(&t));
+        b.copy(&Big::frombytes(&t));
         d.copy(&FP2::new_bigs(&a, &b));
 
         ea.copy(&FP4::new_fp2s(&c, &d));
@@ -936,22 +936,22 @@ impl FP24 {
         for i in 0..mb {
             t[i] = w[i + 20 * mb]
         }
-        a.copy(&BIG::frombytes(&t));
+        a.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = w[i + 21 * mb]
         }
-        b.copy(&BIG::frombytes(&t));
+        b.copy(&Big::frombytes(&t));
 
         c.copy(&FP2::new_bigs(&a, &b));
 
         for i in 0..mb {
             t[i] = w[i + 22 * mb]
         }
-        a.copy(&BIG::frombytes(&t));
+        a.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = w[i + 23 * mb]
         }
-        b.copy(&BIG::frombytes(&t));
+        b.copy(&Big::frombytes(&t));
         d.copy(&FP2::new_bigs(&a, &b));
 
         eb.copy(&FP4::new_fp2s(&c, &d));
@@ -1080,12 +1080,12 @@ impl FP24 {
     }
 
     /* self=self^e */
-    pub fn pow(&self, e: &BIG) -> FP24 {
+    pub fn pow(&self, e: &Big) -> FP24 {
         let mut r = FP24::new_copy(self);
         r.norm();
-        let mut e1 = BIG::new_copy(e);
+        let mut e1 = Big::new_copy(e);
         e1.norm();
-        let mut e3 = BIG::new_copy(&e1);
+        let mut e3 = Big::new_copy(&e1);
         e3.pmul(3);
         e3.norm();
         let mut w = FP24::new_copy(&r);
@@ -1122,20 +1122,20 @@ impl FP24 {
         self.copy(&r[0]);
     }
 
-    pub fn compow(&mut self, e: &BIG, r: &BIG) -> FP8 {
-        let f = FP2::new_bigs(&BIG::new_ints(&rom::FRA), &BIG::new_ints(&rom::FRB));
-        let q = BIG::new_ints(&rom::MODULUS);
+    pub fn compow(&mut self, e: &Big, r: &Big) -> FP8 {
+        let f = FP2::new_bigs(&Big::new_ints(&rom::FRA), &Big::new_ints(&rom::FRB));
+        let q = Big::new_ints(&rom::MODULUS);
 
         let mut g1 = FP24::new_copy(self);
         let mut g2 = FP24::new_copy(self);
 
-        let mut m = BIG::new_copy(&q);
+        let mut m = Big::new_copy(&q);
         m.rmod(&r);
 
-        let mut a = BIG::new_copy(&e);
+        let mut a = Big::new_copy(&e);
         a.rmod(&mut m);
 
-        let mut b = BIG::new_copy(&e);
+        let mut b = Big::new_copy(&e);
         b.div(&mut m);
 
         let mut c = g1.trace();
@@ -1162,7 +1162,7 @@ impl FP24 {
     // Bos & Costello https://eprint.iacr.org/2013/458.pdf
     // Faz-Hernandez & Longa & Sanchez  https://eprint.iacr.org/2013/158.pdf
     // Side channel attack secure
-    pub fn pow8(q: &[FP24], u: &[BIG]) -> FP24 {
+    pub fn pow8(q: &[FP24], u: &[Big]) -> FP24 {
         let mut g1: [FP24; 8] = [
             FP24::new(),
             FP24::new(),
@@ -1192,16 +1192,16 @@ impl FP24 {
         let mut w2: [i8; CT] = [0; CT];
         let mut s2: [i8; CT] = [0; CT];
 
-        let mut mt = BIG::new();
-        let mut t: [BIG; 8] = [
-            BIG::new_copy(&u[0]),
-            BIG::new_copy(&u[1]),
-            BIG::new_copy(&u[2]),
-            BIG::new_copy(&u[3]),
-            BIG::new_copy(&u[4]),
-            BIG::new_copy(&u[5]),
-            BIG::new_copy(&u[6]),
-            BIG::new_copy(&u[7]),
+        let mut mt = Big::new();
+        let mut t: [Big; 8] = [
+            Big::new_copy(&u[0]),
+            Big::new_copy(&u[1]),
+            Big::new_copy(&u[2]),
+            Big::new_copy(&u[3]),
+            Big::new_copy(&u[4]),
+            Big::new_copy(&u[5]),
+            Big::new_copy(&u[6]),
+            Big::new_copy(&u[7]),
         ];
 
         for i in 0..8 {
@@ -1232,7 +1232,7 @@ impl FP24 {
         g1[7].mul(&q[3]); // q[0].q[1].q[2].q[3]
 
         // Use Frobenius
-        let f = FP2::new_bigs(&BIG::new_ints(&rom::FRA), &BIG::new_ints(&rom::FRB));
+        let f = FP2::new_bigs(&Big::new_ints(&rom::FRA), &Big::new_ints(&rom::FRB));
         for i in 0..8 {
             g2[i].copy(&g1[i]);
             g2[i].frob(&f, 4);

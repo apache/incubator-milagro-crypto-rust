@@ -33,7 +33,7 @@ pub const CTR4: usize = 33;
 pub const CTR8: usize = 37;
 pub const CTR16: usize = 45;
 
-const INCO: [u8; 4] = [0xB, 0xD, 0x9, 0xE]; /* Inverse Coefficients */
+const INCO: [u8; 4] = [0xB, 0xD, 0x9, 0xE]; // Inverse Coefficients
 
 const PTAB: [u8; 256] = [
     1, 3, 5, 15, 17, 51, 85, 255, 26, 46, 114, 150, 161, 248, 19, 53, 95, 225, 56, 72, 216, 115,
@@ -184,38 +184,37 @@ pub struct AES {
 
 impl AES {
     fn rotl8(x: u32) -> u32 {
-        return ((x) << 8) | ((x) >> 24);
+        ((x) << 8) | ((x) >> 24)
     }
 
     fn rotl16(x: u32) -> u32 {
-        return ((x) << 16) | ((x) >> 16);
+        ((x) << 16) | ((x) >> 16)
     }
 
     fn rotl24(x: u32) -> u32 {
-        return ((x) << 24) | ((x) >> 8);
+        ((x) << 24) | ((x) >> 8)
     }
 
     fn pack(b: [u8; 4]) -> u32 {
-        /* pack bytes into a 32-bit Word */
-        return ((((b[3]) & 0xff) as u32) << 24)
+        // pack bytes into a 32-bit Word
+        ((((b[3]) & 0xff) as u32) << 24)
             | ((((b[2]) & 0xff) as u32) << 16)
             | ((((b[1]) & 0xff) as u32) << 8)
-            | (((b[0]) & 0xff) as u32);
+            | (((b[0]) & 0xff) as u32)
     }
 
     fn unpack(a: u32) -> [u8; 4] {
-        /* unpack bytes from a word */
-        let b: [u8; 4] = [
+        // unpack bytes from a word
+        [
             (a & 0xff) as u8,
             ((a >> 8) & 0xff) as u8,
             ((a >> 16) & 0xff) as u8,
             ((a >> 24) & 0xff) as u8,
-        ];
-        return b;
+        ]
     }
 
     fn bmul(x: u8, y: u8) -> u8 {
-        /* x.y= AntiLog(Log(x) + Log(y)) */
+        // x.y= AntiLog(Log(x) + Log(y))
         let ix = (x as usize) & 0xff;
         let iy = (y as usize) & 0xff;
         let lx = (LTAB[ix] as usize) & 0xff;
@@ -234,22 +233,22 @@ impl AES {
         b[1] = FBSUB[b[1] as usize];
         b[2] = FBSUB[b[2] as usize];
         b[3] = FBSUB[b[3] as usize];
-        return AES::pack(b);
+        AES::pack(b)
     }
 
     fn product(x: u32, y: u32) -> u8 {
-        /* dot product of two 4-byte arrays */
+        // dot product of two 4-byte arrays
         let xb = AES::unpack(x);
         let yb = AES::unpack(y);
 
-        return AES::bmul(xb[0], yb[0])
+        AES::bmul(xb[0], yb[0])
             ^ AES::bmul(xb[1], yb[1])
             ^ AES::bmul(xb[2], yb[2])
-            ^ AES::bmul(xb[3], yb[3]);
+            ^ AES::bmul(xb[3], yb[3])
     }
 
     fn invmixcol(x: u32) -> u32 {
-        /* matrix Multiplication */
+        // matrix Multiplication
         let mut b: [u8; 4] = [0; 4];
         let mut m = AES::pack(INCO);
         b[3] = AES::product(m, x);
@@ -260,7 +259,7 @@ impl AES {
         m = AES::rotl24(m);
         b[0] = AES::product(m, x);
         let y = AES::pack(b);
-        return y;
+        y
     }
 
     fn increment(f: &mut [u8; 16]) {
@@ -283,9 +282,9 @@ impl AES {
         }
     }
 
-    /* reset cipher */
+    /// Reset cipher.
     pub fn reset(&mut self, m: usize, iv: Option<[u8; 16]>) {
-        /* reset mode, or reset iv */
+        // reset mode, or reset iv
         self.mode = m;
         for i in 0..16 {
             self.f[i] = 0
@@ -300,7 +299,7 @@ impl AES {
     }
 
     pub fn init(&mut self, m: usize, nkey: usize, key: &[u8], iv: Option<[u8; 16]>) -> bool {
-        /* Key Scheduler. Create expanded encryption key */
+        // Key Scheduler. Create expanded encryption key
         let mut cipherkey: [u32; 8] = [0; 8];
         let mut b: [u8; 4] = [0; 4];
         let nk = nkey / 4;
@@ -360,7 +359,7 @@ impl AES {
             k += 1;
         }
 
-        /* now for the expanded decrypt key in reverse order */
+        // now for the expanded decrypt key in reverse order
 
         for j in 0..4 {
             self.rkey[j + n - 4] = self.fkey[j]
@@ -376,7 +375,7 @@ impl AES {
         for j in n - 4..n {
             self.rkey[j + 4 - n] = self.fkey[j]
         }
-        return true;
+        true
     }
 
     pub fn getreg(&mut self) -> [u8; 16] {
@@ -384,10 +383,10 @@ impl AES {
         for i in 0..16 {
             ir[i] = self.f[i]
         }
-        return ir;
+        ir
     }
 
-    /* Encrypt a single block */
+    // Encrypt a single block
     pub fn ecb_encrypt(&mut self, buff: &mut [u8; 16]) {
         let mut b: [u8; 4] = [0; 4];
         let mut p: [u32; 4] = [0; 4];
@@ -405,7 +404,7 @@ impl AES {
 
         let mut k = 4;
 
-        /* State alternates between p and q */
+        // State alternates between p and q
         for _ in 1..self.nr {
             q[0] = self.fkey[k]
                 ^ FTABLE[(p[0] & 0xff) as usize]
@@ -439,7 +438,7 @@ impl AES {
             }
         }
 
-        /* Last Round */
+        // Last Round
 
         q[0] = self.fkey[k]
             ^ (FBSUB[(p[0] & 0xff) as usize] as u32)
@@ -475,7 +474,7 @@ impl AES {
         }
     }
 
-    /* Decrypt a single block */
+    // Decrypt a single block
     pub fn ecb_decrypt(&mut self, buff: &mut [u8; 16]) {
         let mut b: [u8; 4] = [0; 4];
         let mut p: [u32; 4] = [0; 4];
@@ -493,7 +492,7 @@ impl AES {
 
         let mut k = 4;
 
-        /* State alternates between p and q */
+        // State alternates between p and q
         for _ in 1..self.nr {
             q[0] = self.rkey[k]
                 ^ RTABLE[(p[0] & 0xff) as usize]
@@ -527,7 +526,7 @@ impl AES {
             }
         }
 
-        /* Last Round */
+        // Last Round
 
         q[0] = self.rkey[k]
             ^ (RBSUB[(p[0] & 0xff) as usize] as u32)
@@ -563,7 +562,7 @@ impl AES {
         }
     }
 
-    /* Encrypt using selected mode of operation */
+    // Encrypt using selected mode of operation
     pub fn encrypt(&mut self, buff: &mut [u8; 16]) -> u32 {
         let mut st: [u8; 16] = [0; 16];
 
@@ -643,7 +642,7 @@ impl AES {
         }
     }
 
-    /* Decrypt using selected mode of operation */
+    // Decrypt using selected mode of operation
     pub fn decrypt(&mut self, buff: &mut [u8; 16]) -> u32 {
         let mut st: [u8; 16] = [0; 16];
 
@@ -722,7 +721,7 @@ impl AES {
         }
     }
 
-    /* Clean up and delete left-overs */
+    // Clean up and delete left-overs
     pub fn end(&mut self) {
         // clean up
         for i in 0..4 * (self.nr + 1) {

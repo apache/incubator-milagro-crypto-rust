@@ -17,14 +17,14 @@ specific language governing permissions and limitations
 under the License.
 */
 
-const HASH256_H0: u32 = 0x6A09E667;
-const HASH256_H1: u32 = 0xBB67AE85;
-const HASH256_H2: u32 = 0x3C6EF372;
-const HASH256_H3: u32 = 0xA54FF53A;
-const HASH256_H4: u32 = 0x510E527F;
-const HASH256_H5: u32 = 0x9B05688C;
-const HASH256_H6: u32 = 0x1F83D9AB;
-const HASH256_H7: u32 = 0x5BE0CD19;
+const HASH256_H0: u32 = 0x6A09_E667;
+const HASH256_H1: u32 = 0xBB67_AE85;
+const HASH256_H2: u32 = 0x3C6E_F372;
+const HASH256_H3: u32 = 0xA54F_F53A;
+const HASH256_H4: u32 = 0x510E_527F;
+const HASH256_H5: u32 = 0x9B05_688C;
+const HASH256_H6: u32 = 0x1F83_D9AB;
+const HASH256_H7: u32 = 0x5BE0_CD19;
 
 const HASH256_K: [u32; 64] = [
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,

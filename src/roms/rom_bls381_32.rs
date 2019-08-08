@@ -197,13 +197,13 @@ pub const BASEBITS: usize = 29;
 
 pub const MODBITS: usize = 381;
 pub const MOD8: usize = 3;
-pub const MODTYPE: ModType = ModType::NOT_SPECIAL;
+pub const MODTYPE: ModType = ModType::NotSpecial;
 pub const SH: usize = 14;
 
-pub const CURVETYPE: CurveType = CurveType::WEIERSTRASS;
-pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::BLS;
-pub const SEXTIC_TWIST: SexticTwist = SexticTwist::M_TYPE;
+pub const CURVETYPE: CurveType = CurveType::Weierstrass;
+pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::Bls;
+pub const SEXTIC_TWIST: SexticTwist = SexticTwist::MType;
 pub const ATE_BITS: usize = 65;
-pub const SIGN_OF_X: SignOfX = SignOfX::NEGATIVEX;
+pub const SIGN_OF_X: SignOfX = SignOfX::NegativeX;
 pub const HASH_TYPE: usize = 32;
 pub const AESKEY: usize = 16;

@@ -18,7 +18,7 @@ under the License.
 */
 
 use super::big;
-use super::big::BIG;
+use super::big::Big;
 use super::ecp;
 use super::fp2::FP2;
 use super::rom;
@@ -69,10 +69,10 @@ impl ECP2 {
         E.z.one();
         E.x.norm();
 
-        let mut rhs = ECP2::rhs(&E.x);
+        let rhs = ECP2::rhs(&E.x);
         let mut y2 = FP2::new_copy(&E.y);
         y2.sqr();
-        if !y2.equals(&mut rhs) {
+        if !y2.equals(&rhs) {
             E.inf();
         }
         return E;
@@ -163,14 +163,14 @@ impl ECP2 {
 
         a.mul(&Q.z);
         b.mul(&self.z);
-        if !a.equals(&mut b) {
+        if !a.equals(&b) {
             return false;
         }
         a.copy(&self.y);
         a.mul(&Q.z);
         b.copy(&Q.y);
         b.mul(&self.z);
-        if !a.equals(&mut b) {
+        if !a.equals(&b) {
             return false;
         }
 
@@ -182,8 +182,8 @@ impl ECP2 {
         if self.is_infinity() {
             return;
         }
-        let mut one = FP2::new_int(1);
-        if self.z.equals(&mut one) {
+        let one = FP2::new_int(1);
+        if self.z.equals(&one) {
             return;
         }
         self.z.inverse();
@@ -259,21 +259,21 @@ impl ECP2 {
         for i in 0..mb {
             t[i] = b[i]
         }
-        let mut ra = BIG::frombytes(&t);
+        let mut ra = Big::frombytes(&t);
         for i in 0..mb {
             t[i] = b[i + mb]
         }
-        let mut rb = BIG::frombytes(&t);
+        let mut rb = Big::frombytes(&t);
         let rx = FP2::new_bigs(&ra, &rb);
 
         for i in 0..mb {
             t[i] = b[i + 2 * mb]
         }
-        ra.copy(&BIG::frombytes(&t));
+        ra.copy(&Big::frombytes(&t));
         for i in 0..mb {
             t[i] = b[i + 3 * mb]
         }
-        rb.copy(&BIG::frombytes(&t));
+        rb.copy(&Big::frombytes(&t));
         let ry = FP2::new_bigs(&ra, &rb);
 
         return ECP2::new_fp2s(&rx, &ry);
@@ -316,11 +316,11 @@ impl ECP2 {
     pub fn rhs(x: &FP2) -> FP2 {
         let mut r = FP2::new_copy(x);
         r.sqr();
-        let mut b = FP2::new_big(&BIG::new_ints(&rom::CURVE_B));
-        if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+        let mut b = FP2::new_big(&Big::new_ints(&rom::CURVE_B));
+        if ecp::SEXTIC_TWIST == SexticTwist::DType {
             b.div_ip();
         }
-        if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::MType {
             b.norm();
             b.mul_ip();
             b.norm();
@@ -336,14 +336,14 @@ impl ECP2 {
     /* self+=self */
     pub fn dbl(&mut self) -> isize {
         let mut iy = FP2::new_copy(&self.y);
-        if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::DType {
             iy.mul_ip();
             iy.norm();
         }
 
         let mut t0 = FP2::new_copy(&self.y); //***** Change
         t0.sqr();
-        if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::DType {
             t0.mul_ip();
         }
         let mut t1 = FP2::new_copy(&iy);
@@ -359,7 +359,7 @@ impl ECP2 {
         self.z.norm();
 
         t2.imul(3 * rom::CURVE_B_I);
-        if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::MType {
             t2.mul_ip();
             t2.norm();
         }
@@ -415,7 +415,7 @@ impl ECP2 {
 
         t3.sub(&t4);
         t3.norm();
-        if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::DType {
             t3.mul_ip();
             t3.norm(); //t3=(X1+Y1)(X2+Y2)-(X1.X2+Y1.Y2) = X1.Y2+X2.Y1
         }
@@ -432,7 +432,7 @@ impl ECP2 {
 
         t4.sub(&x3);
         t4.norm();
-        if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::DType {
             t4.mul_ip();
             t4.norm(); //t4=(Y1+Z1)(Y2+Z2) - (Y1.Y2+Z1.Z2) = Y1.Z2+Y2.Z1
         }
@@ -448,7 +448,7 @@ impl ECP2 {
         y3.rsub(&x3);
         y3.norm(); // y3=(X1+Z1)(X2+Z2) - (X1.X2+Z1.Z2) = X1.Z2+X2.Z1
 
-        if ecp::SEXTIC_TWIST == SexticTwist::D_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::DType {
             t0.mul_ip();
             t0.norm(); // x.Q.x
             t1.mul_ip();
@@ -459,7 +459,7 @@ impl ECP2 {
         t0.add(&x3);
         t0.norm();
         t2.imul(b);
-        if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::MType {
             t2.mul_ip();
             t2.norm();
         }
@@ -469,7 +469,7 @@ impl ECP2 {
         t1.sub(&t2);
         t1.norm();
         y3.imul(b);
-        if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+        if ecp::SEXTIC_TWIST == SexticTwist::MType {
             y3.mul_ip();
             y3.norm();
         }
@@ -518,10 +518,10 @@ impl ECP2 {
     }
 
     /* self*=e */
-    pub fn mul(&self, e: &BIG) -> ECP2 {
+    pub fn mul(&self, e: &Big) -> ECP2 {
         /* fixed size windows */
-        let mut mt = BIG::new();
-        let mut t = BIG::new();
+        let mut mt = Big::new();
+        let mut t = Big::new();
         let mut P = ECP2::new();
         let mut Q = ECP2::new();
         let mut C = ECP2::new();
@@ -553,7 +553,7 @@ impl ECP2 {
         for i in 1..8 {
             C.copy(&W[i - 1]);
             W[i].copy(&C);
-            W[i].add(&mut Q);
+            W[i].add(&Q);
         }
 
         /* make exponent odd - add 2P if even, P if odd */
@@ -587,9 +587,9 @@ impl ECP2 {
             P.dbl();
             P.dbl();
             P.dbl();
-            P.add(&mut Q);
+            P.add(&Q);
         }
-        P.sub(&mut C);
+        P.sub(&C);
         P.affine();
         return P;
     }
@@ -599,7 +599,7 @@ impl ECP2 {
     // Faz-Hernandez & Longa & Sanchez  https://eprint.iacr.org/2013/158.pdf
     // Side channel attack secure
 
-    pub fn mul4(Q: &mut [ECP2], u: &[BIG]) -> ECP2 {
+    pub fn mul4(Q: &mut [ECP2], u: &[Big]) -> ECP2 {
         let mut W = ECP2::new();
         let mut P = ECP2::new();
 
@@ -614,13 +614,13 @@ impl ECP2 {
             ECP2::new(),
         ];
 
-        let mut mt = BIG::new();
+        let mut mt = Big::new();
 
-        let mut t: [BIG; 4] = [
-            BIG::new_copy(&u[0]),
-            BIG::new_copy(&u[1]),
-            BIG::new_copy(&u[2]),
-            BIG::new_copy(&u[3]),
+        let mut t: [Big; 4] = [
+            Big::new_copy(&u[0]),
+            Big::new_copy(&u[1]),
+            Big::new_copy(&u[2]),
+            Big::new_copy(&u[3]),
         ];
 
         const CT: usize = 1 + big::NLEN * (big::BASEBITS as usize);
@@ -634,24 +634,24 @@ impl ECP2 {
         T[0].copy(&Q[0]);
         W.copy(&T[0]);
         T[1].copy(&W);
-        T[1].add(&mut Q[1]); // Q[0]+Q[1]
+        T[1].add(&Q[1]); // Q[0]+Q[1]
         T[2].copy(&W);
-        T[2].add(&mut Q[2]);
+        T[2].add(&Q[2]);
         W.copy(&T[1]); // Q[0]+Q[2]
         T[3].copy(&W);
-        T[3].add(&mut Q[2]);
+        T[3].add(&Q[2]);
         W.copy(&T[0]); // Q[0]+Q[1]+Q[2]
         T[4].copy(&W);
-        T[4].add(&mut Q[3]);
+        T[4].add(&Q[3]);
         W.copy(&T[1]); // Q[0]+Q[3]
         T[5].copy(&W);
-        T[5].add(&mut Q[3]);
+        T[5].add(&Q[3]);
         W.copy(&T[2]); // Q[0]+Q[1]+Q[3]
         T[6].copy(&W);
-        T[6].add(&mut Q[3]);
+        T[6].add(&Q[3]);
         W.copy(&T[3]); // Q[0]+Q[2]+Q[3]
         T[7].copy(&W);
-        T[7].add(&mut Q[3]); // Q[0]+Q[1]+Q[2]+Q[3]
+        T[7].add(&Q[3]); // Q[0]+Q[1]+Q[2]+Q[3]
 
         // Make it odd
         let pb = 1 - t[0].parity();
@@ -693,12 +693,12 @@ impl ECP2 {
         for i in (0..nb - 1).rev() {
             P.dbl();
             W.selector(&T, (2 * w[i] + s[i]) as i32);
-            P.add(&mut W);
+            P.add(&W);
         }
 
         // apply correction
         W.copy(&P);
-        W.sub(&mut Q[0]);
+        W.sub(&Q[0]);
         P.cmove(&W, pb);
         P.affine();
 
@@ -707,11 +707,11 @@ impl ECP2 {
 
     #[allow(non_snake_case)]
     pub fn mapit(h: &[u8]) -> ECP2 {
-        let mut q = BIG::new_ints(&rom::MODULUS);
-        let mut x = BIG::frombytes(h);
-        x.rmod(&mut q);
+        let q = Big::new_ints(&rom::MODULUS);
+        let mut x = Big::frombytes(h);
+        x.rmod(&q);
         let mut Q: ECP2;
-        let one = BIG::new_int(1);
+        let one = Big::new_int(1);
 
         loop {
             let X = FP2::new_bigs(&one, &x);
@@ -722,16 +722,16 @@ impl ECP2 {
             x.inc(1);
             x.norm();
         }
-        let mut X = FP2::new_bigs(&BIG::new_ints(&rom::FRA), &BIG::new_ints(&rom::FRB));
-        if ecp::SEXTIC_TWIST == SexticTwist::M_TYPE {
+        let mut X = FP2::new_bigs(&Big::new_ints(&rom::FRA), &Big::new_ints(&rom::FRB));
+        if ecp::SEXTIC_TWIST == SexticTwist::MType {
             X.inverse();
             X.norm();
         }
-        x = BIG::new_ints(&rom::CURVE_BNX);
+        x = Big::new_ints(&rom::CURVE_BNX);
 
-        if ecp::CURVE_PAIRING_TYPE == CurvePairingType::BN {
-            let mut T = Q.mul(&mut x);
-            if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+        if ecp::CURVE_PAIRING_TYPE == CurvePairingType::Bn {
+            let mut T = Q.mul(&x);
+            if ecp::SIGN_OF_X == SignOfX::NegativeX {
                 T.neg();
             }
             let mut K = ECP2::new();
@@ -749,11 +749,11 @@ impl ECP2 {
             T.frob(&X);
             Q.add(&T);
         }
-        if ecp::CURVE_PAIRING_TYPE == CurvePairingType::BLS {
-            let mut xQ = Q.mul(&mut x);
-            let mut x2Q = xQ.mul(&mut x);
+        if ecp::CURVE_PAIRING_TYPE == CurvePairingType::Bls {
+            let mut xQ = Q.mul(&x);
+            let mut x2Q = xQ.mul(&x);
 
-            if ecp::SIGN_OF_X == SignOfX::NEGATIVEX {
+            if ecp::SIGN_OF_X == SignOfX::NegativeX {
                 xQ.neg();
             }
             x2Q.sub(&xQ);
@@ -777,12 +777,12 @@ impl ECP2 {
     pub fn generator() -> ECP2 {
         return ECP2::new_fp2s(
             &FP2::new_bigs(
-                &BIG::new_ints(&rom::CURVE_PXA),
-                &BIG::new_ints(&rom::CURVE_PXB),
+                &Big::new_ints(&rom::CURVE_PXA),
+                &Big::new_ints(&rom::CURVE_PXB),
             ),
             &FP2::new_bigs(
-                &BIG::new_ints(&rom::CURVE_PYA),
-                &BIG::new_ints(&rom::CURVE_PYB),
+                &Big::new_ints(&rom::CURVE_PYA),
+                &Big::new_ints(&rom::CURVE_PYB),
             ),
         );
     }
