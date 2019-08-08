@@ -26,12 +26,12 @@ use rand::RAND;
 use super::super::arch::DChunk;
 
 /* Finite field support - for RSA, DH etc. */
-/* RSA/DH modulus length as multiple of BigBITS */
+/* RSA/DH modulus length as multiple of BIGBITS */
 
 pub use super::rom::FFLEN;
 //use std::str::SplitWhitespace;
 
-pub const FF_BITS: usize = (big::BigBITS * FFLEN); /* Finite Field Size in bits - must be 256.2^n */
+pub const FF_BITS: usize = (big::BIGBITS * FFLEN); /* Finite Field Size in bits - must be 256.2^n */
 pub const HFLEN: usize = (FFLEN / 2); /* Useful for half-size RSA private key operations */
 
 pub const P_MBITS: usize = (big::MODBYTES as usize) * 8;
@@ -142,7 +142,7 @@ impl FF {
         return true;
     }
 
-    /* shift right by BigBITS-bit words */
+    /* shift right by BIGBITS-bit words */
     pub fn shrw(&mut self, n: usize) {
         let mut t = Big::new();
         for i in 0..n {
@@ -152,7 +152,7 @@ impl FF {
         }
     }
 
-    /* shift left by BigBITS-bit words */
+    /* shift left by BIGBITS-bit words */
     pub fn shlw(&mut self, n: usize) {
         let mut t = Big::new();
         for i in 0..n {
@@ -548,7 +548,7 @@ impl FF {
         x.copy(&self);
         x.norm();
         m.dsucopy(&b);
-        let mut k = big::BigBITS * n;
+        let mut k = big::BIGBITS * n;
 
         while FF::comp(&x, &m) >= 0 {
             x.sub(&m);
@@ -793,7 +793,7 @@ impl FF {
 
         let mut i = 8 * (big::MODBYTES as usize) * n - 1;
         loop {
-            let b = (e.v[i / (big::BigBITS as usize)]).bit(i % (big::BigBITS as usize)) as isize;
+            let b = (e.v[i / (big::BIGBITS as usize)]).bit(i % (big::BIGBITS as usize)) as isize;
             self.copy(&r0);
             self.modmul(&r1, p, &nd);
 
@@ -892,7 +892,7 @@ impl FF {
         let mut i = 8 * (big::MODBYTES as usize) * n - 1;
         loop {
             self.modsqr(p, &nd);
-            let b = (e.v[i / (big::BigBITS as usize)]).bit(i % (big::BigBITS as usize)) as isize;
+            let b = (e.v[i / (big::BIGBITS as usize)]).bit(i % (big::BIGBITS as usize)) as isize;
             if b == 1 {
                 self.modmul(&w, p, &nd)
             }
