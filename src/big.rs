@@ -391,34 +391,36 @@ impl Big {
         d
     }
 
-    // self -= x
+    /// self -= x
     pub fn sub(&mut self, x: &Big) {
         for i in 0..NLEN {
             self.w[i] -= x.w[i];
         }
     }
 
-    // reverse subtract this=x-this
+    /// reverse subtract this=x-this
     pub fn rsub(&mut self, x: &Big) {
         for i in 0..NLEN {
             self.w[i] = x.w[i] - self.w[i]
         }
     }
 
-    // self-=x, where x is int
+    /// self-=x, where x is int
     pub fn dec(&mut self, x: isize) {
         self.norm();
         self.w[0] -= x as Chunk;
     }
 
-    // self*=x, where x is small int<NEXCESS
+    /// self*=x, where x is small int<NEXCESS
     pub fn imul(&mut self, c: isize) {
         for i in 0..NLEN {
             self.w[i] *= c as Chunk;
         }
     }
 
-    // convert this Big to byte array
+    /// To Byte Array
+    ///
+    /// Convert this Big to byte array from index `n`
     pub fn tobytearray(&mut self, b: &mut [u8], n: usize) {
         let mut c = Big::new_copy(self);
         c.norm();
@@ -429,7 +431,9 @@ impl Big {
         }
     }
 
-    // convert from byte array to Big
+    /// From Byte Array
+    ///
+    /// Convert from byte array starting at index `n` to Big
     pub fn frombytearray(b: &[u8], n: usize) -> Big {
         let mut m = Big::new();
         for i in 0..(MODBYTES as usize) {
@@ -439,10 +443,16 @@ impl Big {
         m
     }
 
+    /// To Bytes
+    ///
+    /// Convert to bytes from index 0
     pub fn tobytes(&mut self, b: &mut [u8]) {
         self.tobytearray(b, 0)
     }
 
+    /// From bytes
+    ///
+    /// Convert from bytes from index 0
     pub fn frombytes(b: &[u8]) -> Big {
         Big::frombytearray(b, 0)
     }
@@ -459,7 +469,7 @@ impl Big {
         carry
     }
 
-    // self*=c and catch overflow in DBig
+    /// self*=c and catch overflow in DBig
     pub fn pxmul(&mut self, c: isize) -> DBig {
         let mut m = DBig::new();
         let mut carry = 0 as Chunk;
@@ -472,7 +482,7 @@ impl Big {
         m
     }
 
-    // divide by 3
+    /// divide by 3
     pub fn div3(&mut self) -> Chunk {
         let mut carry = 0 as Chunk;
         self.norm();
@@ -485,7 +495,7 @@ impl Big {
         carry
     }
 
-    // return a*b where result fits in a Big
+    /// return a*b where result fits in a Big
     pub fn smul(a: &Big, b: &Big) -> Big {
         let mut c = Big::new();
         for i in 0..NLEN {
@@ -501,7 +511,7 @@ impl Big {
         c
     }
 
-    // Compare a and b, return 0 if a==b, -1 if a<b, +1 if a>b. Inputs must be normalised
+    /// Compare a and b, return 0 if a==b, -1 if a<b, +1 if a>b. Inputs must be normalised
     pub fn comp(a: &Big, b: &Big) -> isize {
         for i in (0..NLEN).rev() {
             if a.w[i] == b.w[i] {
@@ -516,7 +526,7 @@ impl Big {
         0
     }
 
-    // set x = x mod 2^m
+    /// set x = x mod 2^m
     pub fn mod2m(&mut self, m: usize) {
         let wd = m / BASEBITS;
         let bt = m % BASEBITS;
@@ -527,7 +537,7 @@ impl Big {
         }
     }
 
-    // Arazi and Qi inversion mod 256
+    /// Arazi and Qi inversion mod 256
     pub fn invmod256(a: isize) -> isize {
         let mut t1: isize = 0;
         let mut c = (a >> 1) & 1;
@@ -571,7 +581,7 @@ impl Big {
         (self.w[0] % 2) as isize
     }
 
-    // Return n-th bit
+    /// Return n-th bit
     pub fn bit(&self, n: usize) -> isize {
         if (self.w[n / (BASEBITS as usize)] & (1 << (n % BASEBITS))) > 0 {
             return 1;
@@ -626,6 +636,8 @@ impl Big {
         self.norm();
     }
 
+    /// Reduciton with Modulus
+    ///
     /// reduce self mod m
     pub fn rmod(&mut self, n: &Big) {
         let mut k = 0;
@@ -657,7 +669,9 @@ impl Big {
         }
     }
 
-    /// Divide self by m
+    /// Division
+    ///
+    /// self = self / m
     pub fn div(&mut self, n: &Big) {
         let mut k = 0;
         self.norm();
@@ -690,13 +704,15 @@ impl Big {
         }
     }
 
+    /// Random
+    ///
     /// Get 8*MODBYTES size random number
     pub fn random(rng: &mut RAND) -> Big {
         let mut m = Big::new();
         let mut j = 0;
         let mut r: u8 = 0;
-        // generate random Big
 
+        // generate random Big
         for _ in 0..8 * (MODBYTES as usize) {
             if j == 0 {
                 r = rng.getbyte()
@@ -713,6 +729,8 @@ impl Big {
         m
     }
 
+    /// Random Number
+    ///
     /// Create random Big in portable way, one bit at a time
     pub fn randomnum(q: &Big, rng: &mut RAND) -> Big {
         let mut d = DBig::new();
@@ -779,6 +797,8 @@ impl Big {
         -1
     }
 
+    /// Inverse Modulus
+    ///
     /// self = 1/self mod p. Binary method
     pub fn invmodp(&mut self, p: &Big) {
         self.rmod(p);
@@ -837,6 +857,8 @@ impl Big {
         }
     }
 
+    /// Multiplication
+    ///
     /// return a*b as DBig
     pub fn mul(a: &Big, b: &Big) -> DBig {
         let mut c = DBig::new();
@@ -876,6 +898,8 @@ impl Big {
         c
     }
 
+    /// Square
+    ///
     /// return a^2 as DBig
     pub fn sqr(a: &Big) -> DBig {
         let mut c = DBig::new();
@@ -947,6 +971,8 @@ impl Big {
     }
 
     /// Montegomery Reduction
+    ///
+    /// https://eprint.iacr.org/2015/1247.pdf
     pub fn monty(md: &Big, mc: Chunk, d: &mut DBig) -> Big {
         let mut b = Big::new();
         let rm = BMASK as DChunk;
@@ -1008,6 +1034,8 @@ impl Big {
         ((r.w[n] >> (arch::CHUNK - 1)) & 1) as isize
     }
 
+    /// Modular Multiplication
+    ///
     /// return a*b mod m
     pub fn modmul(a1: &Big, b1: &Big, m: &Big) -> Big {
         let mut a = Big::new_copy(a1);
@@ -1026,6 +1054,8 @@ impl Big {
         d.dmod(m)
     }
 
+    /// Modular Negation
+    ///
     /// return -a mod m
     pub fn modneg(a1: &Big, m: &Big) -> Big {
         let mut a = Big::new_copy(a1);
@@ -1033,6 +1063,8 @@ impl Big {
         m.minus(&a)
     }
 
+    /// Raise to Power with Modulus
+    ///
     /// return this^e mod m
     pub fn powmod(&mut self, e1: &Big, m: &Big) -> Big {
         self.norm();
