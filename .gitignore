@@ -1,2 +1,6 @@
 target/
 Cargo.lock
+TestALL
+TestBLS
+TestNHS
+BenchtestALL

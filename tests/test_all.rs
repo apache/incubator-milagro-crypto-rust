@@ -32,11 +32,27 @@ pub fn printbinary(array: &[u8]) {
     println!("")
 }
 
-fn ecdh_ed25519(mut rng: &mut RAND) {
+fn create_rng() -> RAND {
+    let mut raw: [u8; 100] = [0; 100];
+
+    let mut rng = RAND::new();
+    rng.clean();
+    for i in 0..100 {
+        raw[i] = i as u8
+    }
+
+    rng.seed(100, &raw);
+    rng
+}
+
+#[test]
+fn ecdh_ed25519() {
     //use amcl::ed25519;
     use amcl::ed25519::ecdh;
     use amcl::ed25519::ecp;
 
+    let mut rng = create_rng();
+
     let pw = "M0ng00se";
     let pp: &[u8] = b"M0ng00se";
     const EFS: usize = ecdh::EFS;
@@ -183,11 +199,13 @@ fn ecdh_ed25519(mut rng: &mut RAND) {
     }
 }
 
-fn ecdh_nist256(mut rng: &mut RAND) {
-    //use amcl::nist256;
+#[test]
+fn ecdh_nist256() {
     use amcl::nist256::ecdh;
     use amcl::nist256::ecp;
 
+    let mut rng = create_rng();
+
     let pw = "M0ng00se";
     let pp: &[u8] = b"M0ng00se";
     const EFS: usize = ecdh::EFS;
@@ -334,11 +352,13 @@ fn ecdh_nist256(mut rng: &mut RAND) {
     }
 }
 
-fn ecdh_goldilocks(mut rng: &mut RAND) {
-    //use amcl::goldilocks;
+#[test]
+fn ecdh_goldilocks() {
     use amcl::goldilocks::ecdh;
     use amcl::goldilocks::ecp;
 
+    let mut rng = create_rng();
+
     let pw = "M0ng00se";
     let pp: &[u8] = b"M0ng00se";
     const EFS: usize = ecdh::EFS;
@@ -485,10 +505,13 @@ fn ecdh_goldilocks(mut rng: &mut RAND) {
     }
 }
 
-fn mpin_bn254(mut rng: &mut RAND) {
-    //use amcl::bn254;
+#[test]
+fn mpin_bn254() {
     use amcl::bn254::ecp;
     use amcl::bn254::mpin;
+
+    let mut rng = create_rng();
+
     pub const PERMITS: bool = true;
     pub const PINERROR: bool = true;
     pub const FULL: bool = true;
@@ -706,10 +729,14 @@ fn mpin_bn254(mut rng: &mut RAND) {
     }
 }
 
-fn mpin_bls383(mut rng: &mut RAND) {
+#[test]
+fn mpin_bls383() {
     //use amcl::bls383;
     use amcl::bls383::ecp;
     use amcl::bls383::mpin;
+
+    let mut rng = create_rng();
+
     pub const PERMITS: bool = true;
     pub const PINERROR: bool = true;
     pub const FULL: bool = true;
@@ -927,10 +954,13 @@ fn mpin_bls383(mut rng: &mut RAND) {
     }
 }
 
-fn mpin_bls24(mut rng: &mut RAND) {
+#[test]
+fn mpin_bls24() {
     //use amcl::bls24;
     use amcl::bls24::ecp;
     use amcl::bls24::mpin192;
+
+    let mut rng = create_rng();
 
     pub const PERMITS: bool = true;
     pub const PINERROR: bool = true;
@@ -1149,10 +1179,13 @@ fn mpin_bls24(mut rng: &mut RAND) {
     }
 }
 
-fn mpin_bls48(mut rng: &mut RAND) {
+#[test]
+fn mpin_bls48() {
     //use amcl::bls48;
     use amcl::bls48::ecp;
     use amcl::bls48::mpin256;
+
+    let mut rng = create_rng();
 
     pub const PERMITS: bool = true;
     pub const PINERROR: bool = true;
@@ -1371,10 +1404,13 @@ fn mpin_bls48(mut rng: &mut RAND) {
     }
 }
 
-fn rsa_2048(mut rng: &mut RAND) {
+#[test]
+fn rsa_2048() {
     //use amcl::rsa2048;
     use amcl::rsa2048::ff;
     use amcl::rsa2048::rsa;
+
+    let mut rng = create_rng();
 
     let sha = rsa::HASH_TYPE;
     let message: &[u8] = b"Hello World\n";
@@ -1434,26 +1470,4 @@ fn rsa_2048(mut rng: &mut RAND) {
     }
 
     rsa::private_key_kill(&mut prv);
-}
-
-//#[test]
-fn main() {
-    let mut raw: [u8; 100] = [0; 100];
-
-    let mut rng = RAND::new();
-    rng.clean();
-    for i in 0..100 {
-        raw[i] = i as u8
-    }
-
-    rng.seed(100, &raw);
-
-    ecdh_ed25519(&mut rng);
-    ecdh_nist256(&mut rng);
-    ecdh_goldilocks(&mut rng);
-    mpin_bn254(&mut rng);
-    mpin_bls383(&mut rng);
-    mpin_bls24(&mut rng);
-    mpin_bls48(&mut rng);
-    rsa_2048(&mut rng);
 }

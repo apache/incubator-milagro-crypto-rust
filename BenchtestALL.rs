@@ -19,9 +19,6 @@ under the License.
 #![allow(non_snake_case)]
 extern crate amcl;
 
-//use std::str;
-//use std::io;
-
 use amcl::arch;
 use amcl::rand::RAND;
 use amcl::types::{CurveType, CurvePairingType, ModType};
@@ -40,26 +37,26 @@ fn ed25519(mut rng: &mut RAND) {
 	let mut fail = false;
 	println!("\nTesting/Timing ed25519 ECC");
 
-	if ecp::CURVETYPE == CurveType::WEIERSTRASS {
+	if ecp::CURVETYPE == CurveType::Weierstrass {
 		println!("Weierstrass parameterization");
 	}
-	if ecp::CURVETYPE == CurveType::EDWARDS {
+	if ecp::CURVETYPE == CurveType::Edwards {
 		println!("Edwards parameterization");
 	}
-	if ecp::CURVETYPE == CurveType::MONTGOMERY {
+	if ecp::CURVETYPE == CurveType::Montgomery {
 		println!("Montgomery parameterization");
 	}
 
-	if fp::MODTYPE == ModType::PSEUDO_MERSENNE {
+	if fp::MODTYPE == ModType::PseudoMersenne {
 		println!("Pseudo-Mersenne Modulus");
 	}
-	if fp::MODTYPE == ModType::MONTGOMERY_FRIENDLY {
+	if fp::MODTYPE == ModType::MontgomeryFriendly {
 		println!("Montgomery friendly Modulus");
 	}
-	if fp::MODTYPE == ModType::GENERALISED_MERSENNE {
+	if fp::MODTYPE == ModType::GeneralisedMersenne {
 		println!("Generalised-Mersenne Modulus");
 	}
-	if fp::MODTYPE == ModType::NOT_SPECIAL {
+	if fp::MODTYPE == ModType::NotSpecial {
 		println!("Not special Modulus");
 	}
 
@@ -68,8 +65,8 @@ fn ed25519(mut rng: &mut RAND) {
 
 	let G = ecp::ECP::generator();
 
-	let mut r = big::BIG::new_ints(&rom::CURVE_ORDER);
-	let mut s = big::BIG::randomnum(&r, &mut rng);
+	let mut r = big::Big::new_ints(&rom::CURVE_ORDER);
+	let mut s = big::Big::randomnum(&r, &mut rng);
 
 	let P = G.mul(&mut r);
 	if !P.is_infinity() {
@@ -103,26 +100,26 @@ fn nist256(mut rng: &mut RAND) {
 	let mut fail = false;
 	println!("\nTesting/Timing nist256 ECC");
 
-	if ecp::CURVETYPE == CurveType::WEIERSTRASS {
+	if ecp::CURVETYPE == CurveType::Weierstrass {
 		println!("Weierstrass parameterization");
 	}
-	if ecp::CURVETYPE == CurveType::EDWARDS {
+	if ecp::CURVETYPE == CurveType::Edwards {
 		println!("Edwards parameterization");
 	}
-	if ecp::CURVETYPE == CurveType::MONTGOMERY {
+	if ecp::CURVETYPE == CurveType::Montgomery {
 		println!("Montgomery parameterization");
 	}
 
-	if fp::MODTYPE == ModType::PSEUDO_MERSENNE {
+	if fp::MODTYPE == ModType::PseudoMersenne {
 		println!("Pseudo-Mersenne Modulus");
 	}
-	if fp::MODTYPE == ModType::MONTGOMERY_FRIENDLY {
+	if fp::MODTYPE == ModType::MontgomeryFriendly {
 		println!("Montgomery friendly Modulus");
 	}
-	if fp::MODTYPE == ModType::GENERALISED_MERSENNE {
+	if fp::MODTYPE == ModType::GeneralisedMersenne {
 		println!("Generalised-Mersenne Modulus");
 	}
-	if fp::MODTYPE == ModType::NOT_SPECIAL {
+	if fp::MODTYPE == ModType::NotSpecial {
 		println!("Not special Modulus");
 	}
 
@@ -131,8 +128,8 @@ fn nist256(mut rng: &mut RAND) {
 
 	let G = ecp::ECP::generator();
 
-	let mut r = big::BIG::new_ints(&rom::CURVE_ORDER);
-	let mut s = big::BIG::randomnum(&r, &mut rng);
+	let mut r = big::Big::new_ints(&rom::CURVE_ORDER);
+	let mut s = big::Big::randomnum(&r, &mut rng);
 
 	let P = G.mul(&mut r);
 	if !P.is_infinity() {
@@ -166,26 +163,26 @@ fn goldilocks(mut rng: &mut RAND) {
 	let mut fail = false;
 	println!("\nTesting/Timing goldilocks ECC");
 
-	if ecp::CURVETYPE == CurveType::WEIERSTRASS {
+	if ecp::CURVETYPE == CurveType::Weierstrass {
 		println!("Weierstrass parameterization");
 	}
-	if ecp::CURVETYPE == CurveType::EDWARDS {
+	if ecp::CURVETYPE == CurveType::Edwards {
 		println!("Edwards parameterization");
 	}
-	if ecp::CURVETYPE == CurveType::MONTGOMERY {
+	if ecp::CURVETYPE == CurveType::Montgomery {
 		println!("Montgomery parameterization");
 	}
 
-	if fp::MODTYPE == ModType::PSEUDO_MERSENNE {
+	if fp::MODTYPE == ModType::PseudoMersenne {
 		println!("Pseudo-Mersenne Modulus");
 	}
-	if fp::MODTYPE == ModType::MONTGOMERY_FRIENDLY {
+	if fp::MODTYPE == ModType::MontgomeryFriendly {
 		println!("Montgomery friendly Modulus");
 	}
-	if fp::MODTYPE == ModType::GENERALISED_MERSENNE {
+	if fp::MODTYPE == ModType::GeneralisedMersenne {
 		println!("Generalised-Mersenne Modulus");
 	}
-	if fp::MODTYPE == ModType::NOT_SPECIAL {
+	if fp::MODTYPE == ModType::NotSpecial {
 		println!("Not special Modulus");
 	}
 
@@ -194,8 +191,8 @@ fn goldilocks(mut rng: &mut RAND) {
 
 	let G = ecp::ECP::generator();
 
-	let mut r = big::BIG::new_ints(&rom::CURVE_ORDER);
-	let mut s = big::BIG::randomnum(&r, &mut rng);
+	let mut r = big::Big::new_ints(&rom::CURVE_ORDER);
+	let mut s = big::Big::randomnum(&r, &mut rng);
 
 	let P = G.mul(&mut r);
 	if !P.is_infinity() {
@@ -243,8 +240,8 @@ fn bn254(mut rng: &mut RAND) {
 
 	let mut G = ecp::ECP::generator();
 
-	let mut r = big::BIG::new_ints(&rom::CURVE_ORDER);
-	let mut s = big::BIG::randomnum(&r, &mut rng);
+	let mut r = big::Big::new_ints(&rom::CURVE_ORDER);
+	let mut s = big::Big::randomnum(&r, &mut rng);
 
 	let mut P = pair::g1mul(&mut G, &mut r);
 
@@ -403,8 +400,8 @@ fn bls383(mut rng: &mut RAND) {
 
 	let mut G = ecp::ECP::generator();
 
-	let mut r = big::BIG::new_ints(&rom::CURVE_ORDER);
-	let mut s = big::BIG::randomnum(&r, &mut rng);
+	let mut r = big::Big::new_ints(&rom::CURVE_ORDER);
+	let mut s = big::Big::randomnum(&r, &mut rng);
 
 	let mut P = pair::g1mul(&mut G, &mut r);
 
@@ -563,8 +560,8 @@ fn bls24(mut rng: &mut RAND) {
 
 	let mut G = ecp::ECP::generator();
 
-	let mut r = big::BIG::new_ints(&rom::CURVE_ORDER);
-	let mut s = big::BIG::randomnum(&r, &mut rng);
+	let mut r = big::Big::new_ints(&rom::CURVE_ORDER);
+	let mut s = big::Big::randomnum(&r, &mut rng);
 
 	let mut P = pair192::g1mul(&mut G, &mut r);
 
@@ -723,8 +720,8 @@ fn bls48(mut rng: &mut RAND) {
 
 	let mut G = ecp::ECP::generator();
 
-	let mut r = big::BIG::new_ints(&rom::CURVE_ORDER);
-	let mut s = big::BIG::randomnum(&r, &mut rng);
+	let mut r = big::Big::new_ints(&rom::CURVE_ORDER);
+	let mut s = big::Big::randomnum(&r, &mut rng);
 
 	let mut P = pair256::g1mul(&mut G, &mut r);
 
