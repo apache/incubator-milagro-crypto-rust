@@ -122,7 +122,7 @@ fn ecdh_ed25519(mut rng: &mut RAND) {
     print!("Servers DH Key=  0x");
     printbinary(&key);
 
-    if ecp::CURVETYPE != CurveType::MONTGOMERY {
+    if ecp::CURVETYPE != CurveType::Montgomery {
         for i in 0..17 {
             m[i] = i as u8
         }
@@ -273,7 +273,7 @@ fn ecdh_nist256(mut rng: &mut RAND) {
     print!("Servers DH Key=  0x");
     printbinary(&key);
 
-    if ecp::CURVETYPE != CurveType::MONTGOMERY {
+    if ecp::CURVETYPE != CurveType::Montgomery {
         for i in 0..17 {
             m[i] = i as u8
         }
@@ -424,7 +424,7 @@ fn ecdh_goldilocks(mut rng: &mut RAND) {
     print!("Servers DH Key=  0x");
     printbinary(&key);
 
-    if ecp::CURVETYPE != CurveType::MONTGOMERY {
+    if ecp::CURVETYPE != CurveType::Montgomery {
         for i in 0..17 {
             m[i] = i as u8
         }
