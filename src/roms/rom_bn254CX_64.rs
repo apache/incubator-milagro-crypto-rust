@@ -230,7 +230,7 @@ pub const BASEBITS: usize = 56;
 pub const MODBITS: usize = 254;
 pub const MOD8: usize = 3;
 pub const MODTYPE: ModType = ModType::NotSpecial;
-pub const SH: usize = 64;
+pub const SH: usize = 26;
 
 pub const CURVETYPE: CurveType = CurveType::Weierstrass;
 pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::Bn;
