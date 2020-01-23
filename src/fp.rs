@@ -40,13 +40,13 @@ impl PartialEq for FP {
 
 impl fmt::Display for FP {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "FP: [ {} ]", self.x)
+        write!(f, "FP: [ {} ]", self.tostring())
     }
 }
 
 impl fmt::Debug for FP {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "FP: [ {} ]", self.x)
+        write!(f, "FP: [ {} ]", self.tostring())
     }
 }
 
