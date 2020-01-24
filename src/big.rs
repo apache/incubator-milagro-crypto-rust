@@ -421,7 +421,7 @@ impl Big {
     /// To Byte Array
     ///
     /// Convert this Big to byte array from index `n`
-    pub fn tobytearray(&mut self, b: &mut [u8], n: usize) {
+    pub fn tobytearray(&self, b: &mut [u8], n: usize) {
         let mut c = Big::new_copy(self);
         c.norm();
 
@@ -446,7 +446,7 @@ impl Big {
     /// To Bytes
     ///
     /// Convert to bytes from index 0
-    pub fn tobytes(&mut self, b: &mut [u8]) {
+    pub fn tobytes(&self, b: &mut [u8]) {
         self.tobytearray(b, 0)
     }
 
@@ -470,7 +470,7 @@ impl Big {
     }
 
     /// self*=c and catch overflow in DBig
-    pub fn pxmul(&mut self, c: isize) -> DBig {
+    pub fn pxmul(&self, c: isize) -> DBig {
         let mut m = DBig::new();
         let mut carry = 0 as Chunk;
         for j in 0..NLEN {

@@ -168,22 +168,16 @@ impl FP48 {
         return self.a.equals(&x.a) && self.b.equals(&x.b) && self.c.equals(&x.c);
     }
 
-    pub fn geta(&mut self) -> FP16 {
+    pub fn geta(&self) -> FP16 {
         return self.a;
-        //        let f = FP16::new_copy(&self.a);
-        //        return f;
     }
 
-    pub fn getb(&mut self) -> FP16 {
+    pub fn getb(&self) -> FP16 {
         return self.b;
-        //        let f = FP16::new_copy(&self.b);
-        //        return f;
     }
 
-    pub fn getc(&mut self) -> FP16 {
+    pub fn getc(&self) -> FP16 {
         return self.c;
-        //        let f = FP16::new_copy(&self.c);
-        //        return f;
     }
 
     /* copy self=x */
@@ -1112,7 +1106,7 @@ impl FP48 {
     }
 
     /* convert this to byte array */
-    pub fn tobytes(&mut self, w: &mut [u8]) {
+    pub fn tobytes(&self, w: &mut [u8]) {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
 
@@ -1322,7 +1316,7 @@ impl FP48 {
     }
 
     /* output to hex string */
-    pub fn tostring(&mut self) -> String {
+    pub fn tostring(&self) -> String {
         return format!(
             "[{},{},{}]",
             self.a.tostring(),

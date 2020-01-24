@@ -133,12 +133,12 @@ impl FP2 {
     }
 
     /* extract a */
-    pub fn geta(&mut self) -> Big {
+    pub fn geta(&self) -> Big {
         return self.a.redc();
     }
 
     /* extract b */
-    pub fn getb(&mut self) -> Big {
+    pub fn getb(&self) -> Big {
         return self.b.redc();
     }
 
@@ -322,7 +322,7 @@ impl FP2 {
     }
 
     /* output to hex string */
-    pub fn tostring(&mut self) -> String {
+    pub fn tostring(&self) -> String {
         return format!("[{},{}]", self.a.tostring(), self.b.tostring());
     }
 

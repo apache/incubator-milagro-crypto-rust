@@ -165,30 +165,24 @@ impl FP12 {
     /* test self=1 ? */
     pub fn isunity(&self) -> bool {
         let one = FP4::new_int(1);
-        return self.a.equals(&one) && self.b.iszilch() && self.c.iszilch();
+        self.a.equals(&one) && self.b.iszilch() && self.c.iszilch()
     }
 
     /* test self=x */
     pub fn equals(&self, x: &FP12) -> bool {
-        return self.a.equals(&x.a) && self.b.equals(&x.b) && self.c.equals(&x.c);
+        self.a.equals(&x.a) && self.b.equals(&x.b) && self.c.equals(&x.c)
     }
 
-    pub fn geta(&mut self) -> FP4 {
-        return self.a;
-        //        let f = FP4::new_copy(&self.a);
-        //        return f;
+    pub fn geta(&self) -> FP4 {
+        self.a
     }
 
-    pub fn getb(&mut self) -> FP4 {
-        return self.b;
-        //        let f = FP4::new_copy(&self.b);
-        //        return f;
+    pub fn getb(&self) -> FP4 {
+        self.b
     }
 
     pub fn getc(&mut self) -> FP4 {
-        return self.c;
-        //        let f = FP4::new_copy(&self.c);
-        //        return f;
+        self.c
     }
 
     /* copy self=x */
@@ -887,7 +881,7 @@ impl FP12 {
     }
 
     /* convert this to byte array */
-    pub fn tobytes(&mut self, w: &mut [u8]) {
+    pub fn tobytes(&self, w: &mut [u8]) {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
 
@@ -944,7 +938,7 @@ impl FP12 {
     }
 
     /* output to hex string */
-    pub fn tostring(&mut self) -> String {
+    pub fn tostring(&self) -> String {
         return format!(
             "[{},{},{}]",
             self.a.tostring(),
