@@ -108,7 +108,7 @@ impl FP16 {
     }
 
     /* test is w real? That is in a+ib test b is zero */
-    pub fn isreal(&mut self) -> bool {
+    pub fn isreal(&self) -> bool {
         return self.b.iszilch();
     }
     /* extract real part a */
@@ -294,7 +294,7 @@ impl FP16 {
     }
 
     /* output to hex string */
-    pub fn tostring(&mut self) -> String {
+    pub fn tostring(&self) -> String {
         return format!("[{},{}]", self.a.tostring(), self.b.tostring());
     }
 
