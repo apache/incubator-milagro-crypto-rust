@@ -1,5 +1,7 @@
 # Apache Milagro Crypto Library - Rust Version
 
+## Updates
+
 NOTE: Updated to Rust 2018
 
 NOTE: This version of the library requires Version 1.31+ of Rust for 64-bit
@@ -8,6 +10,20 @@ integer support and for Rust 2018.
 Now AMCL version 3 is distributed as a cargo crate.
 
 Namespaces are used to separate different curves.
+
+## Testing
+
+Unit testing can be done using cargo testing framework. it is recommended to
+run these in release mode as some tests especially `mpin` tests are very slow.
+
+Additional `--all-features` can be replaced by `--features xx` where `xx` is
+the desired feature e.g. `bls381`.
+
+```
+cargo test --all --all-features --release
+```
+
+## Benchmarking
 
 To build the library and see it in action, copy all of the files in this
 directory and its subdirectories to a fresh root directory.
@@ -23,13 +39,7 @@ This will create a build of the library for the current default target (be it 32
 Next copy the library from `target/release/libamcl.rlib` into the root
 directory and execute
 ```
-rustc TestALL.rs --extern amcl=libamcl.rlib
-
-rustc TestBLS.rs --extern amcl=libamcl.rlib
-
 rustc BenchtestALL.rs --extern amcl=libamcl.rlib
-
-rustc TestNHS.rs --extern amcl=libamcl.rlib
 ```
 
 Finally execute these programs.
@@ -54,7 +64,7 @@ And to use primitives of the needed curve in your source code:
 use amcl::bls48::{ECP, ECP8}; // any primitive you need
 ```
 
-Full list of features:
+## Features
 
 * Elliptic Curves
   * ed25519
@@ -88,3 +98,10 @@ Full list of features:
   * rsa2048
   * rsa3072
   * rsa4096
+* SHA-2
+  * SHA256
+  * SHA384
+  * SHA512
+
+Note `SHA-2` features will always be compiled however all other features require
+the feature flag `--features xx`
