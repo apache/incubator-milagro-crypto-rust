@@ -18,11 +18,11 @@ under the License.
 */
 
 use super::super::arch::Chunk;
-use bn254CX::big::NLEN;
+use bn254cx::big::NLEN;
 use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 28
-// bn254CX Modulus
+// bn254cx Modulus
 pub const MODULUS: [Chunk; NLEN] = [
     0xC1B55B3, 0x6623EF5, 0x93EE1BE, 0xD6EE180, 0x6D3243F, 0x647A636, 0xDB0BDDF, 0x8702A0,
     0x4000000, 0x2,
@@ -41,7 +41,7 @@ pub const FRB: [Chunk; NLEN] = [
     0xA6F7D0, 0x1,
 ];
 
-// bn254CX Curve
+// bn254cx Curve
 pub const CURVE_COF_I: isize = 1;
 pub const CURVE_A: isize = 0;
 pub const CURVE_B_I: isize = 2;

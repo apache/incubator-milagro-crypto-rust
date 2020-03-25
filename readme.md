@@ -76,7 +76,7 @@ Full list of features:
   * secp256k1
 * Pairing-Friendly Elliptic Curves
   * bn254
-  * bn254CX
+  * bn254cx
   * bls383
   * bls381
   * fp256BN
