@@ -467,3 +467,74 @@ pub fn decrypt(prv: &RsaPrivateKey, g: &[u8], f: &mut [u8]) {
 
     r.tobytes(f);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::*;
+    use std::str;
+
+    #[test]
+    fn test_rsa() {
+        let mut rng = create_rng();
+
+        let sha = super::HASH_TYPE;
+        let message: &[u8] = b"Hello World\n";
+        const RFS: usize = super::RFS;
+
+        let mut pbc = super::new_public_key(ff::FFLEN);
+        let mut prv = super::new_private_key(ff::HFLEN);
+
+        let mut ml: [u8; RFS] = [0; RFS];
+        let mut ms: [u8; RFS] = [0; RFS];
+        let mut c: [u8; RFS] = [0; RFS];
+        let mut s: [u8; RFS] = [0; RFS];
+        let mut e: [u8; RFS] = [0; RFS];
+
+        println!("\nTesting RSA");
+        println!("Generating public/private key pair");
+        super::key_pair(&mut rng, 65537, &mut prv, &mut pbc);
+
+        println!("Encrypting test string\n");
+        super::oaep_encode(sha, &message, &mut rng, None, &mut e); /* OAEP encode message M to E  */
+
+        super::encrypt(&pbc, &e, &mut c); /* encrypt encoded message */
+        print!("Ciphertext= 0x");
+        printbinary(&c);
+
+        println!("Decrypting test string");
+        super::decrypt(&prv, &c, &mut ml);
+        let mlen = super::oaep_decode(sha, None, &mut ml); /* OAEP decode message  */
+
+        let mess = str::from_utf8(&ml[0..mlen]).unwrap();
+        print!("{}", &mess);
+
+        println!("Signing message");
+        super::pkcs15(sha, message, &mut c);
+
+        super::decrypt(&prv, &c, &mut s); /* create signature in S */
+
+        print!("Signature= 0x");
+        printbinary(&s);
+
+        super::encrypt(&pbc, &s, &mut ms);
+
+        let mut cmp = true;
+        if c.len() != ms.len() {
+            cmp = false;
+        } else {
+            for j in 0..c.len() {
+                if c[j] != ms[j] {
+                    cmp = false
+                }
+            }
+        }
+        if cmp {
+            println!("Signature is valid");
+        } else {
+            println!("Signature is INVALID");
+        }
+
+        super::private_key_kill(&mut prv);
+    }
+}

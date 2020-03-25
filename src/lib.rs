@@ -467,14 +467,14 @@ pub mod ed25519 {
     pub mod fp;
 }
 
-#[cfg(feature = "bn254CX")]
+#[cfg(feature = "bn254cx")]
 #[path = "./"]
-pub mod bn254CX {
+pub mod bn254cx {
     #[cfg(target_pointer_width = "32")]
-    #[path = "roms/rom_bn254CX_32.rs"]
+    #[path = "roms/rom_bn254cx_32.rs"]
     pub mod rom;
     #[cfg(target_pointer_width = "64")]
-    #[path = "roms/rom_bn254CX_64.rs"]
+    #[path = "roms/rom_bn254cx_64.rs"]
     pub mod rom;
 
     pub mod big;
@@ -559,3 +559,6 @@ pub mod rsa4096 {
     mod rom;
     pub mod rsa;
 }
+
+#[cfg(test)]
+pub mod test_utils;

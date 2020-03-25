@@ -77,7 +77,7 @@ impl ECP {
         E.y.bcopy(iy);
         E.z.one();
         E.x.norm();
-        let mut rhs = ECP::rhs(&E.x);
+        let rhs = ECP::rhs(&E.x);
         if CURVETYPE == CurveType::Montgomery {
             if rhs.jacobi() != 1 {
                 E.inf();
