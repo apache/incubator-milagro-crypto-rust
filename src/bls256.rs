@@ -20,7 +20,6 @@ under the License.
 use super::ecp::ECP;
 use super::ecp8::ECP8;
 use std::str;
-//use super::fp48::FP48;
 use super::big;
 use super::big::Big;
 use super::pair256;
@@ -60,7 +59,7 @@ pub fn key_pair_generate(mut rng: &mut RAND, s: &mut [u8], w: &mut [u8]) -> isiz
     BLS_OK
 }
 
-// Sign message m using private key s to produce signature sig
+/// Sign message m using private key s to produce signature sig
 pub fn sign(sig: &mut [u8], m: &str, s: &[u8]) -> isize {
     let d = bls_hashit(m);
     let mut sc = Big::frombytes(&s);
@@ -98,13 +97,13 @@ mod tests {
     use crate::test_utils::*;
 
     #[test]
-    fn test_bls() {
+    fn test_bls48() {
         let mut rng = create_rng();
 
         let mut s: [u8; BGS] = [0; BGS];
 
-        const G1S: usize = BFS + 1; /* Group 1 Size */
-        const G2S: usize = 4 * BFS; /* Group 2 Size */
+        const G1S: usize = BFS + 1; // Group 1 Size
+        const G2S: usize = 16 * BFS; // Group 2 Size
 
         let mut w: [u8; G2S] = [0; G2S];
         let mut sig: [u8; G1S] = [0; G1S];

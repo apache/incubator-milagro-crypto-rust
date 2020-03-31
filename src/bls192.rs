@@ -38,7 +38,6 @@ pub const BLS_OK: isize = 0;
 pub const BLS_FAIL: isize = -1;
 
 // hash a message to an ECP point, using SHA3
-
 #[allow(non_snake_case)]
 fn bls_hashit(m: &str) -> ECP {
     let mut sh = SHA3::new(SHAKE256);
@@ -100,13 +99,13 @@ mod tests {
     use crate::test_utils::*;
 
     #[test]
-    fn test_bls() {
+    fn test_bls24() {
         let mut rng = create_rng();
 
         let mut s: [u8; BGS] = [0; BGS];
 
-        const G1S: usize = BFS + 1; /* Group 1 Size */
-        const G2S: usize = 4 * BFS; /* Group 2 Size */
+        const G1S: usize = BFS + 1; // Group 1 Size
+        const G2S: usize = 8 * BFS; // Group 2 Size
 
         let mut w: [u8; G2S] = [0; G2S];
         let mut sig: [u8; G1S] = [0; G1S];

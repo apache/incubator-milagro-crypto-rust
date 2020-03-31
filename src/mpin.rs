@@ -35,10 +35,9 @@ use hash384::HASH384;
 use hash512::HASH512;
 use rand::RAND;
 
-/* MPIN API Functions */
+// MPIN API Functions
 
-/* Configure mode of operation */
-
+// Configure mode of operation
 pub const EFS: usize = big::MODBYTES as usize;
 pub const EGS: usize = big::MODBYTES as usize;
 pub const BAD_PARAMS: isize = -11;
@@ -49,12 +48,11 @@ pub const SHA256: usize = 32;
 pub const SHA384: usize = 48;
 pub const SHA512: usize = 64;
 
-/* Configure your PIN here */
-
-pub const MAXPIN: i32 = 10000; /* PIN less than this */
-pub const PBLEN: i32 = 14; /* Number of bits in PIN */
-pub const TS: usize = 10; /* 10 for 4 digit PIN, 14 for 6-digit PIN - 2^TS/TS approx = sqrt(MAXPIN) */
-pub const TRAP: usize = 200; /* 200 for 4 digit PIN, 2000 for 6-digit PIN  - approx 2*sqrt(MAXPIN) */
+// Configure your PIN here
+pub const MAXPIN: i32 = 10000; // PIN less than this
+pub const PBLEN: i32 = 14; // Number of bits in PIN
+pub const TS: usize = 10; // 10 for 4 digit PIN, 14 for 6-digit PIN - 2^TS/TS approx = sqrt(MAXPIN)
+pub const TRAP: usize = 200; // 200 for 4 digit PIN, 2000 for 6-digit PIN  - approx 2*sqrt(MAXPIN)
 
 #[allow(non_snake_case)]
 fn hash(sha: usize, c: &mut FP4, U: &mut ECP, r: &mut [u8]) -> bool {
@@ -117,8 +115,7 @@ fn hash(sha: usize, c: &mut FP4, U: &mut ECP, r: &mut [u8]) -> bool {
     return false;
 }
 
-/* Hash number (optional) and string to point on curve */
-
+/// Hash number (optional) and string to point on curve
 fn hashit(sha: usize, n: usize, id: &[u8], w: &mut [u8]) -> bool {
     let mut r: [u8; 64] = [0; 64];
     let mut didit = false;
@@ -180,7 +177,7 @@ fn hashit(sha: usize, n: usize, id: &[u8], w: &mut [u8]) -> bool {
     return true;
 }
 
-/* return time in slots since epoch */
+/// Return time in slots since epoch
 pub fn today() -> usize {
     return (SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -189,8 +186,8 @@ pub fn today() -> usize {
         / (60 * 1440)) as usize;
 }
 
-/* these next two functions help to implement elligator squared - http://eprint.iacr.org/2014/043 */
-/* maps a random u to a point on the curve */
+// these next two functions help to implement elligator squared - http://eprint.iacr.org/2014/043
+/// Maps a random u to a point on the curve
 #[allow(non_snake_case)]
 fn emap(u: &Big, cb: isize) -> ECP {
     let mut P: ECP;
@@ -208,7 +205,7 @@ fn emap(u: &Big, cb: isize) -> ECP {
     return P;
 }
 
-/* returns u derived from P. Random value in range 1 to return value should then be added to u */
+/// Returns u derived from P. Random value in range 1 to return value should then be added to u
 #[allow(non_snake_case)]
 fn unmap(u: &mut Big, P: &mut ECP) -> isize {
     let s = P.gets();
@@ -232,9 +229,9 @@ pub fn hash_id(sha: usize, id: &[u8], w: &mut [u8]) -> bool {
     return hashit(sha, 0, id, w);
 }
 
-/* these next two functions implement elligator squared - http://eprint.iacr.org/2014/043 */
-/* Elliptic curve point E in format (0x04,x,y} is converted to form {0x0-,u,v} */
-/* Note that u and v are indistinguisible from random strings */
+// These next two functions implement elligator squared - http://eprint.iacr.org/2014/043
+// Elliptic curve point E in format (0x04,x,y} is converted to form {0x0-,u,v}
+// Note that u and v are indistinguisible from random strings
 #[allow(non_snake_case)]
 pub fn encoding(rng: &mut RAND, e: &mut [u8]) -> isize {
     let mut t: [u8; EFS] = [0; EFS];
@@ -316,7 +313,7 @@ pub fn decoding(d: &mut [u8]) -> isize {
     return 0;
 }
 
-/* R=R1+R2 in group G1 */
+/// R=R1+R2 in group G1
 #[allow(non_snake_case)]
 pub fn recombine_g1(r1: &[u8], r2: &[u8], r: &mut [u8]) -> isize {
     let mut P = ECP::frombytes(&r1);
@@ -332,7 +329,7 @@ pub fn recombine_g1(r1: &[u8], r2: &[u8], r: &mut [u8]) -> isize {
     return 0;
 }
 
-/* W=W1+W2 in group G2 */
+/// W=W1+W2 in group G2
 #[allow(non_snake_case)]
 pub fn recombine_g2(w1: &[u8], w2: &[u8], w: &mut [u8]) -> isize {
     let mut P = ECP2::frombytes(&w1);
@@ -348,7 +345,7 @@ pub fn recombine_g2(w1: &[u8], w2: &[u8], w: &mut [u8]) -> isize {
     return 0;
 }
 
-/* create random secret S */
+/// create random secret S
 pub fn random_generate(rng: &mut RAND, s: &mut [u8]) -> isize {
     let r = Big::new_ints(&rom::CURVE_ORDER);
     let sc = Big::randomnum(&r, rng);
@@ -356,7 +353,7 @@ pub fn random_generate(rng: &mut RAND, s: &mut [u8]) -> isize {
     return 0;
 }
 
-/* Extract Server Secret SST=S*Q where Q is fixed generator in G2 and S is master secret */
+/// Extract Server Secret SST=S*Q where Q is fixed generator in G2 and S is master secret
 #[allow(non_snake_case)]
 pub fn get_server_secret(s: &[u8], sst: &mut [u8]) -> isize {
     let mut Q = ECP2::generator();
@@ -367,12 +364,10 @@ pub fn get_server_secret(s: &[u8], sst: &mut [u8]) -> isize {
     return 0;
 }
 
-/*
- W=x*H(G);
- if RNG == NULL then X is passed in
- if RNG != NULL the X is passed out
- if type=0 W=x*G where G is point on the curve, else W=x*M(G), where M(G) is mapping of octet G to point on the curve
-*/
+/// W=x*H(G);
+/// if RNG == NULL then X is passed in
+/// if RNG != NULL the X is passed out
+/// if type=0 W=x*G where G is point on the curve, else W=x*M(G), where M(G) is mapping of octet G to point on the curve
 #[allow(non_snake_case)]
 pub fn get_g1_multiple(
     rng: Option<&mut RAND>,
@@ -405,19 +400,19 @@ pub fn get_g1_multiple(
     return 0;
 }
 
-/* Client secret CST=S*H(CID) where CID is client ID and S is master secret */
-/* CID is hashed externally */
+/// Client secret CST=S*H(CID) where CID is client ID and S is master secret
+/// CID is hashed externally
 pub fn get_client_secret(s: &mut [u8], cid: &[u8], cst: &mut [u8]) -> isize {
     return get_g1_multiple(None, 1, s, cid, cst);
 }
 
-/* Extract PIN from TOKEN for identity CID */
+/// Extract PIN from TOKEN for identity CID
 #[allow(non_snake_case)]
 pub fn extract_pin(sha: usize, cid: &[u8], pin: i32, token: &mut [u8]) -> isize {
     return extract_factor(sha, cid, pin % MAXPIN, PBLEN, token);
 }
 
-/* Extract factor from TOKEN for identity CID */
+/// Extract factor from TOKEN for identity CID
 #[allow(non_snake_case)]
 pub fn extract_factor(
     sha: usize,
@@ -443,7 +438,7 @@ pub fn extract_factor(
     return 0;
 }
 
-/* Restore factor to TOKEN for identity CID */
+/// Restore factor to TOKEN for identity CID
 #[allow(non_snake_case)]
 pub fn restore_factor(
     sha: usize,
@@ -469,7 +464,7 @@ pub fn restore_factor(
     return 0;
 }
 
-/* Functions to support M-Pin Full */
+/// Functions to support M-Pin Full
 #[allow(non_snake_case)]
 pub fn precompute(token: &[u8], cid: &[u8], g1: &mut [u8], g2: &mut [u8]) -> isize {
     let T = ECP::frombytes(&token);
@@ -492,7 +487,7 @@ pub fn precompute(token: &[u8], cid: &[u8], g1: &mut [u8], g2: &mut [u8]) -> isi
     return 0;
 }
 
-/* Time Permit CTT=S*(date|H(CID)) where S is master secret */
+/// Time Permit CTT=S*(date|H(CID)) where S is master secret
 #[allow(non_snake_case)]
 pub fn get_client_permit(sha: usize, date: usize, s: &[u8], cid: &[u8], ctt: &mut [u8]) -> isize {
     const RM: usize = big::MODBYTES as usize;
@@ -505,7 +500,7 @@ pub fn get_client_permit(sha: usize, date: usize, s: &[u8], cid: &[u8], ctt: &mu
     return 0;
 }
 
-/* Implement step 1 on client side of MPin protocol */
+/// Implement step 1 on client side of MPin protocol
 #[allow(non_snake_case)]
 pub fn client_1(
     sha: usize,
@@ -578,7 +573,7 @@ pub fn client_1(
     return 0;
 }
 
-/* Outputs H(CID) and H(T|H(CID)) for time permits. If no time permits set HID=HTID */
+/// Outputs H(CID) and H(T|H(CID)) for time permits. If no time permits set HID=HTID
 #[allow(non_snake_case)]
 pub fn server_1(sha: usize, date: usize, cid: &[u8], hid: &mut [u8], htid: Option<&mut [u8]>) {
     const RM: usize = big::MODBYTES as usize;
@@ -600,7 +595,7 @@ pub fn server_1(sha: usize, date: usize, cid: &[u8], hid: &mut [u8], htid: Optio
     }
 }
 
-/* Implement step 2 on client side of MPin protocol */
+/// Implement step 2 on client side of MPin protocol
 #[allow(non_snake_case)]
 pub fn client_2(x: &[u8], y: &[u8], sec: &mut [u8]) -> isize {
     let r = Big::new_ints(&rom::CURVE_ORDER);
@@ -621,7 +616,7 @@ pub fn client_2(x: &[u8], y: &[u8], sec: &mut [u8]) -> isize {
     return 0;
 }
 
-/* return time since epoch */
+/// return time since epoch
 pub fn get_time() -> usize {
     return (SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -629,7 +624,7 @@ pub fn get_time() -> usize {
         .as_secs()) as usize;
 }
 
-/* Generate Y = H(epoch, xCID/xID) */
+/// Generate Y = H(epoch, xCID/xID)
 pub fn get_y(sha: usize, timevalue: usize, xcid: &[u8], y: &mut [u8]) {
     const RM: usize = big::MODBYTES as usize;
     let mut h: [u8; RM] = [0; RM];
@@ -642,7 +637,7 @@ pub fn get_y(sha: usize, timevalue: usize, xcid: &[u8], y: &mut [u8]) {
     sy.tobytes(y);
 }
 
-/* Implement step 2 of MPin protocol on server side */
+/// Implement step 2 of MPin protocol on server side
 #[allow(non_snake_case)]
 pub fn server_2(
     date: usize,
@@ -739,7 +734,7 @@ pub fn server_2(
     return 0;
 }
 
-/* Pollards kangaroos used to return PIN error */
+/// Pollards kangaroos used to return PIN error
 pub fn kangaroo(e: &[u8], f: &[u8]) -> isize {
     let mut ge = FP12::frombytes(e);
     let mut gf = FP12::frombytes(f);
@@ -790,8 +785,7 @@ pub fn kangaroo(e: &[u8], f: &[u8]) -> isize {
     return res;
 }
 
-/* Hash the M-Pin transcript - new */
-
+/// Hash the M-Pin transcript - new
 pub fn hash_all(
     sha: usize,
     hid: &[u8],
@@ -847,8 +841,8 @@ pub fn hash_all(
     return hashit(sha, 0, &t, h);
 }
 
-/* calculate common key on client side */
-/* wCID = w.(A+AT) */
+/// Calculate common key on client side
+/// wCID = w.(A+AT)
 #[allow(non_snake_case)]
 pub fn client_key(
     sha: usize,
@@ -889,8 +883,8 @@ pub fn client_key(
     return 0;
 }
 
-/* calculate common key on server side */
-/* Z=r.A - no time permits involved */
+/// calculate common key on server side
+/// Z=r.A - no time permits involved
 #[allow(non_snake_case)]
 pub fn server_key(
     sha: usize,
@@ -947,10 +941,9 @@ pub fn server_key(
 mod tests {
     use super::*;
     use crate::test_utils::*;
-    use std::io;
 
     #[test]
-    fn test_mpin() {
+    fn test_mpin_valid() {
         let mut rng = create_rng();
 
         pub const PERMITS: bool = true;
@@ -962,8 +955,8 @@ mod tests {
         let mut hcid: [u8; RM] = [0; RM];
         let mut hsid: [u8; RM] = [0; RM];
 
-        const G1S: usize = 2 * EFS + 1; /* Group 1 Size */
-        const G2S: usize = 4 * EFS; /* Group 2 Size */
+        const G1S: usize = 2 * EFS + 1; // Group 1 Size
+        const G2S: usize = 4 * EFS; // Group 2 Size
         const EAS: usize = ecp::AESKEY;
 
         let mut sst: [u8; G2S] = [0; G2S];
@@ -992,22 +985,22 @@ mod tests {
         let sha = ecp::HASH_TYPE;
 
         println!("\nTesting MPIN - PIN is 1234");
-        /* Trusted Authority set-up */
+        // Trusted Authority set-up
 
         random_generate(&mut rng, &mut s);
         print!("Master Secret s: 0x");
         printbinary(&s);
 
-        /* Create Client Identity */
+        // Create Client Identity
         let name = "testUser@miracl.com";
         let client_id = name.as_bytes();
 
         print!("Client ID= ");
         printbinary(&client_id);
 
-        hash_id(sha, &client_id, &mut hcid); /* Either Client or TA calculates Hash(ID) - you decide! */
+        hash_id(sha, &client_id, &mut hcid); // Either Client or TA calculates Hash(ID) - you decide!
 
-        /* Client and Server are issued secrets by DTA */
+        // Client and Server are issued secrets by DTA
         get_server_secret(&s, &mut sst);
         print!("Server Secret SS: 0x");
         printbinary(&sst);
@@ -1016,7 +1009,7 @@ mod tests {
         print!("Client Secret CS: 0x");
         printbinary(&token);
 
-        /* Client extracts PIN from secret to create Token */
+        // Client extracts PIN from secret to create Token
         let pin: i32 = 1234;
         println!("Client extracts PIN= {}", pin);
         let mut rtn = extract_pin(sha, &client_id, pin, &mut token);
@@ -1034,13 +1027,13 @@ mod tests {
         let mut date = 0;
         if PERMITS {
             date = today();
-            /* Client gets "Time Token" permit from DTA */
+            // Client gets "Time Token" permit from DTA
 
             get_client_permit(sha, date, &s, &hcid, &mut permit);
             print!("Time Permit TP: 0x");
             printbinary(&permit);
 
-            /* This encoding makes Time permit look random - Elligator squared */
+            // This encoding makes Time permit look random - Elligator squared
             encoding(&mut rng, &mut permit);
             print!("Encoded Time Permit TP: 0x");
             printbinary(&permit);
@@ -1049,15 +1042,10 @@ mod tests {
             printbinary(&permit);
         }
 
-        print!("\nPIN= ");
-        let _ = io::Write::flush(&mut io::stdout());
-        let mut input_text = String::new();
-        let _ = io::stdin().read_line(&mut input_text);
-
-        let pin = input_text.trim().parse::<usize>().unwrap();
+        let pin = 1234;
 
         println!("MPIN Multi Pass");
-        /* Send U=x.ID to server, and recreate secret from token and pin */
+        // Send U=x.ID to server, and recreate secret from token and pin
         rtn = client_1(
             sha,
             date,
@@ -1077,10 +1065,10 @@ mod tests {
 
         if FULL {
             hash_id(sha, &client_id, &mut hcid);
-            get_g1_multiple(Some(&mut rng), 1, &mut r, &hcid, &mut z); /* Also Send Z=r.ID to Server, remember random r */
+            get_g1_multiple(Some(&mut rng), 1, &mut r, &hcid, &mut z); // Also Send Z=r.ID to Server, remember random r
         }
 
-        /* Server calculates H(ID) and H(T|H(ID)) (if time PERMITS enabled), and maps them to points on the curve HID and HTID resp. */
+        // Server calculates H(ID) and H(T|H(ID)) (if time PERMITS enabled), and maps them to points on the curve HID and HTID resp.
 
         server_1(sha, date, &client_id, &mut hid, Some(&mut htid[..]));
 
@@ -1090,22 +1078,22 @@ mod tests {
             rhid.clone_from_slice(&hid[..]);
         }
 
-        /* Server generates Random number Y and sends it to Client */
+        // Server generates Random number Y and sends it to Client
         random_generate(&mut rng, &mut y);
 
         if FULL {
             hash_id(sha, &client_id, &mut hsid);
-            get_g1_multiple(Some(&mut rng), 0, &mut w, &rhid, &mut t); /* Also send T=w.ID to client, remember random w  */
+            get_g1_multiple(Some(&mut rng), 0, &mut w, &rhid, &mut t); // Also send T=w.ID to client, remember random w
         }
 
-        /* Client Second Pass: Inputs Client secret SEC, x and y. Outputs -(x+y)*SEC */
+        // Client Second Pass: Inputs Client secret SEC, x and y. Outputs -(x+y)*SEC
         rtn = client_2(&x, &y, &mut sec);
         if rtn != 0 {
             println!("FAILURE: CLIENT_2 rtn: {}", rtn);
         }
 
-        /* Server Second pass. Inputs hashed client id, random Y, -(x+y)*SEC, xID and xCID and Server secret SST. E and F help kangaroos to find error. */
-        /* If PIN error not required, set E and F = null */
+        // Server Second pass. Inputs hashed client id, random Y, -(x+y)*SEC, xID and xCID and Server secret SST. E and F help kangaroos to find error.
+        // If PIN error not required, set E and F = null
 
         if !PINERROR {
             rtn = server_2(

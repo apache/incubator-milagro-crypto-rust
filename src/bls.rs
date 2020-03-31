@@ -20,7 +20,6 @@ under the License.
 use super::ecp::ECP;
 use super::ecp2::ECP2;
 use std::str;
-//use super::fp12::FP12;
 use super::big;
 use super::big::Big;
 use super::pair;

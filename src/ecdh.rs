@@ -215,7 +215,7 @@ pub fn pbkdf2(sha: usize, pass: &[u8], salt: &[u8], rep: usize, olen: usize, k: 
             }
         }
         for j in 0..EFS {
-            if kp < olen {
+            if kp < olen && kp < f.len() {
                 k[kp] = f[j]
             }
             kp += 1
@@ -225,10 +225,10 @@ pub fn pbkdf2(sha: usize, pass: &[u8], salt: &[u8], rep: usize, olen: usize, k: 
 
 /// Calculate HMAC of m using key k. HMAC is tag of length olen (which is length of tag)
 pub fn hmac(sha: usize, m: &[u8], k: &[u8], olen: usize, tag: &mut [u8]) -> bool {
-    /* Input is from an octet m        *
-    	* olen is requested output length in bytes. k is the key  *
-    	* The output is the calculated tag */
-    let mut b: [u8; 64] = [0; 64]; /* Not good */
+    // Input is from an octet m
+	// olen is requested output length in bytes. k is the key
+    // The output is the calculated tag
+    let mut b: [u8; 64] = [0; 64]; // Not good
     let mut k0: [u8; 128] = [0; 128];
 
     if olen < 4 {
@@ -270,9 +270,9 @@ pub fn hmac(sha: usize, m: &[u8], k: &[u8], olen: usize, tag: &mut [u8]) -> bool
 
 /// AES encryption/decryption. Encrypt byte array m using key k and returns ciphertext c
 pub fn cbc_iv0_encrypt(k: &[u8], m: &[u8]) -> Vec<u8> {
-    /* AES CBC encryption, with Null IV and key K */
-    /* Input is from an octet string m, output is to an octet string c */
-    /* Input is padded as necessary to make up a full final block */
+    // AES CBC encryption, with Null IV and key K
+    // Input is from an octet string m, output is to an octet string c
+    // Input is padded as necessary to make up a full final block
     let mut a = AES::new();
     let mut fin = false;
     let mut c: Vec<u8> = Vec::new();
@@ -304,7 +304,7 @@ pub fn cbc_iv0_encrypt(k: &[u8], m: &[u8]) -> Vec<u8> {
         }
     }
 
-    /* last block, filled up to i-th index */
+    // last block, filled up to i-th index
 
     let padlen = 16 - i;
     for j in i..16 {
@@ -322,7 +322,7 @@ pub fn cbc_iv0_encrypt(k: &[u8], m: &[u8]) -> Vec<u8> {
 
 /// Returns plaintext if all consistent, else returns null string
 pub fn cbc_iv0_decrypt(k: &[u8], c: &[u8]) -> Option<Vec<u8>> {
-    /* padding is removed */
+    // padding is removed
     let mut a = AES::new();
     let mut fin = false;
     let mut m: Vec<u8> = Vec::new();
@@ -500,7 +500,7 @@ pub fn ecpsp_dsa(
 
     let r = Big::new_ints(&rom::CURVE_ORDER);
 
-    let sc = Big::frombytes(s); /* s or &s? */
+    let sc = Big::frombytes(s); // s or &s?
     let fb = Big::frombytes(&b);
 
     let mut cb = Big::new();
@@ -510,7 +510,7 @@ pub fn ecpsp_dsa(
 
     while db.iszilch() {
         let mut u = Big::randomnum(&r, rng);
-        let w = Big::randomnum(&r, rng); /* side channel masking */
+        let w = Big::randomnum(&r, rng); // side channel masking
 
         V.copy(&G);
         V = V.mul(&u);
@@ -559,8 +559,8 @@ pub fn ecpvp_dsa(sha: usize, w: &[u8], f: &[u8], c: &[u8], d: &[u8]) -> isize {
 
     let r = Big::new_ints(&rom::CURVE_ORDER);
 
-    let cb = Big::frombytes(c); /* c or &c ? */
-    let mut db = Big::frombytes(d); /* d or &d ? */
+    let cb = Big::frombytes(c); // c or &c ?
+    let mut db = Big::frombytes(d); // d or &d ?
     let mut fb = Big::frombytes(&b);
     let mut tb = Big::new();
 

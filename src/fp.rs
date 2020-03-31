@@ -54,7 +54,7 @@ pub use super::rom::{MOD8, MODBITS, MODTYPE, SH};
 use std::fmt;
 use std::str::SplitWhitespace;
 
-pub const FEXCESS: i32 = (((1 as i32) << SH) - 1);
+pub const FEXCESS: i32 = ((1 as i32) << SH) - 1;
 pub const OMASK: Chunk = (-1) << (MODBITS % big::BASEBITS);
 pub const TBITS: usize = MODBITS % big::BASEBITS; // Number of active bits in top word
 pub const TMASK: Chunk = (1 << TBITS) - 1;
