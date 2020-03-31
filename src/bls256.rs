@@ -20,7 +20,6 @@ under the License.
 use super::ecp::ECP;
 use super::ecp8::ECP8;
 use std::str;
-//use super::fp48::FP48;
 use super::big;
 use super::big::Big;
 use super::pair256;
@@ -60,7 +59,7 @@ pub fn key_pair_generate(mut rng: &mut RAND, s: &mut [u8], w: &mut [u8]) -> isiz
     BLS_OK
 }
 
-// Sign message m using private key s to produce signature sig
+/// Sign message m using private key s to produce signature sig
 pub fn sign(sig: &mut [u8], m: &str, s: &[u8]) -> isize {
     let d = bls_hashit(m);
     let mut sc = Big::frombytes(&s);

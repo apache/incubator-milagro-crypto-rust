@@ -38,7 +38,6 @@ pub const BLS_OK: isize = 0;
 pub const BLS_FAIL: isize = -1;
 
 // hash a message to an ECP point, using SHA3
-
 #[allow(non_snake_case)]
 fn bls_hashit(m: &str) -> ECP {
     let mut sh = SHA3::new(SHAKE256);
