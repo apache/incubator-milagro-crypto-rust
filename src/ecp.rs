@@ -131,6 +131,29 @@ impl ECP {
         return E;
     }
 
+    // construct this from (x,y), set to 0 if not on curve
+    pub fn new_fps(x: FP, y: FP) -> ECP {
+        let mut point = ECP {
+            x,
+            y,
+            z: FP::new_int(1),
+        };
+
+        let rhs = ECP::rhs(&point.x);
+        let mut y2 = point.y.clone();
+        y2.sqr();
+        if !y2.equals(&rhs) {
+            point.inf();
+        }
+        point
+    }
+
+    // Create new point from (x, y, z)
+    // Assumes coordinates are valid
+    pub fn new_projective(x: FP, y: FP, z: FP) -> ECP {
+        ECP { x, y, z }
+    }
+
     /* set this=O */
     pub fn inf(&mut self) {
         self.x.zero();

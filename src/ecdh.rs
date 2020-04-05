@@ -226,7 +226,7 @@ pub fn pbkdf2(sha: usize, pass: &[u8], salt: &[u8], rep: usize, olen: usize, k: 
 /// Calculate HMAC of m using key k. HMAC is tag of length olen (which is length of tag)
 pub fn hmac(sha: usize, m: &[u8], k: &[u8], olen: usize, tag: &mut [u8]) -> bool {
     // Input is from an octet m
-	// olen is requested output length in bytes. k is the key
+    // olen is requested output length in bytes. k is the key
     // The output is the calculated tag
     let mut b: [u8; 64] = [0; 64]; // Not good
     let mut k0: [u8; 128] = [0; 128];
@@ -754,7 +754,6 @@ mod tests {
 
     #[test]
     fn test_ecdh() {
-
         let mut rng = create_rng();
 
         let pw = "M0ng00se";

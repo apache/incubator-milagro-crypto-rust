@@ -18,7 +18,10 @@ under the License.
 */
 
 use super::super::arch::Chunk;
-use bls381::big::NLEN;
+use super::fp::FP;
+use super::fp2::FP2;
+use super::hash_to_curve::HashAlgorithm;
+use bls381g2::big::{Big, NLEN};
 use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 29
@@ -205,5 +208,36 @@ pub const CURVE_PAIRING_TYPE: CurvePairingType = CurvePairingType::Bls;
 pub const SEXTIC_TWIST: SexticTwist = SexticTwist::MType;
 pub const ATE_BITS: usize = 65;
 pub const SIGN_OF_X: SignOfX = SignOfX::NegativeX;
-pub const HASH_TYPE: usize = 32;
+pub const HASH_ALGORITHM: HashAlgorithm = HashAlgorithm::Sha256; // Hash algorithm for hash to curve
+pub const HASH_TYPE: usize = 32; // Output size of hash algorithm
 pub const AESKEY: usize = 16;
+
+/// Signatures on G1: true, Signatures on G2: false
+pub const BLS_SIG_G1: bool = false;
+
+// BLS Standard Constants
+/// L = ceil(ceil(log2(Q) + 128) / 8)
+pub const L: usize = 64;
+/// b_in_bytes = ceil(b / 8), where b is bits outputted from SHA256
+pub const B_IN_BYTES: usize = 32;
+/// Hash to Curve Suite
+pub const H2C_SUITE: &str = "BLS12381G2_XMD:SHA-256_SSWU_RO_";
+/// Domain Separation Tag
+pub const DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
+/// Z_PAD is a vector of zeros of length equal to the hash block size (64).
+pub const Z_PAD: [u8; 64] = [0u8; 64];
+
+lazy_static! {
+    // G1 h_eff
+    pub static ref H_EFF_G1: Big = Big::frombytes(&mut hex::decode("d201000000010001").unwrap());
+
+    // Curve parameters of G2 ISO-3: y^2 = x^3 + ax + b
+    pub static ref SSWU_A1: FP = FP::new_big(&Big::frombytes(&hex::decode("00144698a3b8e9433d693a02c96d4982b0ea985383ee66a8d8e8981aefd881ac98936f8da0e0f97f5cf428082d584c1d").unwrap()));
+    pub static ref SSWU_B1: FP = FP::new_big(&Big::frombytes(&hex::decode("12e2908d11688030018b12e8753eee3b2016c1f0f24f4070a0b9c14fcef35ef55a23215a316ceaa5d1cc48e98e172be0").unwrap()));
+    pub static ref SSWU_Z1: FP = FP::new_int(11);
+
+    // Curve parameters of G2 ISO-3: y^2 = x^3 + ax + b
+    pub static ref SSWU_A2: FP2 = FP2::new_ints(0, 240);
+    pub static ref SSWU_B2: FP2 = FP2::new_ints(1012, 1012);
+    pub static ref SSWU_Z2: FP2 = FP2::new_ints(-2, -1);
+}
