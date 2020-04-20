@@ -17,13 +17,13 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::ecp::ECP;
-use super::ecp8::ECP8;
-use std::str;
 use super::big;
 use super::big::Big;
+use super::ecp::ECP;
+use super::ecp8::ECP8;
 use super::pair256;
 use super::rom;
+use std::str;
 
 use rand::RAND;
 use sha3::SHA3;

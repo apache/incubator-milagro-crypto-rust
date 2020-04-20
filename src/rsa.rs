@@ -121,7 +121,7 @@ pub fn key_pair(rng: &mut RAND, e: isize, prv: &mut RsaPrivateKey, pbc: &mut Rsa
             prv.p.inc(4);
         }
 
-        p1.copy(&prv.p);
+        p1 = prv.p.clone();
         p1.dec(1);
 
         if p1.cfactor(e) {
@@ -139,7 +139,7 @@ pub fn key_pair(rng: &mut RAND, e: isize, prv: &mut RsaPrivateKey, pbc: &mut Rsa
             prv.q.inc(4);
         }
 
-        q1.copy(&prv.q);
+        q1 = prv.q.clone();
         q1.dec(1);
 
         if q1.cfactor(e) {
@@ -152,7 +152,7 @@ pub fn key_pair(rng: &mut RAND, e: isize, prv: &mut RsaPrivateKey, pbc: &mut Rsa
     pbc.n = FF::mul(&prv.p, &prv.q);
     pbc.e = e;
 
-    t.copy(&p1);
+    t = p1.clone();
     t.shr();
     prv.dp.set(e);
     prv.dp.invmodp(&t);
@@ -161,7 +161,7 @@ pub fn key_pair(rng: &mut RAND, e: isize, prv: &mut RsaPrivateKey, pbc: &mut Rsa
     }
     prv.dp.norm();
 
-    t.copy(&q1);
+    t = q1.clone();
     t.shr();
     prv.dq.set(e);
     prv.dq.invmodp(&t);
@@ -170,7 +170,7 @@ pub fn key_pair(rng: &mut RAND, e: isize, prv: &mut RsaPrivateKey, pbc: &mut Rsa
     }
     prv.dq.norm();
 
-    prv.c.copy(&prv.p);
+    prv.c = prv.p.clone();
     prv.c.invmodp(&prv.q);
 }
 

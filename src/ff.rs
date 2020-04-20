@@ -39,6 +39,7 @@ pub const P_OMASK: Chunk = (-1) << (P_MBITS % big::BASEBITS);
 pub const P_FEXCESS: Chunk = 1 << (big::BASEBITS * big::NLEN - P_MBITS - 1);
 pub const P_TBITS: usize = P_MBITS % big::BASEBITS;
 
+#[derive(Clone)]
 pub struct FF {
     v: Vec<Big>,
     length: usize,
@@ -98,14 +99,14 @@ impl FF {
     /* copy from FF b */
     pub fn copy(&mut self, b: &FF) {
         for i in 0..self.length {
-            self.v[i].copy(&b.v[i]);
+            self.v[i] = b.v[i].clone();
         }
     }
 
     /* x=y<<n */
     pub fn dsucopy(&mut self, b: &FF) {
         for i in 0..b.length {
-            self.v[b.length + i].copy(&b.v[i]);
+            self.v[b.length + i] = b.v[i].clone();
             self.v[i].zero();
         }
     }
@@ -113,7 +114,7 @@ impl FF {
     /* x=y */
     pub fn dscopy(&mut self, b: &FF) {
         for i in 0..b.length {
-            self.v[i].copy(&b.v[i]);
+            self.v[i] = b.v[i].clone();
             self.v[b.length + i].zero();
         }
     }
@@ -121,7 +122,7 @@ impl FF {
     /* x=y>>n */
     pub fn sducopy(&mut self, b: &FF) {
         for i in 0..self.length {
-            self.v[i].copy(&b.v[self.length + i]);
+            self.v[i] = b.v[self.length + i].clone();
         }
     }
 
@@ -146,8 +147,8 @@ impl FF {
     pub fn shrw(&mut self, n: usize) {
         let mut t = Big::new();
         for i in 0..n {
-            t.copy(&self.v[i + n]);
-            self.v[i].copy(&t);
+            t = self.v[i + n].clone();
+            self.v[i] = t.clone();
             self.v[i + n].zero();
         }
     }
@@ -156,8 +157,8 @@ impl FF {
     pub fn shlw(&mut self, n: usize) {
         let mut t = Big::new();
         for i in 0..n {
-            t.copy(&self.v[i]);
-            self.v[n + i].copy(&t);
+            t = self.v[i].clone();
+            self.v[n + i] = t.clone();
             self.v[i].zero();
         }
     }
@@ -191,7 +192,7 @@ impl FF {
     /* recursive add */
     pub fn radd(&mut self, vp: usize, x: &FF, xp: usize, y: &FF, yp: usize, n: usize) {
         for i in 0..n {
-            self.v[vp + i].copy(&x.v[xp + i]);
+            self.v[vp + i] = x.v[xp + i].clone();
             self.v[vp + i].add(&y.v[yp + i]);
         }
     }
@@ -206,7 +207,7 @@ impl FF {
     pub fn rsinc(&mut self, n: usize) {
         let mut t = Big::new();
         for i in 0..n {
-            t.copy(&self.v[i]);
+            t = self.v[i].clone();
             self.v[n + i].add(&t);
         }
     }
@@ -214,7 +215,7 @@ impl FF {
     /* recursive sub */
     pub fn rsub(&mut self, vp: usize, x: &FF, xp: usize, y: &FF, yp: usize, n: usize) {
         for i in 0..n {
-            self.v[vp + i].copy(&x.v[xp + i]);
+            self.v[vp + i] = x.v[xp + i].clone();
             self.v[vp + i].sub(&y.v[yp + i]);
         }
     }
@@ -357,8 +358,8 @@ impl FF {
         n: usize,
     ) {
         if n == 1 {
-            let xx = Big::new_copy(&x.v[xp]);
-            let yy = Big::new_copy(&y.v[yp]);
+            let xx = x.v[xp].clone();
+            let yy = y.v[yp].clone();
             let mut d = Big::mul(&xx, &yy);
             self.v[vp + 1] = d.split(8 * big::MODBYTES);
             self.v[vp].dcopy(&d);
@@ -384,9 +385,9 @@ impl FF {
 
     fn karsqr(&mut self, vp: usize, x: &FF, xp: usize, t: *mut FF, tp: usize, n: usize) {
         if n == 1 {
-            let xx = Big::new_copy(&x.v[xp]);
+            let xx = x.v[xp].clone();
             let mut d = Big::sqr(&xx);
-            self.v[vp + 1].copy(&d.split(8 * big::MODBYTES));
+            self.v[vp + 1] = d.split(8 * big::MODBYTES);
             self.v[vp].dcopy(&d);
             return;
         }
@@ -416,7 +417,7 @@ impl FF {
     ) {
         if n == 1 {
             /* only calculate bottom half of product */
-            self.v[vp].copy(&Big::smul(&x.v[xp], &y.v[yp]));
+            self.v[vp] = Big::smul(&x.v[xp], &y.v[yp]);
             return;
         }
         let nd2 = n / 2;
@@ -643,7 +644,7 @@ impl FF {
         if n == 1 {
             let mut d = DBig::new_scopy(&(self.v[0]));
             d.shl(big::NLEN * (big::BASEBITS as usize));
-            self.v[0].copy(&d.dmod(&(m.v[0])));
+            self.v[0] = d.dmod(&(m.v[0]));
         } else {
             let mut d = FF::new_int(2 * n);
             d.dsucopy(&self);
@@ -655,11 +656,11 @@ impl FF {
         let n = m.length;
         if n == 1 {
             let mut d = DBig::new_scopy(&(self.v[0]));
-            self.v[0].copy(&Big::monty(
+            self.v[0] = Big::monty(
                 &(m.v[0]),
                 ((1 as Chunk) << big::BASEBITS) - md.v[0].w[0],
                 &mut d,
-            ));
+            );
         } else {
             let mut d = FF::new_int(2 * n);
             self.rmod(m);
@@ -684,7 +685,7 @@ impl FF {
         let mut u = FF::new_int(n);
 
         u.zero();
-        u.v[0].copy(&self.v[0]);
+        u.v[0] = self.v[0].clone();
         u.v[0].invmod2m();
 
         let mut i = 1;
@@ -720,11 +721,11 @@ impl FF {
     pub fn random(&mut self, rng: &mut RAND) {
         let n = self.length;
         for i in 0..n {
-            self.v[i].copy(&Big::random(rng))
+            self.v[i] = Big::random(rng)
         }
         /* make sure top bit is 1 */
         while self.v[n - 1].nbits() < (big::MODBYTES as usize) * 8 {
-            self.v[n - 1].copy(&Big::random(rng));
+            self.v[n - 1] = Big::random(rng);
         }
     }
 
@@ -734,7 +735,7 @@ impl FF {
         let mut d = FF::new_int(2 * n);
 
         for i in 0..2 * n {
-            d.v[i].copy(&Big::random(rng));
+            d.v[i] = Big::random(rng);
         }
         self.copy(&d.dmod(p));
     }
@@ -747,11 +748,11 @@ impl FF {
         let n = p.length;
         if n == 1 {
             let mut d = Big::mul(&self.v[0], &y.v[0]);
-            self.v[0].copy(&Big::monty(
+            self.v[0] = Big::monty(
                 &(p.v[0]),
                 ((1 as Chunk) << big::BASEBITS) - nd.v[0].w[0],
                 &mut d,
-            ));
+            );
         } else {
             let mut d = FF::mul(&self, y);
             self.copy(&d.reduce(p, nd));
@@ -766,11 +767,11 @@ impl FF {
         let n = p.length;
         if n == 1 {
             let mut d = Big::sqr(&self.v[0]);
-            self.v[0].copy(&Big::monty(
+            self.v[0] = Big::monty(
                 &(p.v[0]),
                 ((1 as Chunk) << big::BASEBITS) - nd.v[0].w[0],
                 &mut d,
-            ));
+            );
         } else {
             let mut d = FF::sqr(&self);
             d.norm();

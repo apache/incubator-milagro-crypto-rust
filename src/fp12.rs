@@ -32,7 +32,7 @@ pub const SPARSER: usize = 2;
 pub const SPARSE: usize = 3;
 pub const DENSE: usize = 4;
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct FP12 {
     a: FP4,
     b: FP4,
@@ -61,47 +61,36 @@ impl FP12 {
     }
 
     pub fn gettype(&self) -> usize {
-        return self.stype;
+        self.stype
     }
 
     pub fn new_int(a: isize) -> FP12 {
-        let mut f = FP12::new();
-        f.a.copy(&FP4::new_int(a));
-        f.b.zero();
-        f.c.zero();
-        if a == 1 {
-            f.stype = ONE;
-        } else {
-            f.stype = SPARSER;
+        let stype = if a == 1 { ONE } else { SPARSER };
+
+        FP12 {
+            a: FP4::new_int(a),
+            b: FP4::new(),
+            c: FP4::new(),
+            stype,
         }
-        return f;
     }
 
-    pub fn new_copy(x: &FP12) -> FP12 {
-        let mut f = FP12::new();
-        f.a.copy(&x.a);
-        f.b.copy(&x.b);
-        f.c.copy(&x.c);
-        f.stype = x.stype;
-        return f;
+    pub fn new_fp4s(a: FP4, b: FP4, c: FP4) -> FP12 {
+        FP12 {
+            a,
+            b,
+            c,
+            stype: DENSE,
+        }
     }
 
-    pub fn new_fp4s(d: &FP4, e: &FP4, f: &FP4) -> FP12 {
-        let mut g = FP12::new();
-        g.a.copy(d);
-        g.b.copy(e);
-        g.c.copy(f);
-        g.stype = DENSE;
-        return g;
-    }
-
-    pub fn new_fp4(d: &FP4) -> FP12 {
-        let mut g = FP12::new();
-        g.a.copy(d);
-        g.b.zero();
-        g.c.zero();
-        g.stype = SPARSER;
-        return g;
+    pub fn new_fp4(a: FP4) -> FP12 {
+        FP12 {
+            a,
+            b: FP4::new(),
+            c: FP4::new(),
+            stype: SPARSER,
+        }
     }
 
     /* reduce components mod Modulus */
@@ -157,7 +146,7 @@ impl FP12 {
         self.cmove(&g[6], FP12::teq(babs, 6));
         self.cmove(&g[7], FP12::teq(babs, 7));
 
-        let mut invf = FP12::new_copy(self);
+        let mut invf = self.clone();
         invf.conj();
         self.cmove(&invf, (m & 1) as isize);
     }
@@ -174,23 +163,15 @@ impl FP12 {
     }
 
     pub fn geta(&self) -> FP4 {
-        self.a
+        self.a.clone()
     }
 
     pub fn getb(&self) -> FP4 {
-        self.b
+        self.b.clone()
     }
 
     pub fn getc(&mut self) -> FP4 {
-        self.c
-    }
-
-    /* copy self=x */
-    pub fn copy(&mut self, x: &FP12) {
-        self.a.copy(&x.a);
-        self.b.copy(&x.b);
-        self.c.copy(&x.c);
-        self.stype = x.stype;
+        self.c.clone()
     }
 
     /* set self=1 */
@@ -218,13 +199,12 @@ impl FP12 {
 
     /* Granger-Scott Unitary Squaring */
     pub fn usqr(&mut self) {
-        let mut a = FP4::new_copy(&self.a);
-        let mut b = FP4::new_copy(&self.c);
-        let mut c = FP4::new_copy(&self.b);
-        let mut d = FP4::new();
+        let mut a = self.geta();
+        let mut b = self.getc();
+        let mut c = self.getb();
 
         self.a.sqr();
-        d.copy(&self.a);
+        let mut d = self.geta();
         d.add(&self.a);
         self.a.add(&d);
 
@@ -236,13 +216,13 @@ impl FP12 {
         b.sqr();
         b.times_i();
 
-        d.copy(&b);
+        d = b.clone();
         d.add(&b);
         b.add(&d);
         b.norm();
 
         c.sqr();
-        d.copy(&c);
+        d = c.clone();
         d.add(&c);
         c.add(&d);
         c.norm();
@@ -264,10 +244,10 @@ impl FP12 {
             return;
         }
 
-        let mut a = FP4::new_copy(&self.a);
-        let mut b = FP4::new_copy(&self.b);
-        let mut c = FP4::new_copy(&self.c);
-        let mut d = FP4::new_copy(&self.a);
+        let mut a = self.geta();
+        let mut b = self.getb();
+        let mut c = self.getc();
+        let mut d = self.geta();
 
         a.sqr();
         b.mul(&self.c);
@@ -282,7 +262,7 @@ impl FP12 {
         self.c.norm();
         self.c.sqr();
 
-        self.a.copy(&a);
+        self.a = a.clone();
         a.add(&b);
         a.norm();
         a.add(&c);
@@ -295,7 +275,7 @@ impl FP12 {
 
         self.a.add(&b);
 
-        self.b.copy(&c);
+        self.b = c.clone();
         self.b.add(&d);
         self.c.add(&a);
         if self.stype == SPARSER {
@@ -308,12 +288,10 @@ impl FP12 {
 
     /* FP12 full multiplication self=self*y */
     pub fn mul(&mut self, y: &FP12) {
-        let mut z0 = FP4::new_copy(&self.a);
-        let mut z1 = FP4::new();
-        let mut z2 = FP4::new_copy(&self.b);
-        let mut z3 = FP4::new();
-        let mut t0 = FP4::new_copy(&self.a);
-        let mut t1 = FP4::new_copy(&y.a);
+        let mut z0 = self.geta();
+        let mut z2 = self.getb();
+        let mut t0 = self.geta();
+        let mut t1 = y.a.clone();
 
         z0.mul(&y.a);
         z2.mul(&y.b);
@@ -324,46 +302,46 @@ impl FP12 {
         t0.norm();
         t1.norm();
 
-        z1.copy(&t0);
+        let mut z1 = t0.clone();
         z1.mul(&t1);
-        t0.copy(&self.b);
+        t0 = self.getb();
         t0.add(&self.c);
-        t1.copy(&y.b);
+        t1 = y.getb();
         t1.add(&y.c);
 
         t0.norm();
         t1.norm();
 
-        z3.copy(&t0);
+        let mut z3 = t0.clone();
         z3.mul(&t1);
 
-        t0.copy(&z0);
+        t0 = z0.clone();
         t0.neg();
-        t1.copy(&z2);
+        t1 = z2.clone();
         t1.neg();
 
         z1.add(&t0);
-        self.b.copy(&z1);
+        self.b = z1.clone();
         self.b.add(&t1);
 
         z3.add(&t1);
         z2.add(&t0);
 
-        t0.copy(&self.a);
+        t0 = self.geta();
         t0.add(&self.c);
         t0.norm();
-        t1.copy(&y.a);
+        t1 = y.geta();
         t1.add(&y.c);
         t1.norm();
         t0.mul(&t1);
         z2.add(&t0);
 
-        t0.copy(&self.c);
+        t0 = self.getc();
         t0.mul(&y.c);
-        t1.copy(&t0);
+        t1 = t0.clone();
         t1.neg();
 
-        self.c.copy(&z2);
+        self.c = z2;
         self.c.add(&t1);
         z3.add(&t1);
         t0.times_i();
@@ -371,7 +349,7 @@ impl FP12 {
         z3.norm();
 
         z3.times_i();
-        self.a.copy(&z0);
+        self.a = z0;
         self.a.add(&z3);
         self.stype = DENSE;
         self.norm();
@@ -382,80 +360,75 @@ impl FP12 {
     /* Usually w is denser than y */
     pub fn ssmul(&mut self, y: &FP12) {
         if self.stype == ONE {
-            self.copy(&y);
+            *self = y.clone();
             return;
         }
         if y.stype == ONE {
             return;
         }
         if y.stype >= SPARSE {
-            let mut z0 = FP4::new_copy(&self.a);
-            let mut z1 = FP4::new_int(0);
-            let mut z2 = FP4::new_int(0);
-            let mut z3 = FP4::new_int(0);
+            let mut z0 = self.geta();
+            let mut z2 = FP4::new();
             z0.mul(&y.a);
 
             if ecp::SEXTIC_TWIST == SexticTwist::MType {
                 if y.stype == SPARSE || self.stype == SPARSE {
-                    let mut ga = FP2::new_int(0);
-                    let mut gb = FP2::new_int(0);
-
-                    gb.copy(&self.b.getb());
+                    let mut gb = self.b.getb();
                     gb.mul(&y.b.getb());
-                    ga.zero();
+                    let mut ga = FP2::new();
                     if y.stype != SPARSE {
-                        ga.copy(&self.b.getb());
+                        ga = self.b.getb();
                         ga.mul(&y.b.geta());
                     }
                     if self.stype != SPARSE {
-                        ga.copy(&self.b.geta());
+                        ga = self.b.geta();
                         ga.mul(&y.b.getb());
                     }
                     z2.set_fp2s(&ga, &gb);
                     z2.times_i();
                 } else {
-                    z2.copy(&self.b);
+                    z2 = self.getb();
                     z2.mul(&y.b);
                 }
             } else {
-                z2.copy(&self.b);
+                z2 = self.getb();
                 z2.mul(&y.b);
             }
-            let mut t0 = FP4::new_copy(&self.a);
-            let mut t1 = FP4::new_copy(&y.a);
+            let mut t0 = self.geta();
+            let mut t1 = y.a.clone();
             t0.add(&self.b);
             t0.norm();
             t1.add(&y.b);
             t1.norm();
 
-            z1.copy(&t0);
+            let mut z1 = t0.clone();
             z1.mul(&t1);
-            t0.copy(&self.b);
+            t0 = self.getb();
             t0.add(&self.c);
             t0.norm();
-            t1.copy(&y.b);
+            t1 = y.getb();
             t1.add(&y.c);
             t1.norm();
 
-            z3.copy(&t0);
+            let mut z3 = t0.clone();
             z3.mul(&t1);
 
-            t0.copy(&z0);
+            t0 = z0.clone();
             t0.neg();
-            t1.copy(&z2);
+            t1 = z2.clone();
             t1.neg();
 
             z1.add(&t0);
-            self.b.copy(&z1);
+            self.b = z1.clone();
             self.b.add(&t1);
 
             z3.add(&t1);
             z2.add(&t0);
 
-            t0.copy(&self.a);
+            t0 = self.geta();
             t0.add(&self.c);
             t0.norm();
-            t1.copy(&y.a);
+            t1 = y.geta();
             t1.add(&y.c);
             t1.norm();
 
@@ -464,40 +437,37 @@ impl FP12 {
 
             if ecp::SEXTIC_TWIST == SexticTwist::DType {
                 if y.stype == SPARSE || self.stype == SPARSE {
-                    let mut ga = FP2::new_int(0);
-                    let mut gb = FP2::new_int(0);
-
-                    ga.copy(&self.c.geta());
+                    let mut ga = self.c.geta();
                     ga.mul(&y.c.geta());
-                    gb.zero();
+                    let mut gb = FP2::new();
                     if y.stype != SPARSE {
-                        gb.copy(&self.c.geta());
+                        gb = self.c.geta();
                         gb.mul(&y.c.getb());
                     }
                     if self.stype != SPARSE {
-                        gb.copy(&self.c.getb());
+                        gb = self.c.getb();
                         gb.mul(&y.c.geta());
                     }
                     t0.set_fp2s(&ga, &gb);
                 } else {
-                    t0.copy(&self.c);
+                    t0 = self.getc();
                     t0.mul(&y.c);
                 }
             } else {
-                t0.copy(&self.c);
+                t0 = self.getc();
                 t0.mul(&y.c);
             }
-            t1.copy(&t0);
+            t1 = t0.clone();
             t1.neg();
 
-            self.c.copy(&z2);
+            self.c = z2.clone();
             self.c.add(&t1);
             z3.add(&t1);
             t0.times_i();
             self.b.add(&t0);
             z3.norm();
             z3.times_i();
-            self.a.copy(&z0);
+            self.a = z0.clone();
             self.a.add(&z3);
         } else {
             if self.stype == SPARSER {
@@ -506,11 +476,10 @@ impl FP12 {
             }
             if ecp::SEXTIC_TWIST == SexticTwist::DType {
                 // dense by sparser - 13m
-                let mut z0 = FP4::new_copy(&self.a);
-                let mut z2 = FP4::new_copy(&self.b);
-                let mut z3 = FP4::new_copy(&self.b);
-                let mut t0 = FP4::new_int(0);
-                let mut t1 = FP4::new_copy(&y.a);
+                let mut z0 = self.geta();
+                let mut z2 = self.getb();
+                let mut z3 = self.getb();
+                let mut t1 = y.a.clone();
 
                 z0.mul(&y.a);
                 z2.pmul(&y.b.geta());
@@ -524,9 +493,9 @@ impl FP12 {
                 z3.norm();
                 z3.pmul(&y.b.geta());
 
-                t0.copy(&z0);
+                let mut t0 = z0.clone();
                 t0.neg();
-                t1.copy(&z2);
+                t1 = z2.clone();
                 t1.neg();
 
                 self.b.add(&t0);
@@ -535,70 +504,66 @@ impl FP12 {
                 z3.add(&t1);
                 z2.add(&t0);
 
-                t0.copy(&self.a);
+                t0 = self.geta();
                 t0.add(&self.c);
                 t0.norm();
                 z3.norm();
                 t0.mul(&y.a);
-                self.c.copy(&z2);
+                self.c = z2.clone();
                 self.c.add(&t0);
 
                 z3.times_i();
-                self.a.copy(&z0);
+                self.a = z0.clone();
                 self.a.add(&z3);
             }
             if ecp::SEXTIC_TWIST == SexticTwist::MType {
-                let mut z0 = FP4::new_copy(&self.a);
-                let mut z1 = FP4::new();
-                let mut z2 = FP4::new();
-                let mut z3 = FP4::new();
-                let mut t0 = FP4::new_copy(&self.a);
-                let mut t1 = FP4::new();
+                let mut z0 = self.geta();
+                let mut t0 = self.geta();
 
                 z0.mul(&y.a);
                 t0.add(&self.b);
                 t0.norm();
 
-                z1.copy(&t0);
+                let mut z1 = t0.clone();
                 z1.mul(&y.a);
-                t0.copy(&self.b);
+                t0 = self.getb();
                 t0.add(&self.c);
                 t0.norm();
 
-                z3.copy(&t0);
+                let mut z3 = t0.clone();
                 z3.pmul(&y.c.getb());
                 z3.times_i();
 
-                t0.copy(&z0);
+                t0 = z0.clone();
                 t0.neg();
                 z1.add(&t0);
-                self.b.copy(&z1);
-                z2.copy(&t0);
+                self.b = z1.clone();
+                let mut z2 = t0.clone();
 
-                t0.copy(&self.a);
+                t0 = self.geta();
                 t0.add(&self.c);
                 t0.norm();
-                t1.copy(&y.a);
+                let mut t1 = y.geta();
                 t1.add(&y.c);
                 t1.norm();
 
                 t0.mul(&t1);
                 z2.add(&t0);
-                t0.copy(&self.c);
+                t0 = self.getc();
 
                 t0.pmul(&y.c.getb());
                 t0.times_i();
-                t1.copy(&t0);
+                t1 = t0.clone();
                 t1.neg();
 
-                self.c.copy(&z2);
+                self.c = z2;
                 self.c.add(&t1);
                 z3.add(&t1);
                 t0.times_i();
                 self.b.add(&t0);
                 z3.norm();
                 z3.times_i();
-                self.a.copy(&z0);
+                self.a = z0;
                 self.a.add(&z3);
             }
         }
@@ -609,49 +574,49 @@ impl FP12 {
     /* Special case of multiplication arises from special form of ATE pairing line function */
     pub fn smul(&mut self, y: &FP12) {
         if ecp::SEXTIC_TWIST == SexticTwist::DType {
-            let mut w1 = FP2::new_copy(&self.a.geta());
-            let mut w2 = FP2::new_copy(&self.a.getb());
-            let mut w3 = FP2::new_copy(&self.b.geta());
+            let mut w1 = self.a.geta();
+            let mut w2 = self.a.getb();
+            let mut w3 = self.b.geta();
 
             w1.mul(&y.a.geta());
             w2.mul(&y.a.getb());
             w3.mul(&y.b.geta());
 
-            let mut ta = FP2::new_copy(&self.a.geta());
-            let mut tb = FP2::new_copy(&y.a.geta());
+            let mut ta = self.a.geta();
+            let mut tb = y.a.geta();
             ta.add(&self.a.getb());
             ta.norm();
             tb.add(&y.a.getb());
             tb.norm();
-            let mut tc = FP2::new_copy(&ta);
+            let mut tc = ta.clone();
             tc.mul(&tb);
-            let mut t = FP2::new_copy(&w1);
+            let mut t = w1.clone();
             t.add(&w2);
             t.neg();
             tc.add(&t);
 
-            ta.copy(&self.a.geta());
+            ta = self.a.geta();
             ta.add(&self.b.geta());
             ta.norm();
-            tb.copy(&y.a.geta());
+            tb = y.a.geta();
             tb.add(&y.b.geta());
             tb.norm();
-            let mut td = FP2::new_copy(&ta);
+            let mut td = ta.clone();
             td.mul(&tb);
-            t.copy(&w1);
+            t = w1.clone();
             t.add(&w3);
             t.neg();
             td.add(&t);
 
-            ta.copy(&self.a.getb());
+            ta = self.a.getb();
             ta.add(&self.b.geta());
             ta.norm();
-            tb.copy(&y.a.getb());
+            tb = y.a.getb();
             tb.add(&y.b.geta());
             tb.norm();
-            let mut te = FP2::new_copy(&ta);
+            let mut te = ta.clone();
             te.mul(&tb);
-            t.copy(&w2);
+            t = w2.clone();
             t.add(&w3);
             t.neg();
             te.add(&t);
@@ -666,49 +631,49 @@ impl FP12 {
             self.a.norm();
             self.b.norm();
         } else {
-            let mut w1 = FP2::new_copy(&self.a.geta());
-            let mut w2 = FP2::new_copy(&self.a.getb());
-            let mut w3 = FP2::new_copy(&self.c.getb());
+            let mut w1 = self.a.geta();
+            let mut w2 = self.a.getb();
+            let mut w3 = self.c.getb();
 
             w1.mul(&y.a.geta());
             w2.mul(&y.a.getb());
             w3.mul(&y.c.getb());
 
-            let mut ta = FP2::new_copy(&self.a.geta());
-            let mut tb = FP2::new_copy(&y.a.geta());
+            let mut ta = self.a.geta();
+            let mut tb = y.a.geta();
             ta.add(&self.a.getb());
             ta.norm();
             tb.add(&y.a.getb());
             tb.norm();
-            let mut tc = FP2::new_copy(&ta);
+            let mut tc = ta.clone();
             tc.mul(&tb);
-            let mut t = FP2::new_copy(&w1);
+            let mut t = w1.clone();
             t.add(&w2);
             t.neg();
             tc.add(&t);
 
-            ta.copy(&self.a.geta());
+            ta = self.a.geta();
             ta.add(&self.c.getb());
             ta.norm();
-            tb.copy(&y.a.geta());
+            tb = y.a.geta();
             tb.add(&y.c.getb());
             tb.norm();
-            let mut td = FP2::new_copy(&ta);
+            let mut td = ta.clone();
             td.mul(&tb);
-            t.copy(&w1);
+            t = w1.clone();
             t.add(&w3);
             t.neg();
             td.add(&t);
 
-            ta.copy(&self.a.getb());
+            ta = self.a.getb();
             ta.add(&self.c.getb());
             ta.norm();
-            tb.copy(&y.a.getb());
+            tb = y.a.getb();
             tb.add(&y.c.getb());
             tb.norm();
-            let mut te = FP2::new_copy(&ta);
+            let mut te = ta.clone();
             te.mul(&tb);
-            t.copy(&w2);
+            t = w2.clone();
             t.add(&w3);
             t.neg();
             te.add(&t);
@@ -733,10 +698,9 @@ impl FP12 {
 
     /* self=1/self */
     pub fn inverse(&mut self) {
-        let mut f0 = FP4::new_copy(&self.a);
-        let mut f1 = FP4::new_copy(&self.b);
-        let mut f2 = FP4::new_copy(&self.a);
-        let mut f3 = FP4::new();
+        let mut f0 = self.geta();
+        let mut f1 = self.getb();
+        let mut f2 = self.geta();
 
         self.norm();
         f0.sqr();
@@ -745,21 +709,21 @@ impl FP12 {
         f0.sub(&f1);
         f0.norm();
 
-        f1.copy(&self.c);
+        f1 = self.getc();
         f1.sqr();
         f1.times_i();
         f2.mul(&self.b);
         f1.sub(&f2);
         f1.norm();
 
-        f2.copy(&self.b);
+        f2 = self.getb();
         f2.sqr();
-        f3.copy(&self.a);
+        let mut f3 = self.geta();
         f3.mul(&self.c);
         f2.sub(&f3);
         f2.norm();
 
-        f3.copy(&self.b);
+        f3 = self.getb();
         f3.mul(&f2);
         f3.times_i();
         self.a.mul(&f0);
@@ -770,19 +734,19 @@ impl FP12 {
         f3.add(&self.c);
         f3.norm();
         f3.inverse();
-        self.a.copy(&f0);
+        self.a = f0.clone();
         self.a.mul(&f3);
-        self.b.copy(&f1);
+        self.b = f1.clone();
         self.b.mul(&f3);
-        self.c.copy(&f2);
+        self.c = f2.clone();
         self.c.mul(&f3);
         self.stype = DENSE;
     }
 
     /* self=self^p using Frobenius */
     pub fn frob(&mut self, f: &FP2) {
-        let mut f2 = FP2::new_copy(f);
-        let mut f3 = FP2::new_copy(f);
+        let mut f2 = f.clone();
+        let mut f3 = f.clone();
 
         f2.sqr();
         f3.mul(&f2);
@@ -798,8 +762,7 @@ impl FP12 {
 
     /* trace function */
     pub fn trace(&mut self) -> FP4 {
-        let mut t = FP4::new();
-        t.copy(&self.a);
+        let mut t = self.geta();
         t.imul(3);
         t.reduce();
         return t;
@@ -813,71 +776,71 @@ impl FP12 {
         for i in 0..mb {
             t[i] = w[i]
         }
-        let mut a = Big::frombytes(&t);
+        let a = Big::frombytes(&t);
         for i in 0..mb {
             t[i] = w[i + mb]
         }
-        let mut b = Big::frombytes(&t);
-        let mut c = FP2::new_bigs(&a, &b);
+        let b = Big::frombytes(&t);
+        let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 2 * mb]
         }
-        a = Big::frombytes(&t);
+        let a = Big::frombytes(&t);
         for i in 0..mb {
             t[i] = w[i + 3 * mb]
         }
-        b = Big::frombytes(&t);
-        let mut d = FP2::new_bigs(&a, &b);
+        let b = Big::frombytes(&t);
+        let d = FP2::new_bigs(a, b);
 
-        let e = FP4::new_fp2s(&c, &d);
+        let e = FP4::new_fp2s(c, d);
 
         for i in 0..mb {
             t[i] = w[i + 4 * mb]
         }
-        a = Big::frombytes(&t);
+        let a = Big::frombytes(&t);
         for i in 0..mb {
             t[i] = w[i + 5 * mb]
         }
-        b = Big::frombytes(&t);
-        c = FP2::new_bigs(&a, &b);
+        let b = Big::frombytes(&t);
+        let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 6 * mb]
         }
-        a = Big::frombytes(&t);
+        let a = Big::frombytes(&t);
         for i in 0..mb {
             t[i] = w[i + 7 * mb]
         }
-        b = Big::frombytes(&t);
-        d = FP2::new_bigs(&a, &b);
+        let b = Big::frombytes(&t);
+        let d = FP2::new_bigs(a, b);
 
-        let f = FP4::new_fp2s(&c, &d);
+        let f = FP4::new_fp2s(c, d);
 
         for i in 0..mb {
             t[i] = w[i + 8 * mb]
         }
-        a = Big::frombytes(&t);
+        let a = Big::frombytes(&t);
         for i in 0..mb {
             t[i] = w[i + 9 * mb]
         }
-        b = Big::frombytes(&t);
+        let b = Big::frombytes(&t);
 
-        c = FP2::new_bigs(&a, &b);
+        let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 10 * mb]
         }
-        a = Big::frombytes(&t);
+        let a = Big::frombytes(&t);
         for i in 0..mb {
             t[i] = w[i + 11 * mb]
         }
-        b = Big::frombytes(&t);
-        d = FP2::new_bigs(&a, &b);
+        let b = Big::frombytes(&t);
+        let d = FP2::new_bigs(a, b);
 
-        let g = FP4::new_fp2s(&c, &d);
+        let g = FP4::new_fp2s(c, d);
 
-        return FP12::new_fp4s(&e, &f, &g);
+        FP12::new_fp4s(e, f, g)
     }
 
     /* convert this to byte array */
@@ -972,14 +935,14 @@ impl FP12 {
 
     /* self=self^e */
     pub fn pow(&self, e: &Big) -> FP12 {
-        let mut r = FP12::new_copy(self);
+        let mut r = self.clone();
         r.norm();
-        let mut e1 = Big::new_copy(e);
+        let mut e1 = e.clone();
         e1.norm();
-        let mut e3 = Big::new_copy(&e1);
+        let mut e3 = e1.clone();
         e3.pmul(3);
         e3.norm();
-        let mut w = FP12::new_copy(&r);
+        let mut w = r.clone();
 
         let nb = e3.nbits();
         for i in (1..nb - 1).rev() {
@@ -1001,32 +964,31 @@ impl FP12 {
 
     /* constant time powering by small integer of max length bts */
     pub fn pinpow(&mut self, e: i32, bts: i32) {
-        let mut r: [FP12; 2] = [FP12::new_int(1), FP12::new_copy(self)];
-        let mut t = FP12::new();
+        let mut r: [FP12; 2] = [FP12::new_int(1), self.clone()];
 
         for i in (0..bts).rev() {
             let b: usize = ((e >> i) & 1) as usize;
-            t.copy(&r[b]);
+            let t = r[b].clone();
             r[1 - b].mul(&t);
             r[b].usqr();
         }
-        self.copy(&r[0]);
+        *self = r[0].clone();
     }
 
     pub fn compow(&mut self, e: &Big, r: &Big) -> FP4 {
-        let f = FP2::new_bigs(&Big::new_ints(&rom::FRA), &Big::new_ints(&rom::FRB));
+        let f = FP2::new_bigs(Big::new_ints(&rom::FRA), Big::new_ints(&rom::FRB));
         let q = Big::new_ints(&rom::MODULUS);
 
-        let mut g1 = FP12::new_copy(self);
-        let mut g2 = FP12::new_copy(self);
+        let mut g1 = self.clone();
+        let mut g2 = self.clone();
 
-        let mut m = Big::new_copy(&q);
+        let mut m = q.clone();
         m.rmod(&r);
 
-        let mut a = Big::new_copy(&e);
+        let mut a = e.clone();
         a.rmod(&m);
 
-        let mut b = Big::new_copy(&e);
+        let mut b = e.clone();
         b.div(&m);
 
         let mut c = g1.trace();
@@ -1065,45 +1027,39 @@ impl FP12 {
             FP12::new(),
         ];
 
-        let mut r = FP12::new();
         let mut p = FP12::new();
         const CT: usize = 1 + big::NLEN * (big::BASEBITS as usize);
         let mut w: [i8; CT] = [0; CT];
         let mut s: [i8; CT] = [0; CT];
 
         let mut mt = Big::new();
-        let mut t: [Big; 4] = [
-            Big::new_copy(&u[0]),
-            Big::new_copy(&u[1]),
-            Big::new_copy(&u[2]),
-            Big::new_copy(&u[3]),
-        ];
+        let mut t: [Big; 4] = [u[0].clone(), u[1].clone(), u[2].clone(), u[3].clone()];
 
         for i in 0..4 {
             t[i].norm();
         }
 
         // precomputation
-        g[0].copy(&q[0]);
-        r.copy(&g[0]);
-        g[1].copy(&r);
+        g[0] = q[0].clone();
+        let mut r = g[0].clone();
+        g[1] = r.clone();
         g[1].mul(&q[1]); // q[0].q[1]
-        g[2].copy(&r);
+        g[2] = r.clone();
         g[2].mul(&q[2]);
-        r.copy(&g[1]); // q[0].q[2]
-        g[3].copy(&r);
+        r = g[1].clone(); // q[0].q[2]
+        g[3] = r.clone();
         g[3].mul(&q[2]);
-        r.copy(&g[0]); // q[0].q[1].q[2]
-        g[4].copy(&r);
+        r = g[0].clone(); // q[0].q[1].q[2]
+        g[4] = r.clone();
         g[4].mul(&q[3]);
-        r.copy(&g[1]); // q[0].q[3]
-        g[5].copy(&r);
+        r = g[1].clone(); // q[0].q[3]
+        g[5] = r.clone();
         g[5].mul(&q[3]);
-        r.copy(&g[2]); // q[0].q[1].q[3]
-        g[6].copy(&r);
+        r = g[2].clone(); // q[0].q[1].q[3]
+        g[6] = r.clone();
         g[6].mul(&q[3]);
-        r.copy(&g[3]); // q[0].q[2].q[3]
-        g[7].copy(&r);
+        r = g[3].clone(); // q[0].q[2].q[3]
+        g[7] = r.clone();
         g[7].mul(&q[3]); // q[0].q[1].q[2].q[3]
 
         // Make it odd
@@ -1150,7 +1106,7 @@ impl FP12 {
         }
 
         // apply correction
-        r.copy(&q[0]);
+        r = q[0].clone();
         r.conj();
         r.mul(&p);
         p.cmove(&r, pb);

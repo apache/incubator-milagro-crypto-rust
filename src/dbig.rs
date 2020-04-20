@@ -22,15 +22,9 @@ use super::super::arch::Chunk;
 use super::big;
 use super::big::Big;
 
-#[derive(Copy)]
+#[derive(Clone)]
 pub struct DBig {
     pub w: [Chunk; big::DNLEN],
-}
-
-impl Clone for DBig {
-    fn clone(&self) -> DBig {
-        *self
-    }
 }
 
 impl DBig {
@@ -38,14 +32,6 @@ impl DBig {
         DBig {
             w: [0; big::DNLEN as usize],
         }
-    }
-
-    pub fn new_copy(y: &DBig) -> DBig {
-        let mut s = DBig::new();
-        for i in 0..big::DNLEN {
-            s.w[i] = y.w[i]
-        }
-        s
     }
 
     pub fn new_scopy(x: &Big) -> DBig {
@@ -105,13 +91,6 @@ impl DBig {
         self.w[big::DNLEN - m - 1] = self.w[big::DNLEN - 1] >> n;
         for i in big::DNLEN - m..big::DNLEN {
             self.w[i] = 0
-        }
-    }
-
-    /// Copy from another DBig
-    pub fn copy(&mut self, x: &DBig) {
-        for i in 0..big::DNLEN {
-            self.w[i] = x.w[i];
         }
     }
 
@@ -202,7 +181,7 @@ impl DBig {
         while k > 0 {
             m.shr(1);
 
-            dr.copy(self);
+            dr = self.clone();
             dr.sub(&m);
             dr.norm();
             self.cmove(
@@ -236,12 +215,12 @@ impl DBig {
             m.shr(1);
             e.shr(1);
 
-            dr.copy(self);
+            dr = self.clone();
             dr.sub(&m);
             dr.norm();
             let d = (1 - ((dr.w[big::DNLEN - 1] >> (arch::CHUNK - 1)) & 1)) as isize;
             self.cmove(&dr, d);
-            r.copy(&a);
+            r = a.clone();
             r.add(&e);
             r.norm();
             a.cmove(&r, d);
@@ -265,7 +244,7 @@ impl DBig {
     /// Return number of bits
     pub fn nbits(&self) -> usize {
         let mut k = big::DNLEN - 1;
-        let mut s = DBig::new_copy(&self);
+        let mut s = self.clone();
         s.norm();
         while (k as isize) >= 0 && s.w[k] == 0 {
             k = k.wrapping_sub(1)
@@ -295,7 +274,7 @@ impl DBig {
         }
 
         for i in (0..len).rev() {
-            let mut b = DBig::new_copy(&self);
+            let mut b = self.clone();
             b.shr(i * 4);
             s = s + &format!("{:X}", b.w[0] & 15);
         }
