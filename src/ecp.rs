@@ -931,22 +931,21 @@ impl ECP {
         if CURVETYPE == CurveType::Montgomery {
             return self.mul(&mut Big::new_int(e as isize));
         } else {
-            let mut P = ECP::new();
             let mut R0 = ECP::new();
             let mut R1 = self.clone();
 
             for i in (0..bts).rev() {
                 let b = ((e >> i) & 1) as isize;
-                P = R1.clone();
+                let mut P = R1.clone();
                 P.add(&R0);
                 R0.cswap(&mut R1, b);
                 R1 = P.clone();
                 R0.dbl();
                 R0.cswap(&mut R1, b);
             }
-            P = R0.clone();
+            let mut P = R0.clone();
             P.affine();
-            return P;
+            P
         }
     }
 
@@ -955,8 +954,7 @@ impl ECP {
         if e.iszilch() || self.is_infinity() {
             return ECP::new();
         }
-        let mut P = ECP::new();
-        if CURVETYPE == CurveType::Montgomery {
+        let mut T = if CURVETYPE == CurveType::Montgomery {
             /* use Ladder */
             let mut R0 = self.clone();
             let mut R1 = self.clone();
@@ -967,14 +965,14 @@ impl ECP {
 
             for i in (0..nb - 1).rev() {
                 let b = e.bit(i);
-                P = R1.clone();
+                let mut P = R1.clone();
                 P.dadd(&mut R0, &D);
                 R0.cswap(&mut R1, b);
                 R1 = P.clone();
                 R0.dbl();
                 R0.cswap(&mut R1, b);
             }
-            P = R0.clone();
+            R0.clone()
         } else {
             let mut W: [ECP; 8] = [
                 ECP::new(),
@@ -1024,7 +1022,7 @@ impl ECP {
             }
             w[nb] = t.lastbits(5) as i8;
 
-            P = W[((w[nb] as usize) - 1) / 2].clone();
+            let mut P = W[((w[nb] as usize) - 1) / 2].clone();
             for i in (0..nb).rev() {
                 Q.selector(&W, w[i] as i32);
                 P.dbl();
@@ -1034,9 +1032,10 @@ impl ECP {
                 P.add(&Q);
             }
             P.sub(&C); /* apply correction */
-        }
-        P.affine();
-        P
+            P
+        };
+        T.affine();
+        T
     }
 
     /* Return e.this+f.Q */

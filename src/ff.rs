@@ -39,7 +39,6 @@ pub const P_OMASK: Chunk = (-1) << (P_MBITS % big::BASEBITS);
 pub const P_FEXCESS: Chunk = 1 << (big::BASEBITS * big::NLEN - P_MBITS - 1);
 pub const P_TBITS: usize = P_MBITS % big::BASEBITS;
 
-#[derive(Clone)]
 pub struct FF {
     v: Vec<Big>,
     length: usize,
@@ -145,20 +144,16 @@ impl FF {
 
     /* shift right by BIGBITS-bit words */
     pub fn shrw(&mut self, n: usize) {
-        let mut t = Big::new();
         for i in 0..n {
-            t = self.v[i + n].clone();
-            self.v[i] = t.clone();
+            self.v[i] = self.v[i + n].clone();
             self.v[i + n].zero();
         }
     }
 
     /* shift left by BIGBITS-bit words */
     pub fn shlw(&mut self, n: usize) {
-        let mut t = Big::new();
         for i in 0..n {
-            t = self.v[i].clone();
-            self.v[n + i] = t.clone();
+            self.v[n + i] = self.v[i].clone();
             self.v[i].zero();
         }
     }
@@ -205,9 +200,8 @@ impl FF {
     }
 
     pub fn rsinc(&mut self, n: usize) {
-        let mut t = Big::new();
         for i in 0..n {
-            t = self.v[i].clone();
+            let t = self.v[i].clone();
             self.v[n + i].add(&t);
         }
     }

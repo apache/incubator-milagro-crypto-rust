@@ -163,11 +163,9 @@ impl DBig {
         let mut k = 0;
         self.norm();
         let mut m = DBig::new_scopy(c);
-        let mut dr = DBig::new();
 
         if DBig::comp(self, &m) < 0 {
-            let r = Big::new_dcopy(self);
-            return r;
+            return Big::new_dcopy(self);
         }
 
         loop {
@@ -181,7 +179,7 @@ impl DBig {
         while k > 0 {
             m.shr(1);
 
-            dr = self.clone();
+            let mut dr = self.clone();
             dr.sub(&m);
             dr.norm();
             self.cmove(
@@ -191,8 +189,7 @@ impl DBig {
 
             k -= 1;
         }
-        let r = Big::new_dcopy(self);
-        r
+        Big::new_dcopy(self)
     }
 
     /// return self / c
@@ -201,8 +198,6 @@ impl DBig {
         let mut m = DBig::new_scopy(c);
         let mut a = Big::new();
         let mut e = Big::new_int(1);
-        let mut dr = DBig::new();
-        let mut r = Big::new();
         self.norm();
 
         while DBig::comp(self, &m) >= 0 {
@@ -215,12 +210,12 @@ impl DBig {
             m.shr(1);
             e.shr(1);
 
-            dr = self.clone();
+            let mut dr = self.clone();
             dr.sub(&m);
             dr.norm();
             let d = (1 - ((dr.w[big::DNLEN - 1] >> (arch::CHUNK - 1)) & 1)) as isize;
             self.cmove(&dr, d);
-            r = a.clone();
+            let mut r = a.clone();
             r.add(&e);
             r.norm();
             a.cmove(&r, d);

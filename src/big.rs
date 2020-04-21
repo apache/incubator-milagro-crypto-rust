@@ -617,7 +617,6 @@ impl Big {
     pub fn rmod(&mut self, n: &Big) {
         let mut k = 0;
         let mut m = n.clone();
-        let mut r = Big::new();
         self.norm();
         if Big::comp(self, &m) < 0 {
             return;
@@ -633,7 +632,7 @@ impl Big {
         while k > 0 {
             m.fshr(1);
 
-            r = self.clone();
+            let mut r = self.clone();
             r.sub(&m);
             r.norm();
             self.cmove(
@@ -653,7 +652,6 @@ impl Big {
         let mut e = Big::new_int(1);
         let mut b = self.clone();
         let mut m = n.clone();
-        let mut r = Big::new();
         self.zero();
 
         while Big::comp(&b, &m) >= 0 {
@@ -666,7 +664,7 @@ impl Big {
             m.fshr(1);
             e.fshr(1);
 
-            r = b.clone();
+            let mut r = b.clone();
             r.sub(&m);
             r.norm();
             let d = (1 - ((r.w[NLEN - 1] >> (arch::CHUNK - 1)) & 1)) as isize;
@@ -732,22 +730,18 @@ impl Big {
     /// Jacobi Symbol (this/p). Returns 0, 1 or -1
     pub fn jacobi(&mut self, p: &Big) -> isize {
         let mut m: usize = 0;
-        let mut t = Big::new();
-        let mut x = Big::new();
-        let mut n = Big::new();
-        let zilch = Big::new();
         let one = Big::new_int(1);
-        if p.parity() == 0 || Big::comp(self, &zilch) == 0 || Big::comp(p, &one) <= 0 {
+        if p.parity() == 0 || self.iszilch() || Big::comp(p, &one) <= 0 {
             return 0;
         }
         self.norm();
 
-        x = self.clone();
-        n = p.clone();
+        let mut x = self.clone();
+        let mut n = p.clone();
         x.rmod(p);
 
         while Big::comp(&n, &one) > 0 {
-            if Big::comp(&x, &zilch) == 0 {
+            if x.iszilch() {
                 return 0;
             }
             let n8 = n.lastbits(3) as usize;
@@ -760,7 +754,7 @@ impl Big {
                 m += (n8 * n8 - 1) / 8
             }
             m += (n8 - 1) * ((x.lastbits(2) as usize) - 1) / 4;
-            t = n.clone();
+            let mut t = n.clone();
             t.rmod(&x);
             n = x.clone();
             x = t.clone();
@@ -781,7 +775,6 @@ impl Big {
         let mut v = p.clone();
         let mut x1 = Big::new_int(1);
         let mut x2 = Big::new();
-        let mut t = Big::new();
         let one = Big::new_int(1);
 
         while (Big::comp(&u, &one) != 0) && (Big::comp(&v, &one) != 0) {
@@ -807,7 +800,7 @@ impl Big {
                 if Big::comp(&x1, &x2) >= 0 {
                     x1.sub(&x2)
                 } else {
-                    t = p.clone();
+                    let mut t = p.clone();
                     t.sub(&x2);
                     x1.add(&t);
                 }
@@ -818,7 +811,7 @@ impl Big {
                 if Big::comp(&x2, &x1) >= 0 {
                     x2.sub(&x1)
                 } else {
-                    t = p.clone();
+                    let mut t = p.clone();
                     t.sub(&x1);
                     x2.add(&t);
                 }
