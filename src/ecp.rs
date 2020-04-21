@@ -896,7 +896,7 @@ impl ECP {
         a.norm();
         d.norm();
 
-        let mut da  = d.clone();
+        let mut da = d.clone();
         da.mul(&a);
 
         c.norm();
@@ -905,7 +905,7 @@ impl ECP {
         let mut cb = c.clone();
         cb.mul(&b);
 
-        a  = da.clone();
+        a = da.clone();
         a.add(&cb);
         a.norm();
         a.sqr();
@@ -994,7 +994,7 @@ impl ECP {
             W[0] = self.clone();
 
             for i in 1..8 {
-                W[i]  = W[i - 1].clone();
+                W[i] = W[i - 1].clone();
                 W[i].add(&Q);
             }
 
@@ -1067,18 +1067,18 @@ impl ECP {
         let mut S = Q.clone();
         S.dbl();
         let mut C = W[1].clone();
-        W[0]  = C.clone();
+        W[0] = C.clone();
         W[0].sub(&S); // copy to C is stupid Rust thing..
         C = W[2].clone();
-        W[3]  = C.clone();
+        W[3] = C.clone();
         W[3].add(&S);
         let mut T = self.clone();
         T.dbl();
         C = W[1].clone();
-        W[5]  = C.clone();
+        W[5] = C.clone();
         W[5].add(&T);
         C = W[2].clone();
-        W[6]  = C.clone();
+        W[6] = C.clone();
         W[6].add(&T);
         C = W[5].clone();
         W[4] = C.clone();
