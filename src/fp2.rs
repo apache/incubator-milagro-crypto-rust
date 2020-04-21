@@ -64,6 +64,13 @@ impl FP2 {
         return f;
     }
 
+    pub fn new_ints(a: isize, b: isize) -> FP2 {
+        let mut f = FP2::new();
+        f.a.copy(&FP::new_int(a));
+        f.b.copy(&FP::new_int(b));
+        return f;
+    }
+
     pub fn new_copy(x: &FP2) -> FP2 {
         let mut f = FP2::new();
         f.a.copy(&x.a);
@@ -405,5 +412,21 @@ impl FP2 {
         t.norm();
         self.copy(&t);
         self.div2();
+    }
+
+    // ((a + b) , (a - b))
+    pub fn spmt(&mut self) {
+        let b = self.b.clone();
+        self.b = self.a.clone();
+        self.a.add(&b);
+        self.b.sub(&b);
+    }
+
+    // b > -b OR if b is 0 then a > -a
+    pub fn is_neg(&mut self) -> bool {
+        if self.b.iszilch() {
+            return self.a.is_neg();
+        }
+        self.b.is_neg()
     }
 }
