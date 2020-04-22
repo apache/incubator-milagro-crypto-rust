@@ -414,7 +414,16 @@ impl Big {
     /// Convert from byte array starting at index `n` to Big
     pub fn frombytearray(b: &[u8], n: usize) -> Big {
         let mut m = Big::new();
-        for i in 0..(MODBYTES as usize) {
+
+        // Restrict length
+        let max_big = MODBYTES;
+        let len = if b.len() >= max_big {
+            max_big as usize
+        } else {
+            b.len()
+        };
+
+        for i in 0..len {
             m.fshl(8);
             m.w[0] += (b[i + n] & 0xff) as Chunk;
         }

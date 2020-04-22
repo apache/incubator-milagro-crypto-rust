@@ -95,6 +95,11 @@ impl ECP2 {
         return E;
     }
 
+    // Construct from (X, Y, Z) with no gaurentee of correctness.
+    pub fn new_projective(x: FP2, y: FP2, z: FP2) -> ECP2 {
+        ECP2 { x, y, z }
+    }
+
     /* Test this=O? */
     pub fn is_infinity(&self) -> bool {
         self.x.iszilch() && self.z.iszilch()
@@ -696,15 +701,20 @@ impl ECP2 {
             x.inc(1);
             x.norm();
         }
+        Q.clear_cofactor();
+        Q
+    }
+
+    pub fn clear_cofactor(&mut self) {
         let mut X = FP2::new_bigs(Big::new_ints(&rom::FRA), Big::new_ints(&rom::FRB));
         if ecp::SEXTIC_TWIST == SexticTwist::MType {
             X.inverse();
             X.norm();
         }
-        x = Big::new_ints(&rom::CURVE_BNX);
+        let x = Big::new_ints(&rom::CURVE_BNX);
 
         if ecp::CURVE_PAIRING_TYPE == CurvePairingType::Bn {
-            let mut T = Q.mul(&x);
+            let mut T = self.mul(&x);
             if ecp::SIGN_OF_X == SignOfX::NegativeX {
                 T.neg();
             }
@@ -713,38 +723,37 @@ impl ECP2 {
             K.add(&T);
 
             K.frob(&X);
-            Q.frob(&X);
-            Q.frob(&X);
-            Q.frob(&X);
-            Q.add(&T);
-            Q.add(&K);
+            self.frob(&X);
+            self.frob(&X);
+            self.frob(&X);
+            self.add(&T);
+            self.add(&K);
             T.frob(&X);
             T.frob(&X);
-            Q.add(&T);
+            self.add(&T);
         }
         if ecp::CURVE_PAIRING_TYPE == CurvePairingType::Bls {
-            let mut xQ = Q.mul(&x);
+            let mut xQ = self.mul(&x);
             let mut x2Q = xQ.mul(&x);
 
             if ecp::SIGN_OF_X == SignOfX::NegativeX {
                 xQ.neg();
             }
             x2Q.sub(&xQ);
-            x2Q.sub(&Q);
+            x2Q.sub(&self);
 
-            xQ.sub(&Q);
+            xQ.sub(&self);
             xQ.frob(&X);
 
-            Q.dbl();
-            Q.frob(&X);
-            Q.frob(&X);
+            self.dbl();
+            self.frob(&X);
+            self.frob(&X);
 
-            Q.add(&x2Q);
-            Q.add(&xQ);
+            self.add(&x2Q);
+            self.add(&xQ);
         }
 
-        Q.affine();
-        Q
+        self.affine();
     }
 
     pub fn generator() -> ECP2 {

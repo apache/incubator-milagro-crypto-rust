@@ -110,7 +110,7 @@ impl FP {
         format!("{} {}", self.xes, self.x.tostring())
     }
 
-    // convert back to regular form
+    /// convert back to regular form
     pub fn redc(&self) -> Big {
         if MODTYPE != ModType::PseudoMersenne && MODTYPE != ModType::GeneralisedMersenne {
             let mut d = DBig::new_scopy(&(self.x));
@@ -119,8 +119,7 @@ impl FP {
         self.x.clone()
     }
 
-    // reduce a DBig to a Big using the appropriate form of the modulus
-    // dd
+    /// reduce a DBig to a Big using the appropriate form of the modulus
     pub fn modulo(d: &mut DBig) -> Big {
         if MODTYPE == ModType::PseudoMersenne {
             let mut b = Big::new();
@@ -190,12 +189,12 @@ impl FP {
         Big::new()
     }
 
-    // convert to string
+    /// convert to string
     pub fn tostring(&self) -> String {
         self.redc().tostring()
     }
 
-    // reduce this mod Modulus
+    /// reduce this mod Modulus
     pub fn reduce(&mut self) {
         let mut m = Big::new_ints(&rom::MODULUS);
         let mut r = m.clone();
@@ -222,36 +221,37 @@ impl FP {
         self.xes = 1;
     }
 
-    // test this=0?
+    /// test this=0?
     pub fn iszilch(&self) -> bool {
         let mut a = self.clone();
         a.reduce();
         a.x.iszilch()
     }
 
-    // copy from Big b
+    /// copy from Big b
     pub fn bcopy(&mut self, b: &Big) {
         self.x = b.clone();
         self.nres();
     }
 
-    // set this=0
+    /// set this=0
     pub fn zero(&mut self) {
         self.x.zero();
         self.xes = 1;
     }
 
-    // set this=1
+    /// set this=1
     pub fn one(&mut self) {
         self.x.one();
         self.nres()
     }
 
-    // normalise this
+    /// normalise this
     pub fn norm(&mut self) {
         self.x.norm();
     }
-    // swap FPs depending on d
+
+    /// swap FPs depending on d
     pub fn cswap(&mut self, b: &mut FP, d: isize) {
         self.x.cswap(&mut (b.x), d);
         let mut c = d as i32;
@@ -261,14 +261,14 @@ impl FP {
         b.xes ^= t;
     }
 
-    // copy FPs depending on d
+    /// copy FPs depending on d
     pub fn cmove(&mut self, b: &FP, d: isize) {
         self.x.cmove(&(b.x), d);
         let c = d as i32;
         self.xes ^= (self.xes ^ b.xes) & (-c);
     }
 
-    // this*=b mod Modulus
+    /// this*=b mod Modulus
     pub fn mul(&mut self, b: &FP) {
         if i64::from(self.xes) * i64::from(b.xes) > i64::from(FEXCESS) {
             self.reduce()
@@ -292,9 +292,9 @@ impl FP {
         ((((v + (v >> 4)) & 0xF0F0F0F).wrapping_mul(0x1010101)) >> 24) as usize
     }
 
-    // find approximation to quotient of a/m
-    // Out by at most 2.
-    // Note that MAXXES is bounded to be 2-bits less than half a word
+    /// Find approximation to quotient of a/m
+    /// Out by at most 2.
+    /// Note that MAXXES is bounded to be 2-bits less than half a word
     fn quo(n: &Big, m: &Big) -> isize {
         let hb = arch::CHUNK / 2;
 
@@ -310,7 +310,7 @@ impl FP {
         }
     }
 
-    // this = -this mod Modulus
+    /// this = -this mod Modulus
     pub fn neg(&mut self) {
         let mut p = Big::new_ints(&rom::MODULUS);
         let sb = FP::logb2((self.xes - 1) as u32);
@@ -323,7 +323,7 @@ impl FP {
         }
     }
 
-    // this*=c mod Modulus, where c is a small int
+    /// this*=c mod Modulus, where c is a small int
     pub fn imul(&mut self, c: isize) {
         let mut cc = c;
         let mut s = false;
@@ -352,7 +352,7 @@ impl FP {
         }
     }
 
-    // self*=self mod Modulus
+    /// self*=self mod Modulus
     pub fn sqr(&mut self) {
         if i64::from(self.xes) * i64::from(self.xes) > i64::from(FEXCESS) {
             self.reduce()
@@ -363,7 +363,7 @@ impl FP {
         self.xes = 2
     }
 
-    // self+=b
+    /// self+=b
     pub fn add(&mut self, b: &FP) {
         self.x.add(&(b.x));
         self.xes += b.xes;
@@ -372,7 +372,7 @@ impl FP {
         }
     }
 
-    // self+=self
+    /// self+=self
     pub fn dbl(&mut self) {
         self.x.dbl();
         self.xes += self.xes;
@@ -381,20 +381,20 @@ impl FP {
         }
     }
 
-    // self-=b
+    /// self-=b
     pub fn sub(&mut self, b: &FP) {
         let mut n = b.clone();
         n.neg();
         self.add(&n);
     }
 
-    // self=b-self
+    /// self=b-self
     pub fn rsub(&mut self, b: &FP) {
         self.neg();
         self.add(&b);
     }
 
-    // self/=2 mod Modulus
+    /// self/=2 mod Modulus
     pub fn div2(&mut self) {
         if self.x.parity() == 0 {
             self.x.fshr(1);
@@ -406,8 +406,9 @@ impl FP {
         }
     }
 
-    // See eprint paper https://eprint.iacr.org/2018/1038
-    // return this^(p-3)/4 or this^(p-5)/8
+    /// Return this^(p-3)/4 or this^(p-5)/8
+    ///
+    /// https://eprint.iacr.org/2018/1038
     pub fn fpow(&self) -> FP {
         let ac: [isize; 11] = [1, 2, 3, 6, 12, 15, 30, 60, 120, 240, 255];
         let mut xp: [FP; 11] = [
@@ -554,7 +555,8 @@ impl FP {
         }
         r
     }
-    // self=1/self mod Modulus
+
+    /// self=1/self mod Modulus
     pub fn inverse(&mut self) {
         if MODTYPE == ModType::PseudoMersenne || MODTYPE == ModType::GeneralisedMersenne {
             let mut y = self.fpow();
@@ -578,7 +580,7 @@ impl FP {
         }
     }
 
-    // return TRUE if self==a
+    /// return TRUE if self==a
     pub fn equals(&self, a: &FP) -> bool {
         let mut f = self.clone();
         let mut s = a.clone();
@@ -590,7 +592,7 @@ impl FP {
         return false;
     }
 
-    // return self^e mod Modulus
+    /// return self^e mod Modulus
     pub fn pow(&mut self, e: &mut Big) -> FP {
         let mut tb: [FP; 16] = [
             FP::new(),
@@ -644,7 +646,7 @@ impl FP {
         return r;
     }
 
-    // return sqrt(this) mod Modulus
+    /// return sqrt(this) mod Modulus
     pub fn sqrt(&mut self) -> FP {
         self.reduce();
 
@@ -684,10 +686,20 @@ impl FP {
             return r;
         }
     }
-    // return jacobi symbol (this/Modulus)
+
+    /// return jacobi symbol (this/Modulus)
     pub fn jacobi(&self) -> isize {
         let p = Big::new_ints(&rom::MODULUS);
         let mut w = self.redc();
         return w.jacobi(&p);
+    }
+
+    /// Checks if the field value is negative
+    ///
+    /// Negative if a > -a
+    pub fn is_neg(&mut self) -> bool {
+        let mut neg_a = self.clone();
+        neg_a.neg();
+        Big::comp(&self.redc(), &neg_a.redc()) > 0
     }
 }

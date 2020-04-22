@@ -20,7 +20,7 @@ under the License.
 use super::super::arch;
 use super::super::arch::Chunk;
 use super::big;
-use super::big::Big;
+use super::big::{Big, MODBYTES};
 
 #[derive(Clone)]
 pub struct DBig {
@@ -274,5 +274,24 @@ impl DBig {
             s = s + &format!("{:X}", b.w[0] & 15);
         }
         s
+    }
+
+    // convert from byte array to DBig
+    pub fn frombytes(b: &[u8]) -> DBig {
+        let mut m = DBig::new();
+
+        // Restrict length
+        let max_dbig = 2 * MODBYTES;
+        let len = if b.len() >= max_dbig {
+            max_dbig as usize
+        } else {
+            b.len()
+        };
+
+        for i in 0..len {
+            m.shl(8);
+            m.w[0] += (b[i] & 0xff) as Chunk;
+        }
+        m
     }
 }
