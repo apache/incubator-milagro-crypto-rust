@@ -240,7 +240,7 @@ pub fn today() -> usize {
 #[allow(non_snake_case)]
 fn emap(u: &Big, cb: isize) -> ECP {
     let mut P: ECP;
-    let mut x = Big::new_copy(u);
+    let mut x = u.clone();
     let mut p = Big::new_ints(&rom::MODULUS);
     x.rmod(&mut p);
     loop {
@@ -261,7 +261,7 @@ fn unmap(u: &mut Big, P: &mut ECP) -> isize {
     let mut R: ECP;
     let mut r = 0;
     let x = P.getx();
-    u.copy(&x);
+    *u = x.clone();
     loop {
         u.dec(1);
         u.norm();
@@ -788,13 +788,13 @@ pub fn kangaroo(e: &[u8], f: &[u8]) -> isize {
     let mut ge = FP48::frombytes(e);
     let mut gf = FP48::frombytes(f);
     let mut distance: [isize; TS] = [0; TS];
-    let mut t = FP48::new_copy(&gf);
+    let mut t = gf.clone();
 
-    let mut table: [FP48; TS] = [FP48::new(); TS];
+    let mut table: Vec<FP48> = Vec::with_capacity(TS);
     let mut s: isize = 1;
     for m in 0..TS {
         distance[m] = s;
-        table[m] = FP48::new_copy(&t);
+        table.push(t.clone());
         s *= 2;
         t.usqr();
     }
@@ -806,7 +806,7 @@ pub fn kangaroo(e: &[u8], f: &[u8]) -> isize {
         t.mul(&mut table[i]);
         dn += distance[i];
     }
-    gf.copy(&t);
+    gf = t.clone();
     gf.conj();
     let mut steps: usize = 0;
     let mut dm: isize = 0;
@@ -959,12 +959,11 @@ pub fn server_key(
         return INVALID_POINT;
     }
 
-    let mut U = ECP::new();
-    if let Some(rxcid) = xcid {
-        U.copy(&ECP::frombytes(&rxcid));
+    let mut U = if let Some(rxcid) = xcid {
+        ECP::frombytes(&rxcid)
     } else {
-        U.copy(&ECP::frombytes(&xid));
-    }
+        ECP::frombytes(&xid)
+    };
 
     if U.is_infinity() {
         return INVALID_POINT;

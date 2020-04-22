@@ -26,7 +26,7 @@ use super::rom;
 use std::str::FromStr;
 use types::ModType;
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct FP {
     pub x: Big,
     pub xes: i32,
@@ -54,7 +54,7 @@ pub use super::rom::{MOD8, MODBITS, MODTYPE, SH};
 use std::fmt;
 use std::str::SplitWhitespace;
 
-pub const FEXCESS: i32 = ((1 as i32) << SH) - 1;
+pub const FEXCESS: i32 = (1 << SH) - 1;
 pub const OMASK: Chunk = (-1) << (MODBITS % big::BASEBITS);
 pub const TBITS: usize = MODBITS % big::BASEBITS; // Number of active bits in top word
 pub const TMASK: Chunk = (1 << TBITS) - 1;
@@ -75,25 +75,17 @@ impl FP {
         return f;
     }
 
-    pub fn new_copy(y: &FP) -> FP {
-        let mut f = FP::new();
-        f.x.copy(&(y.x));
-        f.xes = y.xes;
-        return f;
-    }
-
-    pub fn new_big(y: &Big) -> FP {
-        let mut f = FP::new();
-        f.x.copy(y);
+    pub fn new_big(x: Big) -> FP {
+        let mut f = FP { x, xes: 1 };
         f.nres();
-        return f;
+        f
     }
 
     pub fn nres(&mut self) {
         if MODTYPE != ModType::PseudoMersenne && MODTYPE != ModType::GeneralisedMersenne {
             let r = Big::new_ints(&rom::R2MODP);
             let mut d = Big::mul(&(self.x), &r);
-            self.x.copy(&FP::modulo(&mut d));
+            self.x = FP::modulo(&mut d);
             self.xes = 2;
         } else {
             self.xes = 1;
@@ -124,7 +116,7 @@ impl FP {
             let mut d = DBig::new_scopy(&(self.x));
             return FP::modulo(&mut d);
         }
-        Big::new_copy(&(self.x))
+        self.x.clone()
     }
 
     /// reduce a DBig to a Big using the appropriate form of the modulus
@@ -205,7 +197,7 @@ impl FP {
     /// reduce this mod Modulus
     pub fn reduce(&mut self) {
         let mut m = Big::new_ints(&rom::MODULUS);
-        let mut r = Big::new_copy(&m);
+        let mut r = m.clone();
         let mut sb: usize;
         self.x.norm();
         if self.xes > 16 {
@@ -231,20 +223,14 @@ impl FP {
 
     /// test this=0?
     pub fn iszilch(&self) -> bool {
-        let mut a = FP::new_copy(self);
+        let mut a = self.clone();
         a.reduce();
         a.x.iszilch()
     }
 
-    /// copy from FP b
-    pub fn copy(&mut self, b: &FP) {
-        self.x.copy(&(b.x));
-        self.xes = b.xes;
-    }
-
     /// copy from Big b
     pub fn bcopy(&mut self, b: &Big) {
-        self.x.copy(&b);
+        self.x = b.clone();
         self.nres();
     }
 
@@ -289,7 +275,7 @@ impl FP {
         }
 
         let mut d = Big::mul(&(self.x), &(b.x));
-        self.x.copy(&FP::modulo(&mut d));
+        self.x = FP::modulo(&mut d);
         self.xes = 2;
     }
 
@@ -348,7 +334,7 @@ impl FP {
 
         if MODTYPE == ModType::PseudoMersenne || MODTYPE == ModType::GeneralisedMersenne {
             let mut d = self.x.pxmul(cc);
-            self.x.copy(&FP::modulo(&mut d));
+            self.x = FP::modulo(&mut d);
             self.xes = 2
         } else {
             if self.xes * (cc as i32) <= FEXCESS {
@@ -373,7 +359,7 @@ impl FP {
         }
 
         let mut d = Big::sqr(&(self.x));
-        self.x.copy(&FP::modulo(&mut d));
+        self.x = FP::modulo(&mut d);
         self.xes = 2
     }
 
@@ -397,7 +383,7 @@ impl FP {
 
     /// self-=b
     pub fn sub(&mut self, b: &FP) {
-        let mut n = FP::new_copy(b);
+        let mut n = b.clone();
         n.neg();
         self.add(&n);
     }
@@ -439,37 +425,36 @@ impl FP {
             FP::new(),
         ];
         // phase 1
-        let mut t = FP::new();
-        xp[0].copy(&self); // 1
-        xp[1].copy(&self);
+        xp[0] = self.clone(); // 1
+        xp[1] = self.clone();
         xp[1].sqr(); // 2
-        t.copy(&xp[1]);
-        xp[2].copy(&t);
+        let mut t = xp[1].clone();
+        xp[2] = t.clone();
         xp[2].mul(&self); // 3
-        t.copy(&xp[2]);
-        xp[3].copy(&t);
+        t = xp[2].clone();
+        xp[3] = t.clone();
         xp[3].sqr(); // 6
-        t.copy(&xp[3]);
-        xp[4].copy(&t);
+        t = xp[3].clone();
+        xp[4] = t.clone();
         xp[4].sqr(); // 12
-        t.copy(&xp[4]);
+        t = xp[4].clone();
         t.mul(&xp[2]);
-        xp[5].copy(&t); // 15
-        t.copy(&xp[5]);
-        xp[6].copy(&t);
+        xp[5] = t.clone(); // 15
+        t = xp[5].clone();
+        xp[6] = t.clone();
         xp[6].sqr(); // 30
-        t.copy(&xp[6]);
-        xp[7].copy(&t);
+        t = xp[6].clone();
+        xp[7] = t.clone();
         xp[7].sqr(); // 60
-        t.copy(&xp[7]);
-        xp[8].copy(&t);
+        t = xp[7].clone();
+        xp[8] = t.clone();
         xp[8].sqr(); // 120
-        t.copy(&xp[8]);
-        xp[9].copy(&t);
+        t = xp[8].clone();
+        xp[9] = t.clone();
         xp[9].sqr(); // 240
-        t.copy(&xp[9]);
+        t = xp[9].clone();
         t.mul(&xp[5]);
-        xp[10].copy(&t); // 255
+        xp[10] = t.clone(); // 255
 
         let mut n = MODBITS as isize;
         let c: isize;
@@ -500,7 +485,7 @@ impl FP {
             while ac[i] > k {
                 i -= 1;
             }
-            key.copy(&xp[i]);
+            key = xp[i].clone();
             k -= ac[i];
         }
         while k != 0 {
@@ -512,31 +497,30 @@ impl FP {
             k -= ac[i];
         }
         // phase 2
-        t.copy(&xp[2]);
-        xp[1].copy(&t);
-        t.copy(&xp[5]);
-        xp[2].copy(&t);
-        t.copy(&xp[10]);
-        xp[3].copy(&t);
+        t = xp[2].clone();
+        xp[1] = t.clone();
+        t = xp[5].clone();
+        xp[2] = t.clone();
+        t = xp[10].clone();
+        xp[3] = t.clone();
 
         let mut j = 3;
         let mut m = 8;
         let nw = n - bw;
-        let mut r = FP::new();
 
         while 2 * m < nw {
-            t.copy(&xp[j]);
+            t = xp[j].clone();
             j += 1;
             for _ in 0..m {
                 t.sqr();
             }
-            r.copy(&xp[j - 1]);
+            let mut r = xp[j - 1].clone();
             r.mul(&t);
-            xp[j].copy(&r);
+            xp[j] = r.clone();
             m *= 2;
         }
         let mut lo = nw - m;
-        r.copy(&xp[j]);
+        let mut r = xp[j].clone();
 
         while lo != 0 {
             m /= 2;
@@ -545,11 +529,11 @@ impl FP {
                 continue;
             }
             lo -= m;
-            t.copy(&r);
+            t = r.clone();
             for _ in 0..m {
                 t.sqr();
             }
-            r.copy(&t);
+            r = t.clone();
             r.mul(&xp[j]);
         }
         // phase 3
@@ -561,7 +545,7 @@ impl FP {
         }
         if MODTYPE == ModType::GeneralisedMersenne {
             // Goldilocks ONLY
-            key.copy(&r);
+            key = r.clone();
             r.sqr();
             r.mul(&self);
             for _ in 0..=n {
@@ -577,7 +561,7 @@ impl FP {
         if MODTYPE == ModType::PseudoMersenne || MODTYPE == ModType::GeneralisedMersenne {
             let mut y = self.fpow();
             if MOD8 == 5 {
-                let mut t = FP::new_copy(self);
+                let mut t = self.clone();
                 t.sqr();
                 self.mul(&t);
                 y.sqr();
@@ -592,14 +576,14 @@ impl FP {
             m2.dec(2);
             m2.norm();
             let inv = self.pow(&mut m2);
-            self.copy(&inv);
+            *self = inv.clone();
         }
     }
 
     /// return TRUE if self==a
     pub fn equals(&self, a: &FP) -> bool {
-        let mut f = FP::new_copy(self);
-        let mut s = FP::new_copy(a);
+        let mut f = self.clone();
+        let mut s = a.clone();
         f.reduce();
         s.reduce();
         if Big::comp(&(f.x), &(s.x)) == 0 {
@@ -632,7 +616,7 @@ impl FP {
         let mut w: [i8; CT] = [0; CT];
 
         self.norm();
-        let mut t = Big::new_copy(e);
+        let mut t = e.clone();
         t.norm();
         let nb = 1 + (t.nbits() + 3) / 4;
 
@@ -644,15 +628,13 @@ impl FP {
             t.fshr(4);
         }
         tb[0].one();
-        tb[1].copy(&self);
+        tb[1] = self.clone();
 
-        let mut c = FP::new();
         for i in 2..16 {
-            c.copy(&tb[i - 1]);
-            tb[i].copy(&c);
+            tb[i] = tb[i - 1].clone();
             tb[i].mul(&self);
         }
-        let mut r = FP::new_copy(&tb[w[nb - 1] as usize]);
+        let mut r = tb[w[nb - 1] as usize].clone();
         for i in (0..nb - 1).rev() {
             r.sqr();
             r.sqr();
@@ -670,7 +652,7 @@ impl FP {
 
         if MOD8 == 5 {
             let v: FP;
-            let mut i = FP::new_copy(self);
+            let mut i = self.clone();
             i.x.shl(1);
             if MODTYPE == ModType::PseudoMersenne || MODTYPE == ModType::GeneralisedMersenne {
                 v = i.fpow();
@@ -684,7 +666,7 @@ impl FP {
             i.mul(&v);
             i.mul(&v);
             i.x.dec(1);
-            let mut r = FP::new_copy(self);
+            let mut r = self.clone();
             r.mul(&v);
             r.mul(&i);
             r.reduce();

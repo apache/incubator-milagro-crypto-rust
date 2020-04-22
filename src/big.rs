@@ -38,15 +38,9 @@ pub const HMASK: Chunk = (1 << HBITS) - 1;
 pub const NEXCESS: isize = 1 << (arch::CHUNK - BASEBITS - 1);
 pub const BIGBITS: usize = MODBYTES * 8;
 
-#[derive(Copy)]
+#[derive(Clone)]
 pub struct Big {
     pub w: [Chunk; NLEN],
-}
-
-impl Clone for Big {
-    fn clone(&self) -> Big {
-        *self
-    }
 }
 
 impl fmt::Display for Big {
@@ -105,15 +99,6 @@ impl Big {
         let mut s = Big::new();
         for i in 0..NLEN {
             s.w[i] = a[i]
-        }
-        s
-    }
-
-    /// Creates a copy of the Big
-    pub fn new_copy(y: &Big) -> Big {
-        let mut s = Big::new();
-        for i in 0..NLEN {
-            s.w[i] = y.w[i]
         }
         s
     }
@@ -177,13 +162,6 @@ impl Big {
         self.w[0] = 1;
         for i in 1..NLEN {
             self.w[i] = 0;
-        }
-    }
-
-    /// Copy from another Big
-    pub fn copy(&mut self, x: &Big) {
-        for i in 0..NLEN {
-            self.w[i] = x.w[i]
         }
     }
 
@@ -289,7 +267,7 @@ impl Big {
     /// Return number of bits
     pub fn nbits(&self) -> usize {
         let mut k = NLEN - 1;
-        let mut s = Big::new_copy(&self);
+        let mut s = self.clone();
         s.norm();
         while (k as isize) >= 0 && s.w[k] == 0 {
             k = k.wrapping_sub(1)
@@ -323,7 +301,7 @@ impl Big {
         }
 
         for i in (0..len).rev() {
-            let mut b = Big::new_copy(&self);
+            let mut b = self.clone();
             b.shr(i * 4);
             s = s + &format!("{:X}", b.w[0] & 15);
         }
@@ -422,7 +400,7 @@ impl Big {
     ///
     /// Convert this Big to byte array from index `n`
     pub fn tobytearray(&self, b: &mut [u8], n: usize) {
-        let mut c = Big::new_copy(self);
+        let mut c = self.clone();
         c.norm();
 
         for i in (0..(MODBYTES as usize)).rev() {
@@ -608,19 +586,16 @@ impl Big {
     /// a = 1/a mod 2^256. This is very fast!
     pub fn invmod2m(&mut self) {
         let mut u = Big::new();
-        let mut b = Big::new();
-        let mut c = Big::new();
-
         u.inc(Big::invmod256(self.lastbits(8)));
 
         let mut i = 8;
         while i < BIGBITS {
             u.norm();
-            b.copy(self);
+            let mut b = self.clone();
             b.mod2m(i);
             let mut t1 = Big::smul(&u, &b);
             t1.shr(i);
-            c.copy(self);
+            let mut c = self.clone();
             c.shr(i);
             c.mod2m(i);
 
@@ -629,7 +604,7 @@ impl Big {
             t1.add(&t2);
             t1.norm();
             b = Big::smul(&t1, &u);
-            t1.copy(&b);
+            t1 = b.clone();
             t1.mod2m(i);
 
             t2.one();
@@ -641,7 +616,7 @@ impl Big {
             i <<= 1;
         }
         u.mod2m(BIGBITS);
-        self.copy(&u);
+        *self = u;
         self.norm();
     }
 
@@ -650,8 +625,7 @@ impl Big {
     /// reduce self mod m
     pub fn rmod(&mut self, n: &Big) {
         let mut k = 0;
-        let mut m = Big::new_copy(n);
-        let mut r = Big::new();
+        let mut m = n.clone();
         self.norm();
         if Big::comp(self, &m) < 0 {
             return;
@@ -667,7 +641,7 @@ impl Big {
         while k > 0 {
             m.fshr(1);
 
-            r.copy(self);
+            let mut r = self.clone();
             r.sub(&m);
             r.norm();
             self.cmove(
@@ -685,9 +659,8 @@ impl Big {
         let mut k = 0;
         self.norm();
         let mut e = Big::new_int(1);
-        let mut b = Big::new_copy(self);
-        let mut m = Big::new_copy(n);
-        let mut r = Big::new();
+        let mut b = self.clone();
+        let mut m = n.clone();
         self.zero();
 
         while Big::comp(&b, &m) >= 0 {
@@ -700,12 +673,12 @@ impl Big {
             m.fshr(1);
             e.fshr(1);
 
-            r.copy(&b);
+            let mut r = b.clone();
             r.sub(&m);
             r.norm();
             let d = (1 - ((r.w[NLEN - 1] >> (arch::CHUNK - 1)) & 1)) as isize;
             b.cmove(&r, d);
-            r.copy(self);
+            r = self.clone();
             r.add(&e);
             r.norm();
             self.cmove(&r, d);
@@ -745,7 +718,7 @@ impl Big {
         let mut d = DBig::new();
         let mut j = 0;
         let mut r: u8 = 0;
-        let t = Big::new_copy(q);
+        let t = q.clone();
         for _ in 0..2 * t.nbits() {
             if j == 0 {
                 r = rng.getbyte();
@@ -766,22 +739,18 @@ impl Big {
     /// Jacobi Symbol (this/p). Returns 0, 1 or -1
     pub fn jacobi(&mut self, p: &Big) -> isize {
         let mut m: usize = 0;
-        let mut t = Big::new();
-        let mut x = Big::new();
-        let mut n = Big::new();
-        let zilch = Big::new();
         let one = Big::new_int(1);
-        if p.parity() == 0 || Big::comp(self, &zilch) == 0 || Big::comp(p, &one) <= 0 {
+        if p.parity() == 0 || self.iszilch() || Big::comp(p, &one) <= 0 {
             return 0;
         }
         self.norm();
 
-        x.copy(self);
-        n.copy(p);
+        let mut x = self.clone();
+        let mut n = p.clone();
         x.rmod(p);
 
         while Big::comp(&n, &one) > 0 {
-            if Big::comp(&x, &zilch) == 0 {
+            if x.iszilch() {
                 return 0;
             }
             let n8 = n.lastbits(3) as usize;
@@ -794,10 +763,10 @@ impl Big {
                 m += (n8 * n8 - 1) / 8
             }
             m += (n8 - 1) * ((x.lastbits(2) as usize) - 1) / 4;
-            t.copy(&n);
+            let mut t = n.clone();
             t.rmod(&x);
-            n.copy(&x);
-            x.copy(&t);
+            n = x.clone();
+            x = t.clone();
             m %= 2;
         }
         if m == 0 {
@@ -811,11 +780,10 @@ impl Big {
     /// self = 1/self mod p. Binary method
     pub fn invmodp(&mut self, p: &Big) {
         self.rmod(p);
-        let mut u = Big::new_copy(self);
-        let mut v = Big::new_copy(p);
+        let mut u = self.clone();
+        let mut v = p.clone();
         let mut x1 = Big::new_int(1);
         let mut x2 = Big::new();
-        let mut t = Big::new();
         let one = Big::new_int(1);
 
         while (Big::comp(&u, &one) != 0) && (Big::comp(&v, &one) != 0) {
@@ -841,7 +809,7 @@ impl Big {
                 if Big::comp(&x1, &x2) >= 0 {
                     x1.sub(&x2)
                 } else {
-                    t.copy(p);
+                    let mut t = p.clone();
                     t.sub(&x2);
                     x1.add(&t);
                 }
@@ -852,7 +820,7 @@ impl Big {
                 if Big::comp(&x2, &x1) >= 0 {
                     x2.sub(&x1)
                 } else {
-                    t.copy(p);
+                    let mut t = p.clone();
                     t.sub(&x1);
                     x2.add(&t);
                 }
@@ -860,9 +828,9 @@ impl Big {
             }
         }
         if Big::comp(&u, &one) == 0 {
-            self.copy(&x1)
+            *self = x1
         } else {
-            self.copy(&x2)
+            *self = x2
         }
     }
 
@@ -1047,8 +1015,8 @@ impl Big {
     ///
     /// return a*b mod m
     pub fn modmul(a1: &Big, b1: &Big, m: &Big) -> Big {
-        let mut a = Big::new_copy(a1);
-        let mut b = Big::new_copy(b1);
+        let mut a = a1.clone();
+        let mut b = b1.clone();
         a.rmod(m);
         b.rmod(m);
         let mut d = Big::mul(&a, &b);
@@ -1057,7 +1025,7 @@ impl Big {
 
     /// return a^2 mod m
     pub fn modsqr(a1: &Big, m: &Big) -> Big {
-        let mut a = Big::new_copy(a1);
+        let mut a = a1.clone();
         a.rmod(m);
         let mut d = Big::sqr(&a);
         d.dmod(m)
@@ -1067,7 +1035,7 @@ impl Big {
     ///
     /// return -a mod m
     pub fn modneg(a1: &Big, m: &Big) -> Big {
-        let mut a = Big::new_copy(a1);
+        let mut a = a1.clone();
         a.rmod(m);
         m.minus(&a)
     }
@@ -1077,11 +1045,11 @@ impl Big {
     /// return this^e mod m
     pub fn powmod(&mut self, e1: &Big, m: &Big) -> Big {
         self.norm();
-        let mut e = Big::new_copy(e1);
+        let mut e = e1.clone();
         e.norm();
         let mut a = Big::new_int(1);
-        let mut z = Big::new_copy(&e);
-        let mut s = Big::new_copy(self);
+        let mut z = e.clone();
+        let mut s = self.clone();
         loop {
             let bt = z.parity();
             z.fshr(1);

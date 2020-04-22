@@ -25,7 +25,7 @@ use super::rom;
 use std::fmt;
 use std::str::SplitWhitespace;
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct FP2 {
     a: FP,
     b: FP,
@@ -58,52 +58,39 @@ impl FP2 {
     }
 
     pub fn new_int(a: isize) -> FP2 {
-        let mut f = FP2::new();
-        f.a.copy(&FP::new_int(a));
-        f.b.zero();
-        return f;
+        FP2 {
+            a: FP::new_int(a),
+            b: FP::new(),
+        }
     }
 
     pub fn new_ints(a: isize, b: isize) -> FP2 {
-        let mut f = FP2::new();
-        f.a.copy(&FP::new_int(a));
-        f.b.copy(&FP::new_int(b));
-        return f;
+        FP2 {
+            a: FP::new_int(a),
+            b: FP::new_int(b),
+        }
     }
 
-    pub fn new_copy(x: &FP2) -> FP2 {
-        let mut f = FP2::new();
-        f.a.copy(&x.a);
-        f.b.copy(&x.b);
-        return f;
+    pub fn new_fps(a: FP, b: FP) -> FP2 {
+        FP2 { a, b }
     }
 
-    pub fn new_fps(c: &FP, d: &FP) -> FP2 {
-        let mut f = FP2::new();
-        f.a.copy(c);
-        f.b.copy(d);
-        return f;
+    pub fn new_bigs(c: Big, d: Big) -> FP2 {
+        FP2 {
+            a: FP::new_big(c),
+            b: FP::new_big(d),
+        }
     }
 
-    pub fn new_bigs(c: &Big, d: &Big) -> FP2 {
-        let mut f = FP2::new();
-        f.a.copy(&FP::new_big(c));
-        f.b.copy(&FP::new_big(d));
-        return f;
+    pub fn new_fp(a: FP) -> FP2 {
+        FP2 { a, b: FP::new() }
     }
 
-    pub fn new_fp(c: &FP) -> FP2 {
-        let mut f = FP2::new();
-        f.a.copy(c);
-        f.b.zero();
-        return f;
-    }
-
-    pub fn new_big(c: &Big) -> FP2 {
-        let mut f = FP2::new();
-        f.a.copy(&FP::new_big(c));
-        f.b.zero();
-        return f;
+    pub fn new_big(c: Big) -> FP2 {
+        FP2 {
+            a: FP::new_big(c),
+            b: FP::new(),
+        }
     }
 
     /* reduce components mod Modulus */
@@ -149,12 +136,6 @@ impl FP2 {
         return self.b.redc();
     }
 
-    /* copy self=x */
-    pub fn copy(&mut self, x: &FP2) {
-        self.a.copy(&x.a);
-        self.b.copy(&x.b);
-    }
-
     /* set self=0 */
     pub fn zero(&mut self) {
         self.a.zero();
@@ -169,16 +150,14 @@ impl FP2 {
 
     /* negate self mod Modulus */
     pub fn neg(&mut self) {
-        let mut m = FP::new_copy(&self.a);
-        let mut t = FP::new();
-
+        let mut m = self.a.clone();
         m.add(&self.b);
         m.neg();
-        t.copy(&m);
+        let mut t = m.clone();
         t.add(&self.b);
-        self.b.copy(&m);
+        self.b = m;
         self.b.add(&self.a);
-        self.a.copy(&t);
+        self.a = t;
     }
 
     /* set to a-ib */
@@ -200,7 +179,7 @@ impl FP2 {
 
     /* self-=a */
     pub fn sub(&mut self, x: &FP2) {
-        let mut m = FP2::new_copy(x);
+        let mut m = x.clone();
         m.neg();
         self.add(&m);
     }
@@ -225,9 +204,9 @@ impl FP2 {
 
     /* self*=self */
     pub fn sqr(&mut self) {
-        let mut w1 = FP::new_copy(&self.a);
-        let mut w3 = FP::new_copy(&self.a);
-        let mut mb = FP::new_copy(&self.b);
+        let mut w1 = self.a.clone();
+        let mut w3 = self.a.clone();
+        let mut mb = self.b.clone();
 
         w1.add(&self.b);
 
@@ -262,8 +241,8 @@ impl FP2 {
 
         pr.ucopy(&p);
 
-        let mut c = Big::new_copy(&(self.a.x));
-        let mut d = Big::new_copy(&(y.a.x));
+        let mut c = self.a.x.clone();
+        let mut d = y.a.x.clone();
 
         let mut a = Big::mul(&self.a.x, &y.a.x);
         let mut b = Big::mul(&self.b.x, &y.b.x);
@@ -274,7 +253,7 @@ impl FP2 {
         d.norm();
 
         let mut e = Big::mul(&c, &d);
-        let mut f = DBig::new_copy(&a);
+        let mut f = a.clone();
         f.add(&b);
         b.rsub(&pr);
 
@@ -283,9 +262,9 @@ impl FP2 {
         e.sub(&f);
         e.norm();
 
-        self.a.x.copy(&FP::modulo(&mut a));
+        self.a.x = FP::modulo(&mut a);
         self.a.xes = 3;
-        self.b.x.copy(&FP::modulo(&mut e));
+        self.b.x = FP::modulo(&mut e);
         self.b.xes = 2;
     }
 
@@ -295,8 +274,8 @@ impl FP2 {
         if self.iszilch() {
             return true;
         }
-        let mut w1 = FP::new_copy(&self.b);
-        let mut w2 = FP::new_copy(&self.a);
+        let mut w1 = self.b.clone();
+        let mut w2 = self.a.clone();
         w1.sqr();
         w2.sqr();
         w1.add(&w2);
@@ -304,14 +283,14 @@ impl FP2 {
             self.zero();
             return false;
         }
-        w2.copy(&w1.sqrt());
-        w1.copy(&w2);
-        w2.copy(&self.a);
+        w2 = w1.sqrt();
+        w1 = w2.clone();
+        w2 = self.a.clone();
         w2.add(&w1);
         w2.norm();
         w2.div2();
         if w2.jacobi() != 1 {
-            w2.copy(&self.a);
+            w2 = self.a.clone();
             w2.sub(&w1);
             w2.norm();
             w2.div2();
@@ -320,8 +299,8 @@ impl FP2 {
                 return false;
             }
         }
-        w1.copy(&w2.sqrt());
-        self.a.copy(&w1);
+        w1 = w2.sqrt();
+        self.a = w1.clone();
         w1.dbl();
         w1.inverse();
         self.b.mul(&w1);
@@ -352,8 +331,8 @@ impl FP2 {
     /* self=1/self */
     pub fn inverse(&mut self) {
         self.norm();
-        let mut w1 = FP::new_copy(&self.a);
-        let mut w2 = FP::new_copy(&self.b);
+        let mut w1 = self.a.clone();
+        let mut w2 = self.b.clone();
 
         w1.sqr();
         w2.sqr();
@@ -373,44 +352,44 @@ impl FP2 {
 
     /* self*=sqrt(-1) */
     pub fn times_i(&mut self) {
-        let z = FP::new_copy(&self.a);
-        self.a.copy(&self.b);
+        let z = self.a.clone();
+        self.a = self.b.clone();
         self.a.neg();
-        self.b.copy(&z);
+        self.b = z;
     }
 
     /* w*=(1+sqrt(-1)) */
     /* where X*2-(1+sqrt(-1)) is irreducible for FP4, assumes p=3 mod 8 */
     pub fn mul_ip(&mut self) {
-        let t = FP2::new_copy(self);
-        let z = FP::new_copy(&self.a);
-        self.a.copy(&self.b);
+        let t = self.clone();
+        let z = self.a.clone();
+        self.a = self.b.clone();
         self.a.neg();
-        self.b.copy(&z);
+        self.b = z.clone();
         self.add(&t);
     }
 
     pub fn div_ip2(&mut self) {
         let mut t = FP2::new();
         self.norm();
-        t.a.copy(&self.a);
+        t.a = self.a.clone();
         t.a.add(&self.b);
-        t.b.copy(&self.b);
+        t.b = self.b.clone();
         t.b.sub(&self.a);
         t.norm();
-        self.copy(&t);
+        *self = t;
     }
 
     /* w/=(1+sqrt(-1)) */
     pub fn div_ip(&mut self) {
         let mut t = FP2::new();
         self.norm();
-        t.a.copy(&self.a);
+        t.a = self.a.clone();
         t.a.add(&self.b);
-        t.b.copy(&self.b);
+        t.b = self.b.clone();
         t.b.sub(&self.a);
         t.norm();
-        self.copy(&t);
+        *self = t;
         self.div2();
     }
 

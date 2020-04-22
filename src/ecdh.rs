@@ -505,34 +505,32 @@ pub fn ecpsp_dsa(
 
     let mut cb = Big::new();
     let mut db = Big::new();
-    let mut tb = Big::new();
-    let mut V = ECP::new();
 
     while db.iszilch() {
         let mut u = Big::randomnum(&r, rng);
         let w = Big::randomnum(&r, rng); // side channel masking
 
-        V.copy(&G);
+        let mut V = G.clone();
         V = V.mul(&u);
         let vx = V.getx();
-        cb.copy(&vx);
+        cb = vx.clone();
         cb.rmod(&r);
         if cb.iszilch() {
             continue;
         }
 
-        tb.copy(&Big::modmul(&u, &w, &r));
-        u.copy(&tb);
+        let mut tb = Big::modmul(&u, &w, &r);
+        u = tb.clone();
 
         u.invmodp(&r);
-        db.copy(&Big::modmul(&sc, &cb, &r));
+        db = Big::modmul(&sc, &cb, &r);
         db.add(&fb);
 
-        tb.copy(&Big::modmul(&db, &w, &r));
-        db.copy(&tb);
+        tb = Big::modmul(&db, &w, &r);
+        db = tb.clone();
 
-        tb.copy(&Big::modmul(&u, &db, &r));
-        db.copy(&tb);
+        tb = Big::modmul(&u, &db, &r);
+        db = tb.clone();
     }
 
     cb.tobytes(&mut t);
@@ -556,30 +554,27 @@ pub fn ecpvp_dsa(sha: usize, w: &[u8], f: &[u8], c: &[u8], d: &[u8]) -> isize {
     hashit(sha, f, 0, None, big::MODBYTES as usize, &mut b);
 
     let G = ECP::generator();
-
     let r = Big::new_ints(&rom::CURVE_ORDER);
 
     let cb = Big::frombytes(c); // c or &c ?
     let mut db = Big::frombytes(d); // d or &d ?
-    let mut fb = Big::frombytes(&b);
-    let mut tb = Big::new();
 
     if cb.iszilch() || Big::comp(&cb, &r) >= 0 || db.iszilch() || Big::comp(&db, &r) >= 0 {
         res = INVALID;
     }
 
     if res == 0 {
+        let mut fb = Big::frombytes(&b);
         db.invmodp(&r);
-        tb.copy(&Big::modmul(&fb, &db, &r));
-        fb.copy(&tb);
+        let tb = Big::modmul(&fb, &db, &r);
+        fb = tb.clone();
         let h2 = Big::modmul(&cb, &db, &r);
 
         let WP = ECP::frombytes(&w);
         if WP.is_infinity() {
             res = ERROR;
         } else {
-            let mut P = ECP::new();
-            P.copy(&WP);
+            let mut P = WP.clone();
 
             P = P.mul2(&h2, &G, &fb);
 

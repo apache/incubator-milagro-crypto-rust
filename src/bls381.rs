@@ -110,8 +110,8 @@ pub fn verify(sig: &[u8], m: &str, w: &[u8]) -> isize {
 pub fn hash_to_curve_g1(msg: &[u8]) -> ECP {
     let u =
         hash_to_field_fp(msg, 2, DST).expect("hash to field should not fail for given parameters");
-    let mut q0 = map_to_curve_g1(u[0]);
-    let q1 = map_to_curve_g1(u[1]);
+    let mut q0 = map_to_curve_g1(u[0].clone());
+    let q1 = map_to_curve_g1(u[1].clone());
     q0.add(&q1);
     let p = q0.mul(&H_EFF_G1);
     p
@@ -136,8 +136,8 @@ fn map_to_curve_g1(u: FP) -> ECP {
 pub fn hash_to_curve_g2(msg: &[u8]) -> ECP2 {
     let u =
         hash_to_field_fp2(msg, 2, DST).expect("hash to field should not fail for given parameters");
-    let mut q0 = map_to_curve_g2(u[0]);
-    let q1 = map_to_curve_g2(u[1]);
+    let mut q0 = map_to_curve_g2(u[0].clone());
+    let q1 = map_to_curve_g2(u[1].clone());
     q0.add(&q1);
     q0.clear_cofactor();
     q0
@@ -245,10 +245,10 @@ mod tests {
             // Input u0 and u1
             let a = Big::frombytes(&hex::decode(test.0[0]).unwrap());
             let b = Big::frombytes(&hex::decode(test.0[1]).unwrap());
-            let u0 = FP2::new_bigs(&a, &b);
+            let u0 = FP2::new_bigs(a, b);
             let a = Big::frombytes(&hex::decode(test.0[2]).unwrap());
             let b = Big::frombytes(&hex::decode(test.0[3]).unwrap());
-            let u1 = FP2::new_bigs(&a, &b);
+            let u1 = FP2::new_bigs(a, b);
 
             // Map to Curve
             let (iso3_0_x, iso3_0_y) = simplified_swu_fp2(u0);
@@ -265,11 +265,11 @@ mod tests {
             // Check expected values
             let a = Big::frombytes(&hex::decode(test.1[0]).unwrap());
             let b = Big::frombytes(&hex::decode(test.1[1]).unwrap());
-            let check_x = FP2::new_bigs(&a, &b);
+            let check_x = FP2::new_bigs(a, b);
             let a = Big::frombytes(&hex::decode(test.1[2]).unwrap());
             let b = Big::frombytes(&hex::decode(test.1[3]).unwrap());
-            let check_y = FP2::new_bigs(&a, &b);
-            let check_e = ECP2::new_fp2s(&check_x, &check_y);
+            let check_y = FP2::new_bigs(a, b);
+            let check_e = ECP2::new_fp2s(check_x, check_y);
 
             assert!(q0.equals(&check_e));
         }
@@ -291,8 +291,8 @@ mod tests {
         for case in test_vectors.vectors {
             // Execute hash to curve
             let u = hash_to_field_fp2(case.msg.as_bytes(), 2, test_vectors.dst.as_bytes()).unwrap();
-            let q0 = map_to_curve_g2(u[0]);
-            let q1 = map_to_curve_g2(u[1]);
+            let q0 = map_to_curve_g2(u[0].clone());
+            let q1 = map_to_curve_g2(u[1].clone());
             let mut r = q0.clone();
             r.add(&q1);
             let mut p = r.clone();
@@ -306,7 +306,7 @@ mod tests {
                 let u_str_parts: Vec<&str> = u_str.split(',').collect();
                 let a = Big::frombytes(&hex::decode(&u_str_parts[0].get(2..).unwrap()).unwrap());
                 let b = Big::frombytes(&hex::decode(&u_str_parts[1].get(2..).unwrap()).unwrap());
-                let expected_u_i = FP2::new_bigs(&a, &b);
+                let expected_u_i = FP2::new_bigs(a, b);
 
                 // Verify u[i]
                 assert_eq!(expected_u_i, u[i]);
@@ -316,42 +316,42 @@ mod tests {
             let x_str_parts: Vec<&str> = case.Q0.x.split(',').collect();
             let a = Big::frombytes(&hex::decode(&x_str_parts[0].get(2..).unwrap()).unwrap());
             let b = Big::frombytes(&hex::decode(&x_str_parts[1].get(2..).unwrap()).unwrap());
-            let expected_x = FP2::new_bigs(&a, &b);
+            let expected_x = FP2::new_bigs(a, b);
 
             let y_str_parts: Vec<&str> = case.Q0.y.split(',').collect();
             let a = Big::frombytes(&hex::decode(&y_str_parts[0].get(2..).unwrap()).unwrap());
             let b = Big::frombytes(&hex::decode(&y_str_parts[1].get(2..).unwrap()).unwrap());
-            let expected_y = FP2::new_bigs(&a, &b);
+            let expected_y = FP2::new_bigs(a, b);
 
-            let expected_q0 = ECP2::new_fp2s(&expected_x, &expected_y);
+            let expected_q0 = ECP2::new_fp2s(expected_x, expected_y);
             assert_eq!(expected_q0, q0);
 
             // Check Q1
             let x_str_parts: Vec<&str> = case.Q1.x.split(',').collect();
             let a = Big::frombytes(&hex::decode(&x_str_parts[0].get(2..).unwrap()).unwrap());
             let b = Big::frombytes(&hex::decode(&x_str_parts[1].get(2..).unwrap()).unwrap());
-            let expected_x = FP2::new_bigs(&a, &b);
+            let expected_x = FP2::new_bigs(a, b);
 
             let y_str_parts: Vec<&str> = case.Q1.y.split(',').collect();
             let a = Big::frombytes(&hex::decode(&y_str_parts[0].get(2..).unwrap()).unwrap());
             let b = Big::frombytes(&hex::decode(&y_str_parts[1].get(2..).unwrap()).unwrap());
-            let expected_y = FP2::new_bigs(&a, &b);
+            let expected_y = FP2::new_bigs(a, b);
 
-            let expected_q1 = ECP2::new_fp2s(&expected_x, &expected_y);
+            let expected_q1 = ECP2::new_fp2s(expected_x, expected_y);
             assert_eq!(expected_q1, q1);
 
             // Check P
             let x_str_parts: Vec<&str> = case.P.x.split(',').collect();
             let a = Big::frombytes(&hex::decode(&x_str_parts[0].get(2..).unwrap()).unwrap());
             let b = Big::frombytes(&hex::decode(&x_str_parts[1].get(2..).unwrap()).unwrap());
-            let expected_x = FP2::new_bigs(&a, &b);
+            let expected_x = FP2::new_bigs(a, b);
 
             let y_str_parts: Vec<&str> = case.P.y.split(',').collect();
             let a = Big::frombytes(&hex::decode(&y_str_parts[0].get(2..).unwrap()).unwrap());
             let b = Big::frombytes(&hex::decode(&y_str_parts[1].get(2..).unwrap()).unwrap());
-            let expected_y = FP2::new_bigs(&a, &b);
+            let expected_y = FP2::new_bigs(a, b);
 
-            let expected_p = ECP2::new_fp2s(&expected_x, &expected_y);
+            let expected_p = ECP2::new_fp2s(expected_x, expected_y);
             assert_eq!(expected_p, p);
         }
     }
@@ -372,8 +372,8 @@ mod tests {
         for case in test_vectors.vectors {
             // Execute hash to curve
             let u = hash_to_field_fp(case.msg.as_bytes(), 2, test_vectors.dst.as_bytes()).unwrap();
-            let q0 = map_to_curve_g1(u[0]);
-            let q1 = map_to_curve_g1(u[1]);
+            let q0 = map_to_curve_g1(u[0].clone());
+            let q1 = map_to_curve_g1(u[1].clone());
             let mut r = q0.clone();
             r.add(&q1);
             let p = r.mul(&H_EFF_G1);
@@ -384,7 +384,7 @@ mod tests {
             for (i, u_str) in case.u.iter().enumerate() {
                 // Convert case 'u[i]' to FP
                 let a = Big::frombytes(&hex::decode(&u_str.get(2..).unwrap()).unwrap());
-                let expected_u_i = FP::new_big(&a);
+                let expected_u_i = FP::new_big(a);
 
                 // Verify u[i]
                 assert_eq!(expected_u_i, u[i]);
@@ -392,30 +392,30 @@ mod tests {
 
             // Check Q0
             let a = Big::frombytes(&hex::decode(&case.Q0.x.get(2..).unwrap()).unwrap());
-            let expected_x = FP::new_big(&a);
+            let expected_x = FP::new_big(a);
 
             let a = Big::frombytes(&hex::decode(&case.Q0.y.get(2..).unwrap()).unwrap());
-            let expected_y = FP::new_big(&a);
+            let expected_y = FP::new_big(a);
 
             let expected_q0 = ECP::new_fps(expected_x, expected_y);
             assert_eq!(expected_q0, q0);
 
             // Check Q1
             let a = Big::frombytes(&hex::decode(&case.Q1.x.get(2..).unwrap()).unwrap());
-            let expected_x = FP::new_big(&a);
+            let expected_x = FP::new_big(a);
 
             let a = Big::frombytes(&hex::decode(&case.Q1.y.get(2..).unwrap()).unwrap());
-            let expected_y = FP::new_big(&a);
+            let expected_y = FP::new_big(a);
 
             let expected_q1 = ECP::new_fps(expected_x, expected_y);
             assert_eq!(expected_q1, q1);
 
             // Check P
             let a = Big::frombytes(&hex::decode(&case.P.x.get(2..).unwrap()).unwrap());
-            let expected_x = FP::new_big(&a);
+            let expected_x = FP::new_big(a);
 
             let a = Big::frombytes(&hex::decode(&case.P.y.get(2..).unwrap()).unwrap());
-            let expected_y = FP::new_big(&a);
+            let expected_y = FP::new_big(a);
 
             let expected_p = ECP::new_fps(expected_x, expected_y);
             assert_eq!(expected_p, p);

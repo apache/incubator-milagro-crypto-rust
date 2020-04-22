@@ -24,8 +24,8 @@ use super::fp2::FP2;
 use super::fp4::FP4;
 use super::rom;
 use types::{SexticTwist, SignOfX};
-//use std::str::SplitWhitespace;
 
+#[derive(Clone)]
 pub struct ECP4 {
     x: FP4,
     y: FP4,
@@ -45,13 +45,13 @@ impl ECP4 {
     /* construct this from (x,y) - but set to O if not on curve */
     pub fn new_fp4s(ix: &FP4, iy: &FP4) -> ECP4 {
         let mut E = ECP4::new();
-        E.x.copy(&ix);
-        E.y.copy(&iy);
+        E.x = ix.clone();
+        E.y = iy.clone();
         E.z.one();
         E.x.norm();
 
         let mut rhs = ECP4::rhs(&E.x);
-        let mut y2 = FP4::new_copy(&E.y);
+        let mut y2 = E.getpy();
         y2.sqr();
         if !y2.equals(&mut rhs) {
             E.inf();
@@ -62,14 +62,14 @@ impl ECP4 {
     /* construct this from x - but set to O if not on curve */
     pub fn new_fp4(ix: &FP4) -> ECP4 {
         let mut E = ECP4::new();
-        E.x.copy(&ix);
+        E.x = ix.clone();
         E.y.one();
         E.z.one();
         E.x.norm();
 
         let mut rhs = ECP4::rhs(&E.x);
         if rhs.sqrt() {
-            E.y.copy(&rhs);
+            E.y = rhs;
         } else {
             E.inf();
         }
@@ -78,16 +78,9 @@ impl ECP4 {
 
     /* Test this=O? */
     pub fn is_infinity(&self) -> bool {
-        let xx = FP4::new_copy(&self.x);
-        let zz = FP4::new_copy(&self.z);
+        let xx = self.getpx();
+        let zz = self.getpz();
         return xx.iszilch() && zz.iszilch();
-    }
-
-    /* copy self=P */
-    pub fn copy(&mut self, P: &ECP4) {
-        self.x.copy(&P.x);
-        self.y.copy(&P.y);
-        self.z.copy(&P.z);
     }
 
     /* set self=O */
@@ -120,7 +113,6 @@ impl ECP4 {
 
     /* Constant time select from pre-computed table */
     pub fn selector(&mut self, W: &[ECP4], b: i32) {
-        let mut MP = ECP4::new();
         let m = b >> 31;
         let mut babs = (b ^ m) - m;
 
@@ -135,24 +127,24 @@ impl ECP4 {
         self.cmove(&W[6], ECP4::teq(babs, 6));
         self.cmove(&W[7], ECP4::teq(babs, 7));
 
-        MP.copy(self);
+        let mut MP = self.clone();
         MP.neg();
         self.cmove(&MP, (m & 1) as isize);
     }
 
     /* Test if P == Q */
     pub fn equals(&mut self, Q: &mut ECP4) -> bool {
-        let mut a = FP4::new_copy(&self.x);
-        let mut b = FP4::new_copy(&Q.x);
+        let mut a = self.getpx();
+        let mut b = Q.getpx();
 
         a.mul(&Q.z);
         b.mul(&self.z);
         if !a.equals(&mut b) {
             return false;
         }
-        a.copy(&self.y);
+        a = self.getpy();
         a.mul(&Q.z);
-        b.copy(&Q.y);
+        b = Q.getpy();
         b.mul(&self.z);
         if !a.equals(&mut b) {
             return false;
@@ -176,36 +168,34 @@ impl ECP4 {
         self.x.reduce();
         self.y.mul(&self.z);
         self.y.reduce();
-        self.z.copy(&one);
+        self.z = one.clone();
     }
 
     /* extract affine x as FP4 */
     pub fn getx(&self) -> FP4 {
-        let mut W = ECP4::new();
-        W.copy(self);
+        let mut W = self.clone();
         W.affine();
-        return FP4::new_copy(&self.x);
+        W.getpx()
     }
 
     /* extract affine y as FP4 */
     pub fn gety(&self) -> FP4 {
-        let mut W = ECP4::new();
-        W.copy(self);
+        let mut W = self.clone();
         W.affine();
-        return FP4::new_copy(&W.y);
+        W.getpy()
     }
 
     /* extract projective x */
     pub fn getpx(&self) -> FP4 {
-        return FP4::new_copy(&self.x);
+        self.x.clone()
     }
     /* extract projective y */
     pub fn getpy(&self) -> FP4 {
-        return FP4::new_copy(&self.y);
+        self.y.clone()
     }
     /* extract projective z */
     pub fn getpz(&self) -> FP4 {
-        return FP4::new_copy(&self.z);
+        self.z.clone()
     }
 
     /* convert to byte array */
@@ -213,8 +203,7 @@ impl ECP4 {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
 
-        let mut W = ECP4::new();
-        W.copy(self);
+        let mut W = self.clone();
 
         W.affine();
 
@@ -263,58 +252,57 @@ impl ECP4 {
         for i in 0..mb {
             t[i] = b[i]
         }
-        let mut ra = Big::frombytes(&t);
+        let ra = Big::frombytes(&t);
         for i in 0..mb {
             t[i] = b[i + mb]
         }
-        let mut rb = Big::frombytes(&t);
+        let rb = Big::frombytes(&t);
 
-        let mut ra4 = FP2::new_bigs(&ra, &rb);
+        let ra4 = FP2::new_bigs(ra, rb);
 
         for i in 0..mb {
             t[i] = b[i + 2 * mb]
         }
-        ra.copy(&Big::frombytes(&t));
+        let ra = Big::frombytes(&t);
         for i in 0..mb {
             t[i] = b[i + 3 * mb]
         }
-        rb.copy(&Big::frombytes(&t));
+        let rb = Big::frombytes(&t);
 
-        let mut rb4 = FP2::new_bigs(&ra, &rb);
+        let rb4 = FP2::new_bigs(ra, rb);
 
-        let rx = FP4::new_fp2s(&ra4, &rb4);
+        let rx = FP4::new_fp2s(ra4, rb4);
 
         for i in 0..mb {
             t[i] = b[i + 4 * mb]
         }
-        ra.copy(&Big::frombytes(&t));
+        let ra = Big::frombytes(&t);
         for i in 0..mb {
             t[i] = b[i + 5 * mb]
         }
-        rb.copy(&Big::frombytes(&t));
+        let rb = Big::frombytes(&t);
 
-        ra4.copy(&FP2::new_bigs(&ra, &rb));
+        let ra4 = FP2::new_bigs(ra, rb);
 
         for i in 0..mb {
             t[i] = b[i + 6 * mb]
         }
-        ra.copy(&Big::frombytes(&t));
+        let ra = Big::frombytes(&t);
         for i in 0..mb {
             t[i] = b[i + 7 * mb]
         }
-        rb.copy(&Big::frombytes(&t));
+        let rb = Big::frombytes(&t);
 
-        rb4.copy(&FP2::new_bigs(&ra, &rb));
+        let rb4 = FP2::new_bigs(ra, rb);
 
-        let ry = FP4::new_fp2s(&ra4, &rb4);
+        let ry = FP4::new_fp2s(ra4, rb4);
 
-        return ECP4::new_fp4s(&rx, &ry);
+        ECP4::new_fp4s(&rx, &ry)
     }
 
     /* convert this to hex string */
     pub fn tostring(&self) -> String {
-        let mut W = ECP4::new();
-        W.copy(self);
+        let mut W = self.clone();
         W.affine();
         if W.is_infinity() {
             return String::from("infinity");
@@ -325,9 +313,9 @@ impl ECP4 {
     /* Calculate RHS of twisted curve equation x^3+B/i */
     pub fn rhs(x: &FP4) -> FP4 {
         //x.norm();
-        let mut r = FP4::new_copy(x);
+        let mut r = x.clone();
         r.sqr();
-        let mut b = FP4::new_fp2(&FP2::new_big(&Big::new_ints(&rom::CURVE_B)));
+        let mut b = FP4::new_fp2(FP2::new_big(Big::new_ints(&rom::CURVE_B)));
         if ecp::SEXTIC_TWIST == SexticTwist::DType {
             b.div_i();
         }
@@ -344,22 +332,22 @@ impl ECP4 {
 
     /* self+=self */
     pub fn dbl(&mut self) -> isize {
-        let mut iy = FP4::new_copy(&self.y);
+        let mut iy = self.getpy();
         if ecp::SEXTIC_TWIST == SexticTwist::DType {
             iy.times_i(); //iy.norm();
         }
 
-        let mut t0 = FP4::new_copy(&self.y);
+        let mut t0 = self.getpy();
         t0.sqr();
         if ecp::SEXTIC_TWIST == SexticTwist::DType {
             t0.times_i();
         }
-        let mut t1 = FP4::new_copy(&iy);
+        let mut t1 = iy.clone();
         t1.mul(&self.z);
-        let mut t2 = FP4::new_copy(&self.z);
+        let mut t2 = self.getpz();
         t2.sqr();
 
-        self.z.copy(&t0);
+        self.z = t0.clone();
         self.z.add(&t0);
         self.z.norm();
         self.z.dbl();
@@ -370,15 +358,15 @@ impl ECP4 {
         if ecp::SEXTIC_TWIST == SexticTwist::MType {
             t2.times_i();
         }
-        let mut x3 = FP4::new_copy(&t2);
+        let mut x3 = t2.clone();
         x3.mul(&self.z);
 
-        let mut y3 = FP4::new_copy(&t0);
+        let mut y3 = t0.clone();
 
         y3.add(&t2);
         y3.norm();
         self.z.mul(&t1);
-        t1.copy(&t2);
+        t1 = t2.clone();
         t1.add(&t2);
         t2.add(&t1);
         t2.norm();
@@ -386,15 +374,15 @@ impl ECP4 {
         t0.norm(); //y^2-9bz^2
         y3.mul(&t0);
         y3.add(&x3); //(y^2+3z*2)(y^2-9z^2)+3b.z^2.8y^2
-        t1.copy(&self.x);
+        t1 = self.getpx();
         t1.mul(&iy); //
-        self.x.copy(&t0);
+        self.x = t0.clone();
         self.x.norm();
         self.x.mul(&t1);
         self.x.dbl(); //(y^2-9bz^2)xy2
 
         self.x.norm();
-        self.y.copy(&y3);
+        self.y = y3.clone();
         self.y.norm();
 
         return 1;
@@ -403,21 +391,21 @@ impl ECP4 {
     /* self+=Q - return 0 for add, 1 for double, -1 for O */
     pub fn add(&mut self, Q: &ECP4) -> isize {
         let b = 3 * rom::CURVE_B_I;
-        let mut t0 = FP4::new_copy(&self.x);
+        let mut t0 = self.getpx();
         t0.mul(&Q.x); // x.Q.x
-        let mut t1 = FP4::new_copy(&self.y);
+        let mut t1 = self.getpy();
         t1.mul(&Q.y); // y.Q.y
 
-        let mut t2 = FP4::new_copy(&self.z);
+        let mut t2 = self.getpz();
         t2.mul(&Q.z);
-        let mut t3 = FP4::new_copy(&self.x);
+        let mut t3 = self.getpx();
         t3.add(&self.y);
         t3.norm(); //t3=X1+Y1
-        let mut t4 = FP4::new_copy(&Q.x);
+        let mut t4 = Q.getpx();
         t4.add(&Q.y);
         t4.norm(); //t4=X2+Y2
         t3.mul(&t4); //t3=(X1+Y1)(X2+Y2)
-        t4.copy(&t0);
+        t4 = t0.clone();
         t4.add(&t1); //t4=X1.X2+Y1.Y2
 
         t3.sub(&t4);
@@ -425,15 +413,15 @@ impl ECP4 {
         if ecp::SEXTIC_TWIST == SexticTwist::DType {
             t3.times_i(); //t3=(X1+Y1)(X2+Y2)-(X1.X2+Y1.Y2) = X1.Y2+X2.Y1
         }
-        t4.copy(&self.y);
+        t4 = self.getpy();
         t4.add(&self.z);
         t4.norm(); //t4=Y1+Z1
-        let mut x3 = FP4::new_copy(&Q.y);
+        let mut x3 = Q.getpy();
         x3.add(&Q.z);
         x3.norm(); //x3=Y2+Z2
 
         t4.mul(&x3); //t4=(Y1+Z1)(Y2+Z2)
-        x3.copy(&t1); //
+        x3 = t1.clone(); //
         x3.add(&t2); //X3=Y1.Y2+Z1.Z2
 
         t4.sub(&x3);
@@ -441,14 +429,14 @@ impl ECP4 {
         if ecp::SEXTIC_TWIST == SexticTwist::DType {
             t4.times_i(); //t4=(Y1+Z1)(Y2+Z2) - (Y1.Y2+Z1.Z2) = Y1.Z2+Y2.Z1
         }
-        x3.copy(&self.x);
+        x3 = self.getpx();
         x3.add(&self.z);
         x3.norm(); // x3=X1+Z1
-        let mut y3 = FP4::new_copy(&Q.x);
+        let mut y3 = Q.getpx();
         y3.add(&Q.z);
         y3.norm(); // y3=X2+Z2
         x3.mul(&y3); // x3=(X1+Z1)(X2+Z2)
-        y3.copy(&t0);
+        y3 = t0.clone();
         y3.add(&t2); // y3=X1.X2+Z1+Z2
         y3.rsub(&x3);
         y3.norm(); // y3=(X1+Z1)(X2+Z2) - (X1.X2+Z1.Z2) = X1.Z2+X2.Z1
@@ -457,7 +445,7 @@ impl ECP4 {
             t0.times_i(); // x.Q.x
             t1.times_i(); // y.Q.y
         }
-        x3.copy(&t0);
+        x3 = t0.clone();
         x3.add(&t0);
         t0.add(&x3);
         t0.norm();
@@ -465,7 +453,7 @@ impl ECP4 {
         if ecp::SEXTIC_TWIST == SexticTwist::MType {
             t2.times_i();
         }
-        let mut z3 = FP4::new_copy(&t1);
+        let mut z3 = t1.clone();
         z3.add(&t2);
         z3.norm();
         t1.sub(&t2);
@@ -474,9 +462,9 @@ impl ECP4 {
         if ecp::SEXTIC_TWIST == SexticTwist::MType {
             y3.times_i();
         }
-        x3.copy(&y3);
+        x3 = y3.clone();
         x3.mul(&t4);
-        t2.copy(&t3);
+        t2 = t3.clone();
         t2.mul(&t1);
         x3.rsub(&t2);
         y3.mul(&t0);
@@ -486,11 +474,11 @@ impl ECP4 {
         z3.mul(&t4);
         z3.add(&t0);
 
-        self.x.copy(&x3);
+        self.x = x3.clone();
         self.x.norm();
-        self.y.copy(&y3);
+        self.y = y3.clone();
         self.y.norm();
-        self.z.copy(&z3);
+        self.z = z3.clone();
         self.z.norm();
 
         return 0;
@@ -498,29 +486,27 @@ impl ECP4 {
 
     /* set this-=Q */
     pub fn sub(&mut self, Q: &ECP4) -> isize {
-        let mut NQ = ECP4::new();
-        NQ.copy(Q);
+        let mut NQ = Q.clone();
         NQ.neg();
-        let d = self.add(&NQ);
-        return d;
+        self.add(&NQ)
     }
 
     pub fn frob_constants() -> [FP2; 3] {
-        let f = FP2::new_bigs(&Big::new_ints(&rom::FRA), &Big::new_ints(&rom::FRB));
+        let f = FP2::new_bigs(Big::new_ints(&rom::FRA), Big::new_ints(&rom::FRB));
 
-        let mut f0 = FP2::new_copy(&f);
+        let mut f0 = f.clone();
         f0.sqr();
-        let mut f2 = FP2::new_copy(&f0);
+        let mut f2 = f0.clone();
         f2.mul_ip();
         f2.norm();
-        let mut f1 = FP2::new_copy(&f2);
+        let mut f1 = f2.clone();
         f1.sqr();
         f2.mul(&f1);
-        f1.copy(&f);
+        f1 = f.clone();
         if ecp::SEXTIC_TWIST == SexticTwist::MType {
             f1.mul_ip();
             f1.inverse();
-            f0.copy(&f1);
+            f0 = f1.clone();
             f0.sqr();
         }
         f0.mul_ip();
@@ -548,14 +534,8 @@ impl ECP4 {
     /* self*=e */
     pub fn mul(&self, e: &Big) -> ECP4 {
         /* fixed size windows */
-        let mut mt = Big::new();
-        let mut t = Big::new();
-        let mut P = ECP4::new();
-        let mut Q = ECP4::new();
-        let mut C = ECP4::new();
-
         if self.is_infinity() {
-            return P;
+            return ECP4::new();
         }
 
         let mut W: [ECP4; 8] = [
@@ -573,29 +553,28 @@ impl ECP4 {
         let mut w: [i8; CT] = [0; CT];
 
         /* precompute table */
-        Q.copy(&self);
+        let mut Q = self.clone();
         Q.dbl();
 
-        W[0].copy(&self);
+        W[0] = self.clone();
 
         for i in 1..8 {
-            C.copy(&W[i - 1]);
-            W[i].copy(&C);
+            W[i] = W[i - 1].clone();
             W[i].add(&mut Q);
         }
 
         /* make exponent odd - add 2P if even, P if odd */
-        t.copy(&e);
+        let mut t = e.clone();
         let s = t.parity();
         t.inc(1);
         t.norm();
         let ns = t.parity();
-        mt.copy(&t);
+        let mut mt = t.clone();
         mt.inc(1);
         mt.norm();
         t.cmove(&mt, s);
         Q.cmove(&self, ns);
-        C.copy(&Q);
+        let mut C = Q.clone();
 
         let nb = 1 + (t.nbits() + 3) / 4;
 
@@ -608,7 +587,7 @@ impl ECP4 {
         }
         w[nb] = (t.lastbits(5)) as i8;
 
-        P.copy(&W[((w[nb] as usize) - 1) / 2]);
+        let mut P = W[((w[nb] as usize) - 1) / 2].clone();
         for i in (0..nb).rev() {
             Q.selector(&W, w[i] as i32);
             P.dbl();
@@ -619,7 +598,7 @@ impl ECP4 {
         }
         P.sub(&mut C);
         P.affine();
-        return P;
+        P
     }
 
     /* P=u0.Q0+u1*Q1+u2*Q2+u3*Q3.. */
@@ -628,7 +607,6 @@ impl ECP4 {
     // Side channel attack secure
 
     pub fn mul8(Q: &mut [ECP4], u: &[Big]) -> ECP4 {
-        let mut W = ECP4::new();
         let mut P = ECP4::new();
 
         let mut T1: [ECP4; 8] = [
@@ -655,14 +633,14 @@ impl ECP4 {
         let mut mt = Big::new();
 
         let mut t: [Big; 8] = [
-            Big::new_copy(&u[0]),
-            Big::new_copy(&u[1]),
-            Big::new_copy(&u[2]),
-            Big::new_copy(&u[3]),
-            Big::new_copy(&u[4]),
-            Big::new_copy(&u[5]),
-            Big::new_copy(&u[6]),
-            Big::new_copy(&u[7]),
+            u[0].clone(),
+            u[1].clone(),
+            u[2].clone(),
+            u[3].clone(),
+            u[4].clone(),
+            u[5].clone(),
+            u[6].clone(),
+            u[7].clone(),
         ];
 
         const CT: usize = 1 + big::NLEN * (big::BASEBITS as usize);
@@ -676,32 +654,32 @@ impl ECP4 {
             t[i].norm();
         }
 
-        T1[0].copy(&Q[0]);
-        W.copy(&T1[0]);
-        T1[1].copy(&W);
+        T1[0] = Q[0].clone();
+        let mut W = T1[0].clone();
+        T1[1] = W.clone();
         T1[1].add(&mut Q[1]); // Q[0]+Q[1]
-        T1[2].copy(&W);
+        T1[2] = W.clone();
         T1[2].add(&mut Q[2]);
-        W.copy(&T1[1]); // Q[0]+Q[2]
-        T1[3].copy(&W);
+        W = T1[1].clone(); // Q[0]+Q[2]
+        T1[3] = W.clone();
         T1[3].add(&mut Q[2]);
-        W.copy(&T1[0]); // Q[0]+Q[1]+Q[2]
-        T1[4].copy(&W);
+        W = T1[0].clone(); // Q[0]+Q[1]+Q[2]
+        T1[4] = W.clone();
         T1[4].add(&mut Q[3]);
-        W.copy(&T1[1]); // Q[0]+Q[3]
-        T1[5].copy(&W);
+        W = T1[1].clone(); // Q[0]+Q[3]
+        T1[5] = W.clone();
         T1[5].add(&mut Q[3]);
-        W.copy(&T1[2]); // Q[0]+Q[1]+Q[3]
-        T1[6].copy(&W);
+        W = T1[2].clone(); // Q[0]+Q[1]+Q[3]
+        T1[6] = W.clone();
         T1[6].add(&mut Q[3]);
-        W.copy(&T1[3]); // Q[0]+Q[2]+Q[3]
-        T1[7].copy(&W);
+        W = T1[3].clone(); // Q[0]+Q[2]+Q[3]
+        T1[7] = W.clone();
         T1[7].add(&mut Q[3]); // Q[0]+Q[1]+Q[2]+Q[3]
 
         // Use frobenius
         let f = ECP4::frob_constants();
         for i in 0..8 {
-            T2[i].copy(&T1[i]);
+            T2[i] = T1[i].clone();
             T2[i].frob(&f, 4);
         }
 
@@ -771,11 +749,11 @@ impl ECP4 {
         }
 
         // apply correction
-        W.copy(&P);
+        W = P.clone();
         W.sub(&mut Q[0]);
         P.cmove(&W, pb1);
 
-        W.copy(&P);
+        W = P.clone();
         W.sub(&mut Q[4]);
         P.cmove(&W, pb2);
 
@@ -787,23 +765,23 @@ impl ECP4 {
     pub fn generator() -> ECP4 {
         return ECP4::new_fp4s(
             &FP4::new_fp2s(
-                &FP2::new_bigs(
-                    &Big::new_ints(&rom::CURVE_PXAA),
-                    &Big::new_ints(&rom::CURVE_PXAB),
+                FP2::new_bigs(
+                    Big::new_ints(&rom::CURVE_PXAA),
+                    Big::new_ints(&rom::CURVE_PXAB),
                 ),
-                &FP2::new_bigs(
-                    &Big::new_ints(&rom::CURVE_PXBA),
-                    &Big::new_ints(&rom::CURVE_PXBB),
+                FP2::new_bigs(
+                    Big::new_ints(&rom::CURVE_PXBA),
+                    Big::new_ints(&rom::CURVE_PXBB),
                 ),
             ),
             &FP4::new_fp2s(
-                &FP2::new_bigs(
-                    &Big::new_ints(&rom::CURVE_PYAA),
-                    &Big::new_ints(&rom::CURVE_PYAB),
+                FP2::new_bigs(
+                    Big::new_ints(&rom::CURVE_PYAA),
+                    Big::new_ints(&rom::CURVE_PYAB),
                 ),
-                &FP2::new_bigs(
-                    &Big::new_ints(&rom::CURVE_PYBA),
-                    &Big::new_ints(&rom::CURVE_PYBB),
+                FP2::new_bigs(
+                    Big::new_ints(&rom::CURVE_PYBA),
+                    Big::new_ints(&rom::CURVE_PYBB),
                 ),
             ),
         );
@@ -818,7 +796,7 @@ impl ECP4 {
         let one = Big::new_int(1);
 
         loop {
-            let X = FP4::new_fp2(&FP2::new_bigs(&one, &x));
+            let X = FP4::new_fp2(FP2::new_bigs(one.clone(), x.clone()));
             Q = ECP4::new_fp4(&X);
             if !Q.is_infinity() {
                 break;

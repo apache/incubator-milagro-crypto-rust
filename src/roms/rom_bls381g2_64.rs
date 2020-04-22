@@ -234,8 +234,8 @@ lazy_static! {
     pub static ref H_EFF_G1: Big = Big::frombytes(&mut hex::decode("d201000000010001").unwrap());
 
     // Curve parameters of G2 ISO-3: y^2 = x^3 + ax + b
-    pub static ref SSWU_A1: FP = FP::new_big(&Big::frombytes(&hex::decode("00144698a3b8e9433d693a02c96d4982b0ea985383ee66a8d8e8981aefd881ac98936f8da0e0f97f5cf428082d584c1d").unwrap()));
-    pub static ref SSWU_B1: FP = FP::new_big(&Big::frombytes(&hex::decode("12e2908d11688030018b12e8753eee3b2016c1f0f24f4070a0b9c14fcef35ef55a23215a316ceaa5d1cc48e98e172be0").unwrap()));
+    pub static ref SSWU_A1: FP = FP::new_big(Big::frombytes(&hex::decode("00144698a3b8e9433d693a02c96d4982b0ea985383ee66a8d8e8981aefd881ac98936f8da0e0f97f5cf428082d584c1d").unwrap()));
+    pub static ref SSWU_B1: FP = FP::new_big(Big::frombytes(&hex::decode("12e2908d11688030018b12e8753eee3b2016c1f0f24f4070a0b9c14fcef35ef55a23215a316ceaa5d1cc48e98e172be0").unwrap()));
     pub static ref SSWU_Z1: FP = FP::new_int(11);
 
     // Curve parameters of G2 ISO-3: y^2 = x^3 + ax + b
