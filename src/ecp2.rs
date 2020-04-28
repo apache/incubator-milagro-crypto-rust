@@ -39,6 +39,8 @@ impl PartialEq for ECP2 {
     }
 }
 
+impl Eq for ECP2 {}
+
 impl fmt::Display for ECP2 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "ECP2: [ {}, {}, {} ]", self.x, self.y, self.z)

@@ -34,6 +34,8 @@ impl PartialEq for FP4 {
     }
 }
 
+impl Eq for FP4 {}
+
 impl FP4 {
     pub fn new() -> FP4 {
         FP4 {

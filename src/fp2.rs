@@ -37,6 +37,8 @@ impl PartialEq for FP2 {
     }
 }
 
+impl Eq for FP2 {}
+
 impl fmt::Display for FP2 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "FP2: [ {}, {} ]", self.a, self.b)
