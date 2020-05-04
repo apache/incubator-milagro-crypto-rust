@@ -46,6 +46,8 @@ impl PartialEq for FP12 {
     }
 }
 
+impl Eq for FP12 {}
+
 impl FP12 {
     pub fn new() -> FP12 {
         FP12 {
