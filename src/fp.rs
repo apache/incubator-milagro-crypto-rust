@@ -221,7 +221,7 @@ impl FP {
         self.xes = 1;
     }
 
-    /// test this=0?
+    /// Check if self is 0
     pub fn iszilch(&self) -> bool {
         let mut a = self.clone();
         a.reduce();
@@ -694,12 +694,19 @@ impl FP {
         return w.jacobi(&p);
     }
 
-    /// Checks if the field value is negative
+    /// Checks sign of a field element
     ///
-    /// Negative if a > -a
-    pub fn is_neg(&mut self) -> bool {
-        let mut neg_a = self.clone();
-        neg_a.neg();
-        Big::comp(&self.redc(), &neg_a.redc()) > 0
+    /// true if Negative, if a % 2 == 1
+    /// false if Positive, if a % 2 == 0
+    ///
+    /// Not constant time.
+    /// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#section-4.1
+    pub fn sgn0(&self) -> bool {
+        let x = self.redc();
+        if x.parity() == 0 {
+            false
+        } else {
+            true
+        }
     }
 }

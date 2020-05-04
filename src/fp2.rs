@@ -401,11 +401,18 @@ impl FP2 {
         self.b.sub(&b);
     }
 
-    // b > -b OR if b is 0 then a > -a
-    pub fn is_neg(&mut self) -> bool {
-        if self.b.iszilch() {
-            return self.a.is_neg();
+    /// Checks sign of a field element
+    ///
+    /// true if Negative
+    /// false if Positive
+    ///
+    /// Not constant time.
+    /// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#section-4.1
+    pub fn sgn0(&self) -> bool {
+        if self.a.iszilch() {
+            self.b.sgn0()
+        } else {
+            self.a.sgn0()
         }
-        self.b.is_neg()
     }
 }

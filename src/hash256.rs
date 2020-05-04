@@ -38,13 +38,13 @@ const HASH256_K: [u32; 64] = [
 ];
 
 /// The block size of each round.
-const BLOCK_SIZE: usize = 64;
-/// Ipad Byte
-const IPAD_BYTE: u8 = 0x36;
-/// Opad Byte
-const OPAD_BYTE: u8 = 0x5c;
+pub const BLOCK_SIZE: usize = 64;
 /// Hash Length in Bytes
-const HASH_BYTES: usize = 32;
+pub const HASH_BYTES: usize = 32;
+// Ipad Byte
+const IPAD_BYTE: u8 = 0x36;
+// Opad Byte
+const OPAD_BYTE: u8 = 0x5c;
 
 pub struct HASH256 {
     length: [u32; 2],
