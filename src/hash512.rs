@@ -110,13 +110,13 @@ const HASH512_K: [u64; 80] = [
 ];
 
 /// The block size of each round.
-const BLOCK_SIZE: usize = 128;
-/// Ipad Byte
-const IPAD_BYTE: u8 = 0x36;
-/// Opad Byte
-const OPAD_BYTE: u8 = 0x5c;
+pub const BLOCK_SIZE: usize = 128;
 /// Hash Length in Bytes
-const HASH_BYTES: usize = 64;
+pub const HASH_BYTES: usize = 64;
+// Ipad Byte
+const IPAD_BYTE: u8 = 0x36;
+// Opad Byte
+const OPAD_BYTE: u8 = 0x5c;
 
 pub struct HASH512 {
     length: [u64; 2],
