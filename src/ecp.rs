@@ -431,6 +431,7 @@ impl ECP {
     /* convert to hex string */
     pub fn tostring(&self) -> String {
         let W = self.clone();
+        W.affine();
         if W.is_infinity() {
             return String::from("infinity");
         }
