@@ -612,7 +612,7 @@ pub fn gs(e: &Big) -> [Big; 4] {
 
 #[allow(non_snake_case)]
 /* Multiply P by e in group G1 */
-pub fn g1mul(P: &ECP, e: &mut Big) -> ECP {
+pub fn g1mul(P: &ECP, e: &Big) -> ECP {
     if rom::USE_GLV {
         let mut R = P.clone();
         let mut Q = P.clone();
