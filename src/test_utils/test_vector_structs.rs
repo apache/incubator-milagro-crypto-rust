@@ -7,7 +7,6 @@ pub struct Field {
 #[derive(Deserialize)]
 pub struct Map {
     pub name: String,
-    pub sgn0: String,
 }
 
 #[derive(Deserialize)]

@@ -40,6 +40,8 @@ impl PartialEq for ECP {
     }
 }
 
+impl Eq for ECP {}
+
 impl fmt::Display for ECP {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "ECP: [ {}, {}, {} ]", self.x, self.y, self.z)
@@ -430,7 +432,8 @@ impl ECP {
 
     /* convert to hex string */
     pub fn tostring(&self) -> String {
-        let W = self.clone();
+        let mut W = self.clone();
+        W.affine();
         if W.is_infinity() {
             return String::from("infinity");
         }
