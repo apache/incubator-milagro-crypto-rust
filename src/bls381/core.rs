@@ -17,29 +17,19 @@ specific language governing permissions and limitations
 under the License.
 */
 
-/// BLS12-381
-///
-/// An implementation of BLS12-381 as specified by the following standard:
-/// https://github.com/cfrg/draft-irtf-cfrg-bls-signature
-pub mod iso;
-
-use self::iso::{iso11_to_ecp, iso3_to_ecp2};
-use super::big::Big;
-use super::ecp::ECP;
-use super::ecp2::ECP2;
-use super::fp::FP;
-use super::fp2::FP2;
-use super::hash_to_curve::*;
-use super::pair;
-use super::rom::*;
+use super::super::big::Big;
+use super::super::ecp::ECP;
+use super::super::ecp2::ECP2;
+use super::super::fp::FP;
+use super::super::fp2::FP2;
+use super::super::hash_to_curve::*;
+use super::super::pair;
+use super::super::rom::*;
+use super::iso::{iso11_to_ecp, iso3_to_ecp2};
 
 use errors::AmclError;
 use hash256::HASH256;
 use rand::RAND;
-
-// BLS API Functions
-pub const BFS: usize = MODBYTES as usize;
-pub const BGS: usize = MODBYTES as usize;
 
 // Key Generation Constants
 /// Domain for key generation.
@@ -57,9 +47,9 @@ pub const G2_BYTES: usize = MODBYTES * 4 + 1;
 
 /// KeyGenerate
 ///
-/// Generate a new Secret Key based off Initial Keying Material (IKM) and key info.
+/// Generate a new Secret Key based off Initial Keying Material (IKM) and Key Info (salt).
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.3
-pub fn key_generate(ikm: &[u8], key_info: &[u8]) -> Vec<u8> {
+pub(crate) fn key_generate(ikm: &[u8], key_info: &[u8]) -> Vec<u8> {
     // PRK = HKDF-Extract("BLS-SIG-KEYGEN-SALT-", IKM || I2OSP(0, 1))
     let mut prk = Vec::<u8>::with_capacity(1 + ikm.len());
     prk.extend_from_slice(ikm);
@@ -73,14 +63,14 @@ pub fn key_generate(ikm: &[u8], key_info: &[u8]) -> Vec<u8> {
 
     // SK = OS2IP(OKM) mod r
     let r = Big::new_ints(&CURVE_ORDER);
-    let mut sk = Big::frombytes(&okm);
-    sk.rmod(&r);
+    let mut secret_key = Big::frombytes(&okm);
+    secret_key.rmod(&r);
 
-    secret_key_to_bytes(&sk)
+    secret_key_to_bytes(&secret_key)
 }
 
 // Converts secret key bytes to a Big
-fn secret_key_from_bytes(secret_key: &[u8]) -> Result<Big, AmclError> {
+pub(crate) fn secret_key_from_bytes(secret_key: &[u8]) -> Result<Big, AmclError> {
     if secret_key.len() != SECRET_KEY_BYTES {
         return Err(AmclError::InvalidSecretKeySize);
     }
@@ -90,31 +80,31 @@ fn secret_key_from_bytes(secret_key: &[u8]) -> Result<Big, AmclError> {
     secret_key_bytes.extend_from_slice(secret_key);
 
     // Ensure secret key is in the range [0, r-1].
-    let sk = Big::frombytes(&secret_key_bytes);
-    if sk >= Big::new_ints(&CURVE_ORDER) {
+    let secret_key = Big::frombytes(&secret_key_bytes);
+    if secret_key >= Big::new_ints(&CURVE_ORDER) {
         return Err(AmclError::InvalidSecretKeyRange);
     }
 
-    Ok(sk)
+    Ok(secret_key)
 }
 
 // Converts secret key Big to bytes
-fn secret_key_to_bytes(sk: &Big) -> Vec<u8> {
-    let mut sk_bytes = vec![0u8; MODBYTES];
-    sk.tobytes(&mut sk_bytes);
-    sk_bytes[MODBYTES - SECRET_KEY_BYTES..].to_vec();
-    sk_bytes
+pub(crate) fn secret_key_to_bytes(secret_key: &Big) -> Vec<u8> {
+    let mut secret_key_bytes = vec![0u8; MODBYTES];
+    secret_key.tobytes(&mut secret_key_bytes);
+    secret_key_bytes[MODBYTES - SECRET_KEY_BYTES..].to_vec();
+    secret_key_bytes
 }
 
 // Verifies a G1 point is in subgroup `r`.
-fn subgroup_check_g1(point: &ECP) -> bool {
+pub(crate) fn subgroup_check_g1(point: &ECP) -> bool {
     let r = Big::new_ints(&CURVE_ORDER);
     let check = pair::g1mul(&point, &r);
     check.is_infinity()
 }
 
 // Verifies a G2 point is in subgroup `r`.
-fn subgroup_check_g2(point: &ECP2) -> bool {
+pub(crate) fn subgroup_check_g2(point: &ECP2) -> bool {
     let r = Big::new_ints(&CURVE_ORDER);
     let check = pair::g2mul(&point, &r);
     check.is_infinity()
@@ -126,8 +116,8 @@ fn subgroup_check_g2(point: &ECP2) -> bool {
 * https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2
 *************************************************************************************************/
 
-/// Generate key pair, private key s, public key w
-pub fn key_pair_generate_g1(rng: &mut RAND) -> (Vec<u8>, Vec<u8>) {
+/// Generate key pair - (secret key, public key)
+pub(crate) fn key_pair_generate_g1(rng: &mut RAND) -> (Vec<u8>, Vec<u8>) {
     // Fill random bytes
     let mut ikm: Vec<u8> = Vec::with_capacity(SECRET_KEY_BYTES);
     for _ in 0..SECRET_KEY_BYTES {
@@ -135,40 +125,50 @@ pub fn key_pair_generate_g1(rng: &mut RAND) -> (Vec<u8>, Vec<u8>) {
     }
 
     // Generate key pair
-    let sk = key_generate(&ikm, &[]);
-    let pk = secret_key_to_public_key_g1(&sk).expect("Valid secret key was generated");
+    let secret_key = key_generate(&ikm, &[]);
+    let public_key =
+        secret_key_to_public_key_g1(&secret_key).expect("Valid secret key was generated");
 
-    (sk, pk)
+    (secret_key, public_key)
 }
 
 /// Secret Key To Public Key
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.4
-pub fn secret_key_to_public_key_g1(secret_key: &[u8]) -> Result<Vec<u8>, AmclError> {
+pub(crate) fn secret_key_to_public_key_g1(secret_key: &[u8]) -> Result<Vec<u8>, AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
     let g = ECP2::generator();
-    let pk = pair::g2mul(&g, &secret_key);
+    let public_key = pair::g2mul(&g, &secret_key);
 
     // Convert to bytes
-    let mut pk_bytes = vec![0u8; G2_BYTES];
-    pk.tobytes(&mut pk_bytes);
-    Ok(pk_bytes)
+    let mut public_key_bytes = vec![0u8; G2_BYTES];
+    public_key.tobytes(&mut public_key_bytes);
+    Ok(public_key_bytes)
 }
 
 // CoreSign
 //
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.7
-fn core_sign_g1(sk: &Big, msg: &[u8]) -> ECP {
+pub(crate) fn core_sign_g1(secret_key: &[u8], msg: &[u8]) -> Result<Vec<u8>, AmclError> {
+    let secret_key = secret_key_from_bytes(secret_key)?;
     let hash = hash_to_curve_g1(msg, DST_G1);
-    pair::g1mul(&hash, sk)
+    let signature = pair::g1mul(&hash, &secret_key);
+
+    let mut signed_message_bytes = vec![0u8; G1_BYTES];
+    signature.tobytes(&mut signed_message_bytes, true);
+    Ok(signed_message_bytes)
 }
 
 // CoreVerify
 //
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.7
-fn core_verify_g1(public_key: &ECP2, msg: &[u8], signature: &ECP) -> bool {
+pub(crate) fn core_verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8]) -> bool {
+    // TODO: return false if bytes are invalid.
+    let public_key = ECP2::frombytes(public_key);
+    let signature = ECP::frombytes(signature);
+
     // Subgroup checks for signature and public key
-    if !subgroup_check_g1(signature) || !subgroup_check_g2(public_key) {
+    if !subgroup_check_g1(&signature) || !subgroup_check_g2(&public_key) {
         return false;
     }
 
@@ -191,7 +191,7 @@ fn core_verify_g1(public_key: &ECP2, msg: &[u8], signature: &ECP) -> bool {
 /// Aggregate
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.8
-pub fn aggregate_g1(points: &[&[u8]]) -> Result<Vec<u8>, AmclError> {
+pub(crate) fn aggregate_g1(points: &[&[u8]]) -> Result<Vec<u8>, AmclError> {
     if points.len() == 0 {
         return Err(AmclError::AggregateEmptyPoints);
     }
@@ -211,14 +211,21 @@ pub fn aggregate_g1(points: &[&[u8]]) -> Result<Vec<u8>, AmclError> {
 // CoreAggregateVerify
 //
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.9
-fn core_aggregate_verify_g1(public_keys: &[ECP2], msgs: &[&[u8]], signature: &ECP) -> bool {
+pub(crate) fn core_aggregate_verify_g1(
+    public_keys: &[&[u8]],
+    msgs: &[&[u8]],
+    signature: &[u8],
+) -> bool {
     // Preconditions
     if public_keys.len() == 0 || public_keys.len() != msgs.len() {
         return false;
     }
 
+    // TODO: return false if point is invalid bytes
+    let signature = ECP::frombytes(signature);
+
     // Subgroup checks for signature
-    if !subgroup_check_g1(signature) {
+    if !subgroup_check_g1(&signature) {
         return false;
     }
 
@@ -229,8 +236,9 @@ fn core_aggregate_verify_g1(public_keys: &[ECP2], msgs: &[&[u8]], signature: &EC
     pair::another(&mut r, &g, &signature);
 
     for (i, public_key) in public_keys.iter().enumerate() {
+        let public_key = ECP2::frombytes(public_key);
         // Subgroup check for public key
-        if !subgroup_check_g2(public_key) {
+        if !subgroup_check_g2(&public_key) {
             return false;
         }
 
@@ -251,8 +259,8 @@ fn core_aggregate_verify_g1(public_keys: &[ECP2], msgs: &[&[u8]], signature: &EC
 * https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2
 *************************************************************************************************/
 
-/// Generate key pair, private key s, public key w
-pub fn key_pair_generate_g2(rng: &mut RAND) -> (Vec<u8>, Vec<u8>) {
+/// Generate key pair - (secret key, public key)
+pub(crate) fn key_pair_generate_g2(rng: &mut RAND) -> (Vec<u8>, Vec<u8>) {
     // Fill random bytes
     let mut ikm: Vec<u8> = Vec::with_capacity(SECRET_KEY_BYTES);
     for _ in 0..SECRET_KEY_BYTES {
@@ -260,40 +268,51 @@ pub fn key_pair_generate_g2(rng: &mut RAND) -> (Vec<u8>, Vec<u8>) {
     }
 
     // Generate key pair
-    let sk = key_generate(&ikm, &[]);
-    let pk = secret_key_to_public_key_g2(&sk).expect("Valid secret key was generated");
+    let secret_key = key_generate(&ikm, &[]);
+    let public_key =
+        secret_key_to_public_key_g2(&secret_key).expect("Valid secret key was generated");
 
-    (sk, pk)
+    (secret_key, public_key)
 }
 
 /// Secret Key To Public Key
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.4
-pub fn secret_key_to_public_key_g2(secret_key: &[u8]) -> Result<Vec<u8>, AmclError> {
+pub(crate) fn secret_key_to_public_key_g2(secret_key: &[u8]) -> Result<Vec<u8>, AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
     let g = ECP::generator();
-    let pk = pair::g1mul(&g, &secret_key);
+    let public_key = pair::g1mul(&g, &secret_key);
 
     // Convert to bytes
-    let mut pk_bytes = vec![0u8; G1_BYTES];
-    pk.tobytes(&mut pk_bytes, true);
-    Ok(pk_bytes)
+    let mut public_key_bytes = vec![0u8; G1_BYTES];
+    public_key.tobytes(&mut public_key_bytes, true);
+    Ok(public_key_bytes)
 }
 
 // CoreSign
 //
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.7
-fn core_sign_g2(secret_key: &Big, msg: &[u8]) -> ECP2 {
+pub(crate) fn core_sign_g2(secret_key: &[u8], msg: &[u8]) -> Result<Vec<u8>, AmclError> {
+    let secret_key = secret_key_from_bytes(secret_key)?;
+
     let hash = hash_to_curve_g2(msg, DST_G2);
-    pair::g2mul(&hash, secret_key)
+    let signature = pair::g2mul(&hash, &secret_key);
+
+    let mut signed_message_bytes = vec![0u8; G2_BYTES];
+    signature.tobytes(&mut signed_message_bytes);
+    Ok(signed_message_bytes)
 }
 
 // CoreVerify
 //
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.7
-fn core_verify_g2(public_key: &ECP, msg: &[u8], signature: &ECP2) -> bool {
+pub(crate) fn core_verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8]) -> bool {
+    // TODO: return false if bytes are invalid.
+    let public_key = ECP::frombytes(public_key);
+    let signature = ECP2::frombytes(signature);
+
     // Subgroup checks for signature and public key
-    if !subgroup_check_g1(public_key) || !subgroup_check_g2(signature) {
+    if !subgroup_check_g1(&public_key) || !subgroup_check_g2(&signature) {
         return false;
     }
 
@@ -316,12 +335,12 @@ fn core_verify_g2(public_key: &ECP, msg: &[u8], signature: &ECP2) -> bool {
 /// Aggregate
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.8
-pub fn aggregate_g2(points: &[&[u8]]) -> Result<Vec<u8>, AmclError> {
+pub(crate) fn aggregate_g2(points: &[&[u8]]) -> Result<Vec<u8>, AmclError> {
     if points.len() == 0 {
         return Err(AmclError::AggregateEmptyPoints);
     }
 
-    // TODO: Error rather than panic if bytes are invalid
+    // TODO: Error if bytes are invalid
     let mut aggregate = ECP2::frombytes(&points[0]);
     for point in points.iter().skip(1) {
         aggregate.add(&ECP2::frombytes(&point));
@@ -336,14 +355,21 @@ pub fn aggregate_g2(points: &[&[u8]]) -> Result<Vec<u8>, AmclError> {
 // CoreAggregateVerify
 //
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.9
-fn core_aggregate_verify_g2(public_keys: &[ECP], msgs: &[&[u8]], signature: &ECP2) -> bool {
+pub(crate) fn core_aggregate_verify_g2(
+    public_keys: &[&[u8]],
+    msgs: &[&[u8]],
+    signature: &[u8],
+) -> bool {
+    // TODO: return false if invalid bytes
+    let signature = ECP2::frombytes(signature);
+
     // Preconditions
     if public_keys.len() == 0 || public_keys.len() != msgs.len() {
         return false;
     }
 
     // Subgroup checks for signature
-    if !subgroup_check_g2(signature) {
+    if !subgroup_check_g2(&signature) {
         return false;
     }
 
@@ -354,8 +380,10 @@ fn core_aggregate_verify_g2(public_keys: &[ECP], msgs: &[&[u8]], signature: &ECP
     pair::another(&mut r, &signature, &g);
 
     for (i, public_key) in public_keys.iter().enumerate() {
+        let public_key = ECP::frombytes(public_key);
+
         // Subgroup check for public key
-        if !subgroup_check_g1(public_key) {
+        if !subgroup_check_g1(&public_key) {
             return false;
         }
 
@@ -422,278 +450,6 @@ pub fn hash_to_curve_g2(msg: &[u8], dst: &[u8]) -> ECP2 {
 fn map_to_curve_g2(u: FP2) -> ECP2 {
     let (x, y) = simplified_swu_fp2(u);
     iso3_to_ecp2(&x, &y)
-}
-
-/*************************************************************************************************
-* Functions for Basic Scheme - signatures on G1
-*
-* https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.1
-*************************************************************************************************/
-
-/// Basic Scheme - Sign
-///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.1
-pub fn bs_sign_g1(secret_key: &[u8], msg: &[u8]) -> Result<Vec<u8>, AmclError> {
-    let secret_key = secret_key_from_bytes(secret_key)?;
-
-    // Sign message
-    let mut signed_message_bytes = vec![0u8; G1_BYTES];
-    core_sign_g1(&secret_key, msg).tobytes(&mut signed_message_bytes, true);
-    Ok(signed_message_bytes)
-}
-
-/// Basic Scheme - Verify
-///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.1
-pub fn bs_verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8]) -> bool {
-    // TODO: Error if bytes are invalid.
-    let public_key = ECP2::frombytes(public_key);
-    let signature = ECP::frombytes(signature);
-
-    core_verify_g1(&public_key, msg, &signature)
-}
-
-/// Basic Scheme - AggregateVerify
-///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.1.1
-pub fn bs_aggregate_verify_g1(public_keys: &[ECP2], msgs: &[&[u8]], signature: &ECP) -> bool {
-    // Verify messages are unique
-    for (i, msg1) in msgs.iter().enumerate() {
-        for (j, msg2) in msgs.iter().enumerate() {
-            if i == j {
-                continue;
-            }
-            if msg1 == msg2 {
-                return false;
-            }
-        }
-    }
-
-    core_aggregate_verify_g1(public_keys, msgs, signature)
-}
-
-/*************************************************************************************************
-* Functions for Basic Scheme - signatures on G2
-*
-* https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.1
-*************************************************************************************************/
-
-/// Basic Scheme - Sign
-///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.1
-pub fn bs_sign_g2(secret_key: &[u8], msg: &[u8]) -> Result<Vec<u8>, AmclError> {
-    let secret_key = secret_key_from_bytes(secret_key)?;
-
-    // Sign message
-    let mut signed_message_bytes = vec![0u8; G2_BYTES];
-    core_sign_g2(&secret_key, msg).tobytes(&mut signed_message_bytes);
-    Ok(signed_message_bytes)
-}
-
-/// Basic Scheme - Verify
-///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.1
-pub fn bs_verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8]) -> bool {
-    // TODO: Error if bytes are invalid.
-    let public_key = ECP::frombytes(public_key);
-    let signature = ECP2::frombytes(signature);
-
-    core_verify_g2(&public_key, msg, &signature)
-}
-
-/// Basic Scheme - AggregateVerify
-///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.1.1
-pub fn bs_aggregate_verify_g2(public_keys: &[ECP], msgs: &[&[u8]], signature: &ECP2) -> bool {
-    // Verify messages are unique
-    for (i, msg1) in msgs.iter().enumerate() {
-        for (j, msg2) in msgs.iter().enumerate() {
-            if i == j {
-                continue;
-            }
-            if msg1 == msg2 {
-                return false;
-            }
-        }
-    }
-
-    core_aggregate_verify_g2(public_keys, msgs, signature)
-}
-
-/*************************************************************************************************
-* Functions for Proof of Possession - signatures on G1
-*
-* https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3
-*************************************************************************************************/
-
-/// Proof of Possession - PopProve
-///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.2
-pub fn possession_pop_prove_g1(secret_key: &[u8]) -> Result<Vec<u8>, AmclError> {
-    let secret_key = secret_key_from_bytes(secret_key)?;
-    let g = ECP2::generator();
-    let public_key = pair::g2mul(&g, &secret_key);
-
-    let mut public_key_bytes = vec![0u8; G2_BYTES];
-    public_key.tobytes(&mut public_key_bytes);
-
-    let hash = hash_to_curve_g1(&public_key_bytes, DST_POP_G1);
-    let proof = pair::g1mul(&hash, &secret_key);
-
-    let mut proof_bytes = vec![0u8; G1_BYTES];
-    proof.tobytes(&mut proof_bytes, true);
-
-    Ok(proof_bytes)
-}
-
-/// Proof of Possession - PopVerify
-///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.3
-pub fn possession_pop_verify_g1(
-    public_key_bytes: &[u8],
-    proof_bytes: &[u8],
-) -> Result<bool, AmclError> {
-    // TODO: Error if bytes are invalid
-    let proof = ECP::frombytes(proof_bytes);
-    let public_key = ECP2::frombytes(public_key_bytes);
-
-    if !subgroup_check_g1(&proof) || !subgroup_check_g2(&public_key) {
-        return Ok(false);
-    }
-
-    let hash = hash_to_curve_g1(&public_key_bytes, DST_POP_G1);
-    let mut g = ECP2::generator();
-    g.neg();
-
-    // Pair e(H(msg), pk) * e(signature, -g)
-    let mut r = pair::initmp();
-    pair::another(&mut r, &g, &proof);
-    pair::another(&mut r, &public_key, &hash);
-    let mut v = pair::miller(&r);
-    v = pair::fexp(&v);
-
-    // True if pairing output is 1
-    Ok(v.isunity())
-}
-
-/// Proof of Possession - FastAggregateVerify
-///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.4
-pub fn possession_fast_aggregate_verify_g1(
-    public_keys: &[&[u8]],
-    msg: &[u8],
-    signature: &[u8],
-) -> Result<bool, AmclError> {
-    // TODO: Error if bytes are Invalid
-    let signature = ECP::frombytes(&signature);
-
-    let hash = hash_to_curve_g1(msg, DST_G1);
-    let mut g = ECP2::generator();
-    g.neg();
-
-    let mut aggregate_public_key = ECP2::frombytes(&public_keys[0]);
-    for public_key in public_keys.iter().skip(1) {
-        let public_key = ECP2::frombytes(public_key);
-        aggregate_public_key.add(&public_key);
-    }
-
-    // Pair e(H(msg), pk) * e(signature, -g)
-    let mut r = pair::initmp();
-    pair::another(&mut r, &g, &signature);
-    pair::another(&mut r, &aggregate_public_key, &hash);
-    let mut v = pair::miller(&r);
-    v = pair::fexp(&v);
-
-    // True if pairing output is 1
-    Ok(v.isunity())
-}
-
-/*************************************************************************************************
-* Functions for Proof of Possession - signatures on G2
-*
-* https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3
-*************************************************************************************************/
-
-/// Proof of Possession - PopProve
-///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.2
-pub fn possession_pop_prove_g2(secret_key: &[u8]) -> Result<Vec<u8>, AmclError> {
-    let secret_key = secret_key_from_bytes(secret_key)?;
-    let g = ECP::generator();
-    let public_key = pair::g1mul(&g, &secret_key);
-
-    let mut public_key_bytes = vec![0u8; G1_BYTES];
-    public_key.tobytes(&mut public_key_bytes, true);
-
-    let hash = hash_to_curve_g2(&public_key_bytes, DST_POP_G2);
-    let proof = pair::g2mul(&hash, &secret_key);
-
-    let mut proof_bytes = vec![0u8; G2_BYTES];
-    proof.tobytes(&mut proof_bytes);
-
-    Ok(proof_bytes)
-}
-
-/// Proof of Possession - PopVerify
-///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.3
-pub fn possession_pop_verify_g2(
-    public_key_bytes: &[u8],
-    proof_bytes: &[u8],
-) -> Result<bool, AmclError> {
-    // TODO: Error if bytes are invalid
-    let proof = ECP2::frombytes(proof_bytes);
-    let public_key = ECP::frombytes(public_key_bytes);
-
-    if !subgroup_check_g1(&public_key) || !subgroup_check_g2(&proof) {
-        return Ok(false);
-    }
-
-    let hash = hash_to_curve_g2(&public_key_bytes, DST_POP_G2);
-    let mut g = ECP::generator();
-    g.neg();
-
-    // Pair e(H(msg), pk) * e(signature, -g)
-    let mut r = pair::initmp();
-    pair::another(&mut r, &proof, &g);
-    pair::another(&mut r, &hash, &public_key);
-    let mut v = pair::miller(&r);
-    v = pair::fexp(&v);
-
-    // True if pairing output is 1
-    Ok(v.isunity())
-}
-
-/// Proof of Possession - FastAggregateVerify
-///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.4
-pub fn possession_fast_aggregate_verify_g2(
-    public_keys: &[&[u8]],
-    msg: &[u8],
-    signature: &[u8],
-) -> Result<bool, AmclError> {
-    // TODO: Error if bytes are Invalid
-    let signature = ECP2::frombytes(&signature);
-
-    let hash = hash_to_curve_g2(msg, DST_G2);
-    let mut g = ECP::generator();
-    g.neg();
-
-    let mut aggregate_public_key = ECP::frombytes(&public_keys[0]);
-    for public_key in public_keys.iter().skip(1) {
-        let public_key = ECP::frombytes(public_key);
-        aggregate_public_key.add(&public_key);
-    }
-
-    // Pair e(H(msg), pk) * e(signature, -g)
-    let mut r = pair::initmp();
-    pair::another(&mut r, &signature, &g);
-    pair::another(&mut r, &hash, &aggregate_public_key);
-    let mut v = pair::miller(&r);
-    v = pair::fexp(&v);
-
-    // True if pairing output is 1
-    Ok(v.isunity())
 }
 
 #[cfg(test)]
