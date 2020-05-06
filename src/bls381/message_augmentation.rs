@@ -4,12 +4,12 @@ use errors::AmclError;
 use rand::RAND;
 
 /*************************************************************************************************
-* Functions for Proof of Possession - signatures on either G1 or G2
+* Functions for Message Augmentation - signatures on either G1 or G2
 *
 * https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3
 *************************************************************************************************/
 
-/// Proof of Possession - KeyGenerate
+/// Message Augmentation - KeyGenerate
 ///
 /// Generate a new Secret Key based off Initial Keying Material (IKM) and Key Info (salt).
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.3
