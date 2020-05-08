@@ -3,7 +3,7 @@ use super::dbig::DBig;
 use super::fp::FP;
 use super::fp2::FP2;
 use super::rom::{
-    HASH_ALGORITHM, L, MODULUS, SSWU_A1, SSWU_A2, SSWU_B1, SSWU_B2, SSWU_Z1, SSWU_Z2,
+    H2C_L, HASH_ALGORITHM, MODULUS, SSWU_A1, SSWU_A2, SSWU_B1, SSWU_B2, SSWU_Z1, SSWU_Z2,
 };
 
 use errors::AmclError;
@@ -71,13 +71,14 @@ pub fn hash_to_field_fp(msg: &[u8], count: usize, dst: &[u8]) -> Result<Vec<FP>,
     let m = 1;
     let p = Big::new_ints(&MODULUS);
 
-    let len_in_bytes = count * m * L;
+    let len_in_bytes = count * m * H2C_L;
     let pseudo_random_bytes = expand_message_xmd(msg, len_in_bytes, dst)?;
 
     let mut u: Vec<FP> = Vec::with_capacity(count as usize);
     for i in 0..count as usize {
-        let elm_offset = L as usize * i * m as usize;
-        let mut dbig = DBig::frombytes(&pseudo_random_bytes[elm_offset..elm_offset + L as usize]);
+        let elm_offset = H2C_L as usize * i * m as usize;
+        let mut dbig =
+            DBig::frombytes(&pseudo_random_bytes[elm_offset..elm_offset + H2C_L as usize]);
         let e: Big = dbig.dmod(&p);
         u.push(FP::new_big(e));
     }
@@ -92,7 +93,7 @@ pub fn hash_to_field_fp2(msg: &[u8], count: usize, dst: &[u8]) -> Result<Vec<FP2
     let m = 2;
     let p = Big::new_ints(&MODULUS);
 
-    let len_in_bytes = count * m * L;
+    let len_in_bytes = count * m * H2C_L;
 
     let pseudo_random_bytes = expand_message_xmd(msg, len_in_bytes, dst)?;
 
@@ -100,9 +101,9 @@ pub fn hash_to_field_fp2(msg: &[u8], count: usize, dst: &[u8]) -> Result<Vec<FP2
     for i in 0..count as usize {
         let mut e: Vec<Big> = Vec::with_capacity(m as usize);
         for j in 0..m as usize {
-            let elm_offset = L as usize * (j + i * m as usize);
+            let elm_offset = H2C_L as usize * (j + i * m as usize);
             let mut big =
-                DBig::frombytes(&pseudo_random_bytes[elm_offset..elm_offset + L as usize]);
+                DBig::frombytes(&pseudo_random_bytes[elm_offset..elm_offset + H2C_L as usize]);
             e.push(big.dmod(&p));
         }
         u.push(FP2::new_bigs(e[0].clone(), e[1].clone()));

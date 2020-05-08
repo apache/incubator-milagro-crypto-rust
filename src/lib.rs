@@ -95,38 +95,14 @@ pub mod bls383 {
     pub mod pair;
 }
 
-#[cfg(feature = "bls381g1")]
+#[cfg(feature = "bls381")]
 #[path = "./"]
-pub mod bls381g1 {
+pub mod bls381 {
     #[cfg(target_pointer_width = "32")]
-    #[path = "roms/rom_bls381g1_32.rs"]
+    #[path = "roms/rom_bls381_32.rs"]
     pub mod rom;
     #[cfg(target_pointer_width = "64")]
-    #[path = "roms/rom_bls381g1_64.rs"]
-    pub mod rom;
-
-    pub mod big;
-    pub mod bls381;
-    pub mod dbig;
-    pub mod ecp;
-    pub mod ecp2;
-    pub mod fp;
-    pub mod fp12;
-    pub mod fp2;
-    pub mod fp4;
-    pub mod hash_to_curve;
-    pub mod mpin;
-    pub mod pair;
-}
-
-#[cfg(feature = "bls381g2")]
-#[path = "./"]
-pub mod bls381g2 {
-    #[cfg(target_pointer_width = "32")]
-    #[path = "roms/rom_bls381g2_32.rs"]
-    pub mod rom;
-    #[cfg(target_pointer_width = "64")]
-    #[path = "roms/rom_bls381g2_64.rs"]
+    #[path = "roms/rom_bls381_64.rs"]
     pub mod rom;
 
     pub mod big;
