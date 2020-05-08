@@ -5,7 +5,7 @@ use super::super::rom::{DST_G1, DST_G2, DST_POP_G1, DST_POP_G2};
 use super::core;
 use super::core::{
     hash_to_curve_g1, hash_to_curve_g2, secret_key_from_bytes, subgroup_check_g1,
-    subgroup_check_g2, G1_BYTES, G2_BYTES,
+    subgroup_check_g2, G1_BYTES, G2_BYTES, SECRET_KEY_BYTES,
 };
 
 use errors::AmclError;
@@ -21,7 +21,7 @@ use rand::RAND;
 ///
 /// Generate a new Secret Key based off Initial Keying Material (IKM) and Key Info (salt).
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.3
-pub fn key_generate(ikm: &[u8], key_info: &[u8]) -> Vec<u8> {
+pub fn key_generate(ikm: &[u8], key_info: &[u8]) -> [u8; SECRET_KEY_BYTES] {
     core::key_generate(ikm, key_info)
 }
 
@@ -32,21 +32,21 @@ pub fn key_generate(ikm: &[u8], key_info: &[u8]) -> Vec<u8> {
 *************************************************************************************************/
 
 /// Generate key pair - (secret key, public key)
-pub fn key_pair_generate_g1(rng: &mut RAND) -> (Vec<u8>, Vec<u8>) {
+pub fn key_pair_generate_g1(rng: &mut RAND) -> ([u8; SECRET_KEY_BYTES], [u8; G2_BYTES]) {
     core::key_pair_generate_g1(rng)
 }
 
 /// Secret Key To Public Key
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.4
-pub fn secret_key_to_public_key_g1(secret_key: &[u8]) -> Result<Vec<u8>, AmclError> {
+pub fn secret_key_to_public_key_g1(secret_key: &[u8]) -> Result<[u8; G2_BYTES], AmclError> {
     core::secret_key_to_public_key_g1(secret_key)
 }
 
 /// Proof of Possession - Sign
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3
-pub fn sign_g1(secret_key: &[u8], msg: &[u8]) -> Result<Vec<u8>, AmclError> {
+pub fn sign_g1(secret_key: &[u8], msg: &[u8]) -> Result<[u8; G1_BYTES], AmclError> {
     core::core_sign_g1(secret_key, msg)
 }
 
@@ -60,7 +60,7 @@ pub fn verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8]) -> bool {
 /// Aggregate
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.8
-pub fn aggregate_g1(points: &[&[u8]]) -> Result<Vec<u8>, AmclError> {
+pub fn aggregate_g1(points: &[&[u8]]) -> Result<[u8; G1_BYTES], AmclError> {
     core::aggregate_g1(points)
 }
 
@@ -74,18 +74,18 @@ pub fn aggregate_verify_g1(public_keys: &[&[u8]], msgs: &[&[u8]], signature: &[u
 /// Proof of Possession - PopProve
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.2
-pub fn pop_prove_g1(secret_key: &[u8]) -> Result<Vec<u8>, AmclError> {
+pub fn pop_prove_g1(secret_key: &[u8]) -> Result<[u8; G1_BYTES], AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
     let g = ECP2::generator();
     let public_key = pair::g2mul(&g, &secret_key);
 
-    let mut public_key_bytes = vec![0u8; G2_BYTES];
+    let mut public_key_bytes = [0u8; G2_BYTES];
     public_key.tobytes(&mut public_key_bytes);
 
     let hash = hash_to_curve_g1(&public_key_bytes, DST_POP_G1);
     let proof = pair::g1mul(&hash, &secret_key);
 
-    let mut proof_bytes = vec![0u8; G1_BYTES];
+    let mut proof_bytes = [0u8; G1_BYTES];
     proof.tobytes(&mut proof_bytes, true);
 
     Ok(proof_bytes)
@@ -158,21 +158,21 @@ pub fn fast_aggregate_verify_g1(public_keys: &[&[u8]], msg: &[u8], signature: &[
 *************************************************************************************************/
 
 /// Generate key pair - (secret key, public key)
-pub fn key_pair_generate_g2(rng: &mut RAND) -> (Vec<u8>, Vec<u8>) {
+pub fn key_pair_generate_g2(rng: &mut RAND) -> ([u8; SECRET_KEY_BYTES], [u8; G1_BYTES]) {
     core::key_pair_generate_g2(rng)
 }
 
 /// Secret Key To Public Key
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.4
-pub fn secret_key_to_public_key_g2(secret_key: &[u8]) -> Result<Vec<u8>, AmclError> {
+pub fn secret_key_to_public_key_g2(secret_key: &[u8]) -> Result<[u8; G1_BYTES], AmclError> {
     core::secret_key_to_public_key_g2(secret_key)
 }
 
 /// Proof of Possession - Sign
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3
-pub fn sign_g2(secret_key: &[u8], msg: &[u8]) -> Result<Vec<u8>, AmclError> {
+pub fn sign_g2(secret_key: &[u8], msg: &[u8]) -> Result<[u8; G2_BYTES], AmclError> {
     core::core_sign_g2(secret_key, msg)
 }
 
@@ -186,7 +186,7 @@ pub fn verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8]) -> bool {
 /// Aggregate
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.8
-pub fn aggregate_g2(points: &[&[u8]]) -> Result<Vec<u8>, AmclError> {
+pub fn aggregate_g2(points: &[&[u8]]) -> Result<[u8; G2_BYTES], AmclError> {
     core::aggregate_g2(points)
 }
 
@@ -200,18 +200,18 @@ pub fn aggregate_verify_g2(public_keys: &[&[u8]], msgs: &[&[u8]], signature: &[u
 /// Proof of Possession - PopProve
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.2
-pub fn pop_prove_g2(secret_key: &[u8]) -> Result<Vec<u8>, AmclError> {
+pub fn pop_prove_g2(secret_key: &[u8]) -> Result<[u8; G2_BYTES], AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
     let g = ECP::generator();
     let public_key = pair::g1mul(&g, &secret_key);
 
-    let mut public_key_bytes = vec![0u8; G1_BYTES];
+    let mut public_key_bytes = [0u8; G1_BYTES];
     public_key.tobytes(&mut public_key_bytes, true);
 
     let hash = hash_to_curve_g2(&public_key_bytes, DST_POP_G2);
     let proof = pair::g2mul(&hash, &secret_key);
 
-    let mut proof_bytes = vec![0u8; G2_BYTES];
+    let mut proof_bytes = [0u8; G2_BYTES];
     proof.tobytes(&mut proof_bytes);
 
     Ok(proof_bytes)

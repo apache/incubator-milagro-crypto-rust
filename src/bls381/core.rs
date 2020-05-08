@@ -49,7 +49,7 @@ pub const G2_BYTES: usize = MODBYTES * 4 + 1;
 ///
 /// Generate a new Secret Key based off Initial Keying Material (IKM) and Key Info (salt).
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.3
-pub(crate) fn key_generate(ikm: &[u8], key_info: &[u8]) -> Vec<u8> {
+pub(crate) fn key_generate(ikm: &[u8], key_info: &[u8]) -> [u8; SECRET_KEY_BYTES] {
     // PRK = HKDF-Extract("BLS-SIG-KEYGEN-SALT-", IKM || I2OSP(0, 1))
     let mut prk = Vec::<u8>::with_capacity(1 + ikm.len());
     prk.extend_from_slice(ikm);
@@ -76,8 +76,8 @@ pub(crate) fn secret_key_from_bytes(secret_key: &[u8]) -> Result<Big, AmclError>
     }
 
     // Prepend to MODBYTES in length
-    let mut secret_key_bytes = vec![0u8; MODBYTES - secret_key.len()];
-    secret_key_bytes.extend_from_slice(secret_key);
+    let mut secret_key_bytes = [0u8; MODBYTES];
+    secret_key_bytes[MODBYTES - SECRET_KEY_BYTES..].copy_from_slice(secret_key);
 
     // Ensure secret key is in the range [0, r-1].
     let secret_key = Big::frombytes(&secret_key_bytes);
@@ -89,10 +89,11 @@ pub(crate) fn secret_key_from_bytes(secret_key: &[u8]) -> Result<Big, AmclError>
 }
 
 // Converts secret key Big to bytes
-pub(crate) fn secret_key_to_bytes(secret_key: &Big) -> Vec<u8> {
-    let mut secret_key_bytes = vec![0u8; MODBYTES];
-    secret_key.tobytes(&mut secret_key_bytes);
-    secret_key_bytes[MODBYTES - SECRET_KEY_BYTES..].to_vec();
+pub(crate) fn secret_key_to_bytes(secret_key: &Big) -> [u8; SECRET_KEY_BYTES] {
+    let mut big_bytes = [0u8; MODBYTES];
+    secret_key.tobytes(&mut big_bytes);
+    let mut secret_key_bytes = [0u8; SECRET_KEY_BYTES];
+    secret_key_bytes.copy_from_slice(&big_bytes[MODBYTES - SECRET_KEY_BYTES..]);
     secret_key_bytes
 }
 
@@ -117,11 +118,11 @@ pub(crate) fn subgroup_check_g2(point: &ECP2) -> bool {
 *************************************************************************************************/
 
 /// Generate key pair - (secret key, public key)
-pub(crate) fn key_pair_generate_g1(rng: &mut RAND) -> (Vec<u8>, Vec<u8>) {
+pub(crate) fn key_pair_generate_g1(rng: &mut RAND) -> ([u8; SECRET_KEY_BYTES], [u8; G2_BYTES]) {
     // Fill random bytes
-    let mut ikm: Vec<u8> = Vec::with_capacity(SECRET_KEY_BYTES);
-    for _ in 0..SECRET_KEY_BYTES {
-        ikm.push(rng.getbyte());
+    let mut ikm = [0u8; SECRET_KEY_BYTES];
+    for byte in ikm.iter_mut() {
+        *byte = rng.getbyte();
     }
 
     // Generate key pair
@@ -135,13 +136,13 @@ pub(crate) fn key_pair_generate_g1(rng: &mut RAND) -> (Vec<u8>, Vec<u8>) {
 /// Secret Key To Public Key
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.4
-pub(crate) fn secret_key_to_public_key_g1(secret_key: &[u8]) -> Result<Vec<u8>, AmclError> {
+pub(crate) fn secret_key_to_public_key_g1(secret_key: &[u8]) -> Result<[u8; G2_BYTES], AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
     let g = ECP2::generator();
     let public_key = pair::g2mul(&g, &secret_key);
 
     // Convert to bytes
-    let mut public_key_bytes = vec![0u8; G2_BYTES];
+    let mut public_key_bytes = [0u8; G2_BYTES];
     public_key.tobytes(&mut public_key_bytes);
     Ok(public_key_bytes)
 }
@@ -149,12 +150,12 @@ pub(crate) fn secret_key_to_public_key_g1(secret_key: &[u8]) -> Result<Vec<u8>, 
 // CoreSign
 //
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.7
-pub(crate) fn core_sign_g1(secret_key: &[u8], msg: &[u8]) -> Result<Vec<u8>, AmclError> {
+pub(crate) fn core_sign_g1(secret_key: &[u8], msg: &[u8]) -> Result<[u8; G1_BYTES], AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
     let hash = hash_to_curve_g1(msg, DST_G1);
     let signature = pair::g1mul(&hash, &secret_key);
 
-    let mut signed_message_bytes = vec![0u8; G1_BYTES];
+    let mut signed_message_bytes = [0u8; G1_BYTES];
     signature.tobytes(&mut signed_message_bytes, true);
     Ok(signed_message_bytes)
 }
@@ -191,7 +192,7 @@ pub(crate) fn core_verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8]) ->
 /// Aggregate
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.8
-pub(crate) fn aggregate_g1(points: &[&[u8]]) -> Result<Vec<u8>, AmclError> {
+pub(crate) fn aggregate_g1(points: &[&[u8]]) -> Result<[u8; G1_BYTES], AmclError> {
     if points.len() == 0 {
         return Err(AmclError::AggregateEmptyPoints);
     }
@@ -203,7 +204,7 @@ pub(crate) fn aggregate_g1(points: &[&[u8]]) -> Result<Vec<u8>, AmclError> {
     }
 
     // Return compressed point
-    let mut aggregate_bytes = vec![0u8; G1_BYTES];
+    let mut aggregate_bytes = [0u8; G1_BYTES];
     aggregate.tobytes(&mut aggregate_bytes, true);
     Ok(aggregate_bytes)
 }
@@ -260,11 +261,11 @@ pub(crate) fn core_aggregate_verify_g1(
 *************************************************************************************************/
 
 /// Generate key pair - (secret key, public key)
-pub(crate) fn key_pair_generate_g2(rng: &mut RAND) -> (Vec<u8>, Vec<u8>) {
+pub(crate) fn key_pair_generate_g2(rng: &mut RAND) -> ([u8; SECRET_KEY_BYTES], [u8; G1_BYTES]) {
     // Fill random bytes
-    let mut ikm: Vec<u8> = Vec::with_capacity(SECRET_KEY_BYTES);
-    for _ in 0..SECRET_KEY_BYTES {
-        ikm.push(rng.getbyte());
+    let mut ikm = [0u8; SECRET_KEY_BYTES];
+    for byte in ikm.iter_mut() {
+        *byte = rng.getbyte();
     }
 
     // Generate key pair
@@ -278,13 +279,13 @@ pub(crate) fn key_pair_generate_g2(rng: &mut RAND) -> (Vec<u8>, Vec<u8>) {
 /// Secret Key To Public Key
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.4
-pub(crate) fn secret_key_to_public_key_g2(secret_key: &[u8]) -> Result<Vec<u8>, AmclError> {
+pub(crate) fn secret_key_to_public_key_g2(secret_key: &[u8]) -> Result<[u8; G1_BYTES], AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
     let g = ECP::generator();
     let public_key = pair::g1mul(&g, &secret_key);
 
     // Convert to bytes
-    let mut public_key_bytes = vec![0u8; G1_BYTES];
+    let mut public_key_bytes = [0u8; G1_BYTES];
     public_key.tobytes(&mut public_key_bytes, true);
     Ok(public_key_bytes)
 }
@@ -292,13 +293,13 @@ pub(crate) fn secret_key_to_public_key_g2(secret_key: &[u8]) -> Result<Vec<u8>, 
 // CoreSign
 //
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.7
-pub(crate) fn core_sign_g2(secret_key: &[u8], msg: &[u8]) -> Result<Vec<u8>, AmclError> {
+pub(crate) fn core_sign_g2(secret_key: &[u8], msg: &[u8]) -> Result<[u8; G2_BYTES], AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
 
     let hash = hash_to_curve_g2(msg, DST_G2);
     let signature = pair::g2mul(&hash, &secret_key);
 
-    let mut signed_message_bytes = vec![0u8; G2_BYTES];
+    let mut signed_message_bytes = [0u8; G2_BYTES];
     signature.tobytes(&mut signed_message_bytes);
     Ok(signed_message_bytes)
 }
@@ -335,7 +336,7 @@ pub(crate) fn core_verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8]) ->
 /// Aggregate
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.8
-pub(crate) fn aggregate_g2(points: &[&[u8]]) -> Result<Vec<u8>, AmclError> {
+pub(crate) fn aggregate_g2(points: &[&[u8]]) -> Result<[u8; G2_BYTES], AmclError> {
     if points.len() == 0 {
         return Err(AmclError::AggregateEmptyPoints);
     }
@@ -347,7 +348,7 @@ pub(crate) fn aggregate_g2(points: &[&[u8]]) -> Result<Vec<u8>, AmclError> {
     }
 
     // Return uncompressed point
-    let mut aggregate_bytes = vec![0u8; G2_BYTES];
+    let mut aggregate_bytes = [0u8; G2_BYTES];
     aggregate.tobytes(&mut aggregate_bytes);
     Ok(aggregate_bytes)
 }
