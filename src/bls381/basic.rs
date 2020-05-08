@@ -4,6 +4,11 @@ use super::core::{G1_BYTES, G2_BYTES, SECRET_KEY_BYTES};
 use errors::AmclError;
 use rand::RAND;
 
+/// Domain Separation Tag for signatures on G1
+pub const DST_G1: &[u8] = b"BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_NUL_";
+/// Domain Separation Tag for signatures on G2
+pub const DST_G2: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
+
 /*************************************************************************************************
 * Functions for Basic Scheme - signatures on G1
 *
@@ -40,14 +45,14 @@ pub fn secret_key_to_public_key_g1(secret_key: &[u8]) -> Result<[u8; G2_BYTES], 
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.1
 pub fn sign_g1(secret_key: &[u8], msg: &[u8]) -> Result<[u8; G1_BYTES], AmclError> {
-    core::core_sign_g1(secret_key, msg)
+    core::core_sign_g1(secret_key, msg, DST_G1)
 }
 
 /// Basic Scheme - Verify
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.1
 pub fn verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8]) -> bool {
-    core::core_verify_g1(public_key, msg, signature)
+    core::core_verify_g1(public_key, msg, signature, DST_G1)
 }
 
 /// Aggregate
@@ -70,7 +75,7 @@ pub fn aggregate_verify_g1(public_keys: &[&[u8]], msgs: &[&[u8]], signature: &[u
         }
     }
 
-    core::core_aggregate_verify_g1(public_keys, msgs, signature)
+    core::core_aggregate_verify_g1(public_keys, msgs, signature, DST_G1)
 }
 
 /*************************************************************************************************
@@ -95,14 +100,14 @@ pub fn secret_key_to_public_key_g2(secret_key: &[u8]) -> Result<[u8; G1_BYTES], 
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.1
 pub fn sign_g2(secret_key: &[u8], msg: &[u8]) -> Result<[u8; G2_BYTES], AmclError> {
-    core::core_sign_g2(secret_key, msg)
+    core::core_sign_g2(secret_key, msg, DST_G2)
 }
 
 /// Basic Scheme - Verify
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.1
 pub fn verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8]) -> bool {
-    core::core_verify_g2(public_key, msg, signature)
+    core::core_verify_g2(public_key, msg, signature, DST_G2)
 }
 
 /// Aggregate
@@ -128,5 +133,5 @@ pub fn aggregate_verify_g2(public_keys: &[&[u8]], msgs: &[&[u8]], signature: &[u
         }
     }
 
-    core::core_aggregate_verify_g2(public_keys, msgs, signature)
+    core::core_aggregate_verify_g2(public_keys, msgs, signature, DST_G2)
 }

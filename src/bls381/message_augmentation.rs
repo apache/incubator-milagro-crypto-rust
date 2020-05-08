@@ -4,6 +4,11 @@ use super::core::{G1_BYTES, G2_BYTES, SECRET_KEY_BYTES};
 use errors::AmclError;
 use rand::RAND;
 
+/// Domain Separation Tag for signatures on G1
+pub const DST_G1: &[u8] = b"BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_AUG_";
+/// Domain Separation Tag for signatures on G2
+pub const DST_G2: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_AUG_";
+
 /*************************************************************************************************
 * Functions for Message Augmentation - signatures on either G1 or G2
 *
@@ -48,7 +53,7 @@ pub fn sign_g1(
     let mut augmented_msg = public_key.to_vec();
     augmented_msg.extend_from_slice(msg);
 
-    core::core_sign_g1(secret_key, &augmented_msg)
+    core::core_sign_g1(secret_key, &augmented_msg, DST_G1)
 }
 
 /// Message Augmentation - Verify
@@ -59,7 +64,7 @@ pub fn verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8]) -> bool {
     let mut augmented_msg = public_key.to_vec();
     augmented_msg.extend_from_slice(msg);
 
-    core::core_verify_g1(&public_key, &augmented_msg, &signature)
+    core::core_verify_g1(&public_key, &augmented_msg, &signature, DST_G1)
 }
 
 /// Aggregate
@@ -87,7 +92,7 @@ pub fn aggregate_verify_g1(public_keys: &[&[u8]], msgs: &[&[u8]], signature: &[u
         .iter()
         .map(|bytes| bytes.as_slice())
         .collect();
-    core::core_aggregate_verify_g1(public_keys, &msgs_refs, signature)
+    core::core_aggregate_verify_g1(public_keys, &msgs_refs, signature, DST_G1)
 }
 
 /*************************************************************************************************
@@ -120,7 +125,7 @@ pub fn sign_g2(
     let mut augmented_msg = public_key.to_vec();
     augmented_msg.extend_from_slice(msg);
 
-    core::core_sign_g2(secret_key, &augmented_msg)
+    core::core_sign_g2(secret_key, &augmented_msg, DST_G2)
 }
 
 /// Message Augmentation - Verify
@@ -131,7 +136,7 @@ pub fn verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8]) -> bool {
     let mut augmented_msg = public_key.to_vec();
     augmented_msg.extend_from_slice(msg);
 
-    core::core_verify_g2(public_key, &augmented_msg, signature)
+    core::core_verify_g2(public_key, &augmented_msg, signature, DST_G2)
 }
 
 /// Aggregate
@@ -159,5 +164,5 @@ pub fn aggregate_verify_g2(public_keys: &[&[u8]], msgs: &[&[u8]], signature: &[u
         .iter()
         .map(|bytes| bytes.as_slice())
         .collect();
-    core::core_aggregate_verify_g2(public_keys, &msgs_refs, signature)
+    core::core_aggregate_verify_g2(public_keys, &msgs_refs, signature, DST_G2)
 }

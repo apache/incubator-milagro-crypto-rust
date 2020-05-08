@@ -150,9 +150,13 @@ pub(crate) fn secret_key_to_public_key_g1(secret_key: &[u8]) -> Result<[u8; G2_B
 // CoreSign
 //
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.7
-pub(crate) fn core_sign_g1(secret_key: &[u8], msg: &[u8]) -> Result<[u8; G1_BYTES], AmclError> {
+pub(crate) fn core_sign_g1(
+    secret_key: &[u8],
+    msg: &[u8],
+    dst: &[u8],
+) -> Result<[u8; G1_BYTES], AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
-    let hash = hash_to_curve_g1(msg, DST_G1);
+    let hash = hash_to_curve_g1(msg, dst);
     let signature = pair::g1mul(&hash, &secret_key);
 
     let mut signed_message_bytes = [0u8; G1_BYTES];
@@ -163,7 +167,7 @@ pub(crate) fn core_sign_g1(secret_key: &[u8], msg: &[u8]) -> Result<[u8; G1_BYTE
 // CoreVerify
 //
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.7
-pub(crate) fn core_verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8]) -> bool {
+pub(crate) fn core_verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8], dst: &[u8]) -> bool {
     // TODO: return false if bytes are invalid.
     let public_key = ECP2::frombytes(public_key);
     let signature = ECP::frombytes(signature);
@@ -174,7 +178,7 @@ pub(crate) fn core_verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8]) ->
     }
 
     // Hash msg and negate generator for pairing
-    let hash = hash_to_curve_g1(msg, DST_G1);
+    let hash = hash_to_curve_g1(msg, dst);
     let mut g = ECP2::generator();
     g.neg();
 
@@ -216,6 +220,7 @@ pub(crate) fn core_aggregate_verify_g1(
     public_keys: &[&[u8]],
     msgs: &[&[u8]],
     signature: &[u8],
+    dst: &[u8],
 ) -> bool {
     // Preconditions
     if public_keys.len() == 0 || public_keys.len() != msgs.len() {
@@ -244,7 +249,7 @@ pub(crate) fn core_aggregate_verify_g1(
         }
 
         // Pair *= e(pk[i], H(msgs[i]))
-        let hash = hash_to_curve_g1(msgs[i], DST_G1);
+        let hash = hash_to_curve_g1(msgs[i], dst);
         pair::another(&mut r, &public_key, &hash);
     }
 
@@ -293,10 +298,14 @@ pub(crate) fn secret_key_to_public_key_g2(secret_key: &[u8]) -> Result<[u8; G1_B
 // CoreSign
 //
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.7
-pub(crate) fn core_sign_g2(secret_key: &[u8], msg: &[u8]) -> Result<[u8; G2_BYTES], AmclError> {
+pub(crate) fn core_sign_g2(
+    secret_key: &[u8],
+    msg: &[u8],
+    dst: &[u8],
+) -> Result<[u8; G2_BYTES], AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
 
-    let hash = hash_to_curve_g2(msg, DST_G2);
+    let hash = hash_to_curve_g2(msg, dst);
     let signature = pair::g2mul(&hash, &secret_key);
 
     let mut signed_message_bytes = [0u8; G2_BYTES];
@@ -307,7 +316,7 @@ pub(crate) fn core_sign_g2(secret_key: &[u8], msg: &[u8]) -> Result<[u8; G2_BYTE
 // CoreVerify
 //
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.7
-pub(crate) fn core_verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8]) -> bool {
+pub(crate) fn core_verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8], dst: &[u8]) -> bool {
     // TODO: return false if bytes are invalid.
     let public_key = ECP::frombytes(public_key);
     let signature = ECP2::frombytes(signature);
@@ -318,7 +327,7 @@ pub(crate) fn core_verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8]) ->
     }
 
     // Hash msg and negate generator for pairing
-    let hash = hash_to_curve_g2(msg, DST_G2);
+    let hash = hash_to_curve_g2(msg, dst);
     let mut g = ECP::generator();
     g.neg();
 
@@ -360,6 +369,7 @@ pub(crate) fn core_aggregate_verify_g2(
     public_keys: &[&[u8]],
     msgs: &[&[u8]],
     signature: &[u8],
+    dst: &[u8],
 ) -> bool {
     // TODO: return false if invalid bytes
     let signature = ECP2::frombytes(signature);
@@ -389,7 +399,7 @@ pub(crate) fn core_aggregate_verify_g2(
         }
 
         // Pair *= e(pk[i], H(msgs[i]))
-        let hash = hash_to_curve_g2(msgs[i], DST_G2);
+        let hash = hash_to_curve_g2(msgs[i], dst);
         pair::another(&mut r, &hash, &public_key);
     }
 
@@ -460,8 +470,11 @@ mod tests {
     use super::*;
     use crate::test_utils::*;
 
+    const TEST_DST: &[u8] = b"BLS_TEST_";
+
     #[test]
     fn test_hash_to_curve_g2() {
+        const H2C_SUITE_G2: &str = "BLS12381G2_XMD:SHA-256_SSWU_RO_";
         // Read hash to curve test vector
         let reader = json_reader(H2C_SUITE_G2);
         let test_vectors: Bls12381Ro = serde_json::from_reader(reader).unwrap();
@@ -542,6 +555,8 @@ mod tests {
 
     #[test]
     fn test_hash_to_curve_g1() {
+        const H2C_SUITE_G1: &str = "BLS12381G1_XMD:SHA-256_SSWU_RO_";
+
         // Read hash to curve test vector
         let reader = json_reader(H2C_SUITE_G1);
         let test_vectors: Bls12381Ro = serde_json::from_reader(reader).unwrap();
@@ -653,9 +668,9 @@ mod tests {
 
         let msg = [2u8; 32];
 
-        let signature = core_sign_g1(&sk, &msg).unwrap();
+        let signature = core_sign_g1(&sk, &msg, TEST_DST).unwrap();
 
-        let valid = core_verify_g1(&pk, &msg, &signature);
+        let valid = core_verify_g1(&pk, &msg, &signature, TEST_DST);
         assert!(valid);
     }
 
@@ -666,9 +681,9 @@ mod tests {
 
         let msg = [2u8; 32];
 
-        let signature = core_sign_g2(&sk, &msg).unwrap();
+        let signature = core_sign_g2(&sk, &msg, TEST_DST).unwrap();
 
-        let valid = core_verify_g2(&pk, &msg, &signature);
+        let valid = core_verify_g2(&pk, &msg, &signature, TEST_DST);
         assert!(valid);
     }
 
@@ -688,7 +703,7 @@ mod tests {
 
             // Sign message
             msgs.push(vec![i as u8; 32]);
-            let signature = core_sign_g1(&key_pair.0, &msgs[i]).unwrap();
+            let signature = core_sign_g1(&key_pair.0, &msgs[i], TEST_DST).unwrap();
             signatures.push(signature.to_vec());
         }
 
@@ -697,7 +712,7 @@ mod tests {
 
         let public_keys_refs: Vec<&[u8]> = public_keys.iter().map(|pk| pk.as_slice()).collect();
         let msgs_refs: Vec<&[u8]> = msgs.iter().map(|msg| msg.as_slice()).collect();
-        let valid = core_aggregate_verify_g1(&public_keys_refs, &msgs_refs, &aggregate);
+        let valid = core_aggregate_verify_g1(&public_keys_refs, &msgs_refs, &aggregate, TEST_DST);
         assert!(valid);
     }
 
@@ -717,7 +732,7 @@ mod tests {
 
             // Sign message
             msgs.push(vec![i as u8; 32]);
-            let signature = core_sign_g2(&key_pair.0, &msgs[i]).unwrap();
+            let signature = core_sign_g2(&key_pair.0, &msgs[i], TEST_DST).unwrap();
             signatures.push(signature.to_vec());
         }
 
@@ -726,7 +741,7 @@ mod tests {
 
         let public_keys_refs: Vec<&[u8]> = public_keys.iter().map(|pk| pk.as_slice()).collect();
         let msgs_refs: Vec<&[u8]> = msgs.iter().map(|msg| msg.as_slice()).collect();
-        let valid = core_aggregate_verify_g2(&public_keys_refs, &msgs_refs, &aggregate);
+        let valid = core_aggregate_verify_g2(&public_keys_refs, &msgs_refs, &aggregate, TEST_DST);
         assert!(valid);
     }
 }

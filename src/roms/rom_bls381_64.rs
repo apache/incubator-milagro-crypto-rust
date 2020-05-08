@@ -174,21 +174,7 @@ pub const AESKEY: usize = 16;
 
 // BLS Standard Constants
 /// L = ceil(ceil(log2(p) + 128) / 8)
-pub const L: usize = 64;
-/// b_in_bytes = ceil(b / 8), where b is bits outputted from SHA256
-pub const B_IN_BYTES: usize = 32;
-/// Hash to Curve Suite for signatures on G1
-pub const H2C_SUITE_G1: &str = "BLS12381G1_XMD:SHA-256_SSWU_RO_";
-/// Domain Separation Tag for signatures on G1
-pub const DST_G1: &[u8] = b"BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_POP_";
-/// Domain Separation Tag for PopProve and PopVerify for signatures on G1
-pub const DST_POP_G1: &[u8] = b"BLS_POP_BLS12381G1_XMD:SHA-256_SSWU_RO_POP_";
-/// Hash to Curve Suite for signatures on G2
-pub const H2C_SUITE_G2: &str = "BLS12381G2_XMD:SHA-256_SSWU_RO_";
-/// Domain Separation Tag for signatures on G2
-pub const DST_G2: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
-/// Domain Separation Tag for PopProve and PopVerify with signatures on G2
-pub const DST_POP_G2: &[u8] = b"BLS_POP_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
+pub const H2C_L: usize = 64;
 
 lazy_static! {
     // G1 h_eff
