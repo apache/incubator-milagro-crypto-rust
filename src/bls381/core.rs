@@ -461,7 +461,6 @@ mod tests {
     use crate::test_utils::*;
 
     #[test]
-    #[cfg(feature = "bls381")]
     fn test_hash_to_curve_g2() {
         // Read hash to curve test vector
         let reader = json_reader(H2C_SUITE_G2);
@@ -542,7 +541,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "bls381")]
     fn test_hash_to_curve_g1() {
         // Read hash to curve test vector
         let reader = json_reader(H2C_SUITE_G1);
@@ -605,5 +603,130 @@ mod tests {
             let expected_p = ECP::new_fps(expected_x, expected_y);
             assert_eq!(expected_p, p);
         }
+    }
+
+    #[test]
+    fn test_secret_key_generation() {
+        let ikm = [1u8; 32];
+        let sk = key_generate(&ikm, &[]);
+
+        let sk_big = secret_key_from_bytes(&sk).unwrap();
+        let sk_round_trip = secret_key_to_bytes(&sk_big);
+
+        assert_eq!(sk, sk_round_trip);
+    }
+
+    #[test]
+    fn test_key_pair_generation_g1() {
+        let mut rng = create_rng();
+
+        let (sk, pk) = key_pair_generate_g1(&mut rng);
+
+        let sk_big = secret_key_from_bytes(&sk).unwrap();
+        let pk_ecp = ECP2::frombytes(&pk);
+
+        let g = ECP2::generator();
+        let pk_expected = pair::g2mul(&g, &sk_big);
+
+        assert_eq!(pk_expected, pk_ecp);
+    }
+
+    #[test]
+    fn test_key_pair_generation_g2() {
+        let mut rng = create_rng();
+
+        let (sk, pk) = key_pair_generate_g2(&mut rng);
+
+        let sk_big = secret_key_from_bytes(&sk).unwrap();
+        let pk_ecp = ECP::frombytes(&pk);
+
+        let g = ECP::generator();
+        let pk_expected = pair::g1mul(&g, &sk_big);
+
+        assert_eq!(pk_expected, pk_ecp);
+    }
+
+    #[test]
+    fn test_bls_verify_g1() {
+        let mut rng = create_rng();
+        let (sk, pk) = key_pair_generate_g1(&mut rng);
+
+        let msg = [2u8; 32];
+
+        let signature = core_sign_g1(&sk, &msg).unwrap();
+
+        let valid = core_verify_g1(&pk, &msg, &signature);
+        assert!(valid);
+    }
+
+    #[test]
+    fn test_bls_verify_g2() {
+        let mut rng = create_rng();
+        let (sk, pk) = key_pair_generate_g2(&mut rng);
+
+        let msg = [2u8; 32];
+
+        let signature = core_sign_g2(&sk, &msg).unwrap();
+
+        let valid = core_verify_g2(&pk, &msg, &signature);
+        assert!(valid);
+    }
+
+    #[test]
+    fn test_bls_aggregate_verify_g1() {
+        let n = 10;
+        let mut rng = create_rng();
+
+        let mut public_keys: Vec<Vec<u8>> = vec![];
+        let mut msgs: Vec<Vec<u8>> = vec![];
+        let mut signatures: Vec<Vec<u8>> = vec![];
+
+        for i in 0..n {
+            // Generate keypair
+            let key_pair = key_pair_generate_g1(&mut rng);
+            public_keys.push(key_pair.1.to_vec());
+
+            // Sign message
+            msgs.push(vec![i as u8; 32]);
+            let signature = core_sign_g1(&key_pair.0, &msgs[i]).unwrap();
+            signatures.push(signature.to_vec());
+        }
+
+        let signatures_refs: Vec<&[u8]> = signatures.iter().map(|sig| sig.as_slice()).collect();
+        let aggregate = aggregate_g1(&signatures_refs).unwrap();
+
+        let public_keys_refs: Vec<&[u8]> = public_keys.iter().map(|pk| pk.as_slice()).collect();
+        let msgs_refs: Vec<&[u8]> = msgs.iter().map(|msg| msg.as_slice()).collect();
+        let valid = core_aggregate_verify_g1(&public_keys_refs, &msgs_refs, &aggregate);
+        assert!(valid);
+    }
+
+    #[test]
+    fn test_bls_aggregate_verify_g2() {
+        let n = 10;
+        let mut rng = create_rng();
+
+        let mut public_keys: Vec<Vec<u8>> = vec![];
+        let mut msgs: Vec<Vec<u8>> = vec![];
+        let mut signatures: Vec<Vec<u8>> = vec![];
+
+        for i in 0..n {
+            // Generate keypair
+            let key_pair = key_pair_generate_g2(&mut rng);
+            public_keys.push(key_pair.1.to_vec());
+
+            // Sign message
+            msgs.push(vec![i as u8; 32]);
+            let signature = core_sign_g2(&key_pair.0, &msgs[i]).unwrap();
+            signatures.push(signature.to_vec());
+        }
+
+        let signatures_refs: Vec<&[u8]> = signatures.iter().map(|sig| sig.as_slice()).collect();
+        let aggregate = aggregate_g2(&signatures_refs).unwrap();
+
+        let public_keys_refs: Vec<&[u8]> = public_keys.iter().map(|pk| pk.as_slice()).collect();
+        let msgs_refs: Vec<&[u8]> = msgs.iter().map(|msg| msg.as_slice()).collect();
+        let valid = core_aggregate_verify_g2(&public_keys_refs, &msgs_refs, &aggregate);
+        assert!(valid);
     }
 }

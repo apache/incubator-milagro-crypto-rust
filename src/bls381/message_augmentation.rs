@@ -39,7 +39,11 @@ pub fn secret_key_to_public_key_g1(secret_key: &[u8]) -> Result<[u8; G2_BYTES], 
 /// Message Augmentation - Sign
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.1
-pub fn sign_g1(secret_key: &[u8], msg: &[u8], public_key: &[u8]) -> Result<[u8; G1_BYTES], AmclError> {
+pub fn sign_g1(
+    secret_key: &[u8],
+    msg: &[u8],
+    public_key: &[u8],
+) -> Result<[u8; G1_BYTES], AmclError> {
     // Message = (public_key || msg)
     let mut augmented_msg = public_key.to_vec();
     augmented_msg.extend_from_slice(msg);
@@ -107,7 +111,11 @@ pub fn secret_key_to_public_key_g2(secret_key: &[u8]) -> Result<[u8; G1_BYTES], 
 /// Message Augmentation - Sign
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.1
-pub fn sign_g2(secret_key: &[u8], msg: &[u8], public_key: &[u8]) -> Result<[u8; G2_BYTES], AmclError> {
+pub fn sign_g2(
+    secret_key: &[u8],
+    msg: &[u8],
+    public_key: &[u8],
+) -> Result<[u8; G2_BYTES], AmclError> {
     // Message = (public_key || msg)
     let mut augmented_msg = public_key.to_vec();
     augmented_msg.extend_from_slice(msg);
