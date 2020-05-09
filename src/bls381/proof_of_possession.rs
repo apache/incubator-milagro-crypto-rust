@@ -3,8 +3,9 @@ use super::super::ecp2::ECP2;
 use super::super::pair;
 use super::core;
 use super::core::{
-    hash_to_curve_g1, hash_to_curve_g2, secret_key_from_bytes, subgroup_check_g1,
-    subgroup_check_g2, G1_BYTES, G2_BYTES, SECRET_KEY_BYTES,
+    deserialize_g1, deserialize_g2, hash_to_curve_g1, hash_to_curve_g2, secret_key_from_bytes,
+    serialize_g1, serialize_g2, subgroup_check_g1, subgroup_check_g2, G1_BYTES, G2_BYTES,
+    SECRET_KEY_BYTES,
 };
 
 use errors::AmclError;
@@ -86,26 +87,27 @@ pub fn pop_prove_g1(secret_key: &[u8]) -> Result<[u8; G1_BYTES], AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
     let g = ECP2::generator();
     let public_key = pair::g2mul(&g, &secret_key);
-
-    let mut public_key_bytes = [0u8; G2_BYTES];
-    public_key.tobytes(&mut public_key_bytes);
+    let public_key_bytes = serialize_g2(&public_key);
 
     let hash = hash_to_curve_g1(&public_key_bytes, DST_POP_G1);
     let proof = pair::g1mul(&hash, &secret_key);
 
-    let mut proof_bytes = [0u8; G1_BYTES];
-    proof.tobytes(&mut proof_bytes, true);
-
-    Ok(proof_bytes)
+    Ok(serialize_g1(&proof))
 }
 
 /// Proof of Possession - PopVerify
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.3
 pub fn pop_verify_g1(public_key_bytes: &[u8], proof_bytes: &[u8]) -> bool {
-    // TODO: return false if bytes are invalid
-    let proof = ECP::frombytes(proof_bytes);
-    let public_key = ECP2::frombytes(public_key_bytes);
+    let proof = deserialize_g1(proof_bytes);
+    let public_key = deserialize_g2(public_key_bytes);
+
+    if proof.is_err() || public_key.is_err() {
+        return false;
+    }
+
+    let proof = proof.unwrap();
+    let public_key = public_key.unwrap();
 
     if !subgroup_check_g1(&proof) || !subgroup_check_g2(&public_key) {
         return false;
@@ -134,8 +136,11 @@ pub fn fast_aggregate_verify_g1(public_keys: &[&[u8]], msg: &[u8], signature: &[
         return false;
     }
 
-    // TODO: return false if bytes are invalid
-    let signature = ECP::frombytes(&signature);
+    let signature = deserialize_g1(signature);
+    if signature.is_err() {
+        return false;
+    }
+    let signature = signature.unwrap();
 
     let hash = hash_to_curve_g1(msg, DST_G1);
     let mut g = ECP2::generator();
@@ -143,8 +148,12 @@ pub fn fast_aggregate_verify_g1(public_keys: &[&[u8]], msg: &[u8], signature: &[
 
     let mut aggregate_public_key = ECP2::frombytes(&public_keys[0]);
     for public_key in public_keys.iter().skip(1) {
-        // TODO: return false if bytes are invalid
-        let public_key = ECP2::frombytes(public_key);
+        let public_key = deserialize_g2(public_key);
+        if public_key.is_err() {
+            return false;
+        }
+        let public_key = public_key.unwrap();
+
         aggregate_public_key.add(&public_key);
     }
 
@@ -212,26 +221,27 @@ pub fn pop_prove_g2(secret_key: &[u8]) -> Result<[u8; G2_BYTES], AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
     let g = ECP::generator();
     let public_key = pair::g1mul(&g, &secret_key);
-
-    let mut public_key_bytes = [0u8; G1_BYTES];
-    public_key.tobytes(&mut public_key_bytes, true);
+    let public_key_bytes = serialize_g1(&public_key);
 
     let hash = hash_to_curve_g2(&public_key_bytes, DST_POP_G2);
     let proof = pair::g2mul(&hash, &secret_key);
 
-    let mut proof_bytes = [0u8; G2_BYTES];
-    proof.tobytes(&mut proof_bytes);
-
-    Ok(proof_bytes)
+    Ok(serialize_g2(&proof))
 }
 
 /// Proof of Possession - PopVerify
 ///
 /// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.3
 pub fn pop_verify_g2(public_key_bytes: &[u8], proof_bytes: &[u8]) -> bool {
-    // TODO: return false if bytes are invalid
-    let proof = ECP2::frombytes(proof_bytes);
-    let public_key = ECP::frombytes(public_key_bytes);
+    let proof = deserialize_g2(proof_bytes);
+    let public_key = deserialize_g1(public_key_bytes);
+
+    if proof.is_err() || public_key.is_err() {
+        return false;
+    }
+
+    let proof = proof.unwrap();
+    let public_key = public_key.unwrap();
 
     if !subgroup_check_g1(&public_key) || !subgroup_check_g2(&proof) {
         return false;
@@ -260,8 +270,11 @@ pub fn fast_aggregate_verify_g2(public_keys: &[&[u8]], msg: &[u8], signature: &[
         return false;
     }
 
-    // TODO: return false if bytes are Invalid
-    let signature = ECP2::frombytes(&signature);
+    let signature = deserialize_g2(&signature);
+    if signature.is_err() {
+        return false;
+    }
+    let signature = signature.unwrap();
 
     let hash = hash_to_curve_g2(msg, DST_G2);
     let mut g = ECP::generator();
@@ -269,8 +282,12 @@ pub fn fast_aggregate_verify_g2(public_keys: &[&[u8]], msg: &[u8], signature: &[
 
     let mut aggregate_public_key = ECP::frombytes(&public_keys[0]);
     for public_key in public_keys.iter().skip(1) {
-        // TODO: return false if bytes are Invalid
-        let public_key = ECP::frombytes(public_key);
+        let public_key = deserialize_g1(public_key);
+        if public_key.is_err() {
+            return false;
+        }
+        let public_key = public_key.unwrap();
+
         aggregate_public_key.add(&public_key);
     }
 

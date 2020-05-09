@@ -4,4 +4,8 @@ pub enum AmclError {
     HashToFieldError,
     InvalidSecretKeySize,
     InvalidSecretKeyRange,
+    InvalidPoint,
+    InvalidG1Size,
+    InvalidG2Size,
+    InvalidCompressionFlag,
 }
