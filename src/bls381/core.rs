@@ -45,6 +45,11 @@ pub const G1_BYTES: usize = MODBYTES;
 /// The required number of bytes for a compressed G2 point
 pub const G2_BYTES: usize = MODBYTES * 2;
 
+// Serialization flags
+const COMPRESION_FLAG: u8 = 0b_1000_0000;
+const INFINITY_FLAG: u8 = 0b_0100_0000;
+const Y_FLAG: u8 = 0b_0010_0000;
+
 /// KeyGenerate
 ///
 /// Generate a new Secret Key based off Initial Keying Material (IKM) and Key Info (salt).
@@ -149,9 +154,9 @@ pub fn serialize_g1(g1: &ECP) -> [u8; G1_BYTES] {
 
     // Set flags
     if y > y_neg {
-        result[0] += 0b_0010_0000;
+        result[0] += Y_FLAG;
     }
-    result[0] += 0b_1000_0000; // compressed flag
+    result[0] += COMPRESION_FLAG;
 
     result
 }
@@ -163,7 +168,7 @@ pub fn serialize_uncompressed_g1(g1: &ECP) -> [u8; G1_BYTES * 2] {
     // Check point at inifinity
     let mut result = [0u8; G1_BYTES * 2];
     if g1.is_infinity() {
-        result[0] = 0b_0100_0000;
+        result[0] = INFINITY_FLAG;
         return result;
     }
 
@@ -178,13 +183,11 @@ pub fn serialize_uncompressed_g1(g1: &ECP) -> [u8; G1_BYTES * 2] {
 ///
 /// See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
 pub fn deserialize_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
-    // Length must be 48 bytes
     if g1_bytes.len() == 0 {
         return Err(AmclError::InvalidG1Size);
     }
 
-    // compression flag must be set
-    if g1_bytes[0] & 0b_1000_0000 == 0 {
+    if g1_bytes[0] & COMPRESION_FLAG == 0 {
         deserialize_uncompressed_g1(g1_bytes)
     } else {
         deserialize_compressed_g1(g1_bytes)
@@ -199,7 +202,7 @@ fn deserialize_compressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
     }
 
     // Check infinity flag
-    if g1_bytes[0] & 0b_0100_0000 != 0 {
+    if g1_bytes[0] & INFINITY_FLAG != 0 {
         // Trailing bits should all be 0.
         if g1_bytes[0] & 0b_0011_1111 != 0 {
             return Err(AmclError::InvalidPoint);
@@ -215,7 +218,7 @@ fn deserialize_compressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
         return Ok(ECP::new());
     }
 
-    let y_flag: bool = (g1_bytes[0] & 0b_0010_0000) > 0;
+    let y_flag: bool = (g1_bytes[0] & Y_FLAG) > 0;
 
     // Zero flags
     let mut g1_bytes = g1_bytes.to_owned();
@@ -253,7 +256,7 @@ fn deserialize_uncompressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
     }
 
     // Check infinity flag
-    if g1_bytes[0] & 0b_0100_0000 != 0 {
+    if g1_bytes[0] & INFINITY_FLAG != 0 {
         // Trailing bits should all be 0.
         if g1_bytes[0] & 0b_0011_1111 != 0 {
             return Err(AmclError::InvalidPoint);
@@ -270,7 +273,7 @@ fn deserialize_uncompressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
     }
 
     // Require y_flag to be zero
-    if (g1_bytes[0] & 0b_0010_0000) > 0 {
+    if (g1_bytes[0] & Y_FLAG) > 0 {
         return Err(AmclError::InvalidYFlag);
     }
 
@@ -295,15 +298,14 @@ fn deserialize_uncompressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
     Ok(point)
 }
 
-/// Take a GroupG2 point (x, y) and compress it to a 96 byte array as the x-coordinate.
+/// Take a G2 point (x, y) and compress it to a 96 byte array as the x-coordinate.
 ///
 /// See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
 pub fn serialize_g2(g2: &ECP2) -> [u8; G2_BYTES] {
     // Check point at inifinity
     if g2.is_infinity() {
         let mut result = [0; G2_BYTES];
-        // Set compressed flag and infinity flag
-        result[0] += 0b_1100_0000;
+        result[0] += COMPRESION_FLAG + INFINITY_FLAG;
         return result;
     }
 
@@ -321,14 +323,14 @@ pub fn serialize_g2(g2: &ECP2) -> [u8; G2_BYTES] {
 
     // Set flags
     if zcash_cmp_fp2(&mut y, &mut y_neg) > 0 {
-        result[0] += 0b_0010_0000;
+        result[0] += Y_FLAG;
     }
-    result[0] += 0b_1000_0000;
+    result[0] += COMPRESION_FLAG;
 
     result
 }
 
-/// Take a GroupG2 point (x, y) and convert it to a 192 byte array as (x, y).
+/// Take a G2 point (x, y) and convert it to a 192 byte array as (x, y).
 ///
 /// See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
 pub fn serialize_uncompressed_g2(g2: &ECP2) -> [u8; G2_BYTES * 2] {
@@ -336,8 +338,7 @@ pub fn serialize_uncompressed_g2(g2: &ECP2) -> [u8; G2_BYTES * 2] {
 
     // Check point at inifinity
     if g2.is_infinity() {
-        // Set infinity flag
-        result[0] += 0b_0100_0000;
+        result[0] += INFINITY_FLAG;
         return result;
     }
 
@@ -362,8 +363,7 @@ pub fn deserialize_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
         return Err(AmclError::InvalidG2Size);
     }
 
-    // Compression flag must be set
-    if g2_bytes[0] & 0b_1000_0000 == 0 {
+    if g2_bytes[0] & COMPRESION_FLAG == 0 {
         deserialize_uncompressed_g2(g2_bytes)
     } else {
         deserialize_compressed_g2(g2_bytes)
@@ -377,7 +377,7 @@ fn deserialize_compressed_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
     }
 
     // Check infinity flag
-    if g2_bytes[0] & 0b_0100_0000 != 0 {
+    if g2_bytes[0] & INFINITY_FLAG != 0 {
         // Trailing bits should all be 0.
         if g2_bytes[0] & 0b_0011_1111 != 0 {
             return Err(AmclError::InvalidPoint);
@@ -391,7 +391,7 @@ fn deserialize_compressed_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
         return Ok(ECP2::new());
     }
 
-    let y_flag: bool = (g2_bytes[0] & 0b_0010_0000) > 0;
+    let y_flag: bool = (g2_bytes[0] & Y_FLAG) > 0;
 
     // Zero flags
     let mut g2_bytes = g2_bytes.to_owned();
@@ -432,7 +432,7 @@ fn deserialize_uncompressed_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
     }
 
     // Check infinity flag
-    if g2_bytes[0] & 0b_0100_0000 != 0 {
+    if g2_bytes[0] & INFINITY_FLAG != 0 {
         // Trailing bits should all be 0.
         if g2_bytes[0] & 0b_0011_1111 != 0 {
             return Err(AmclError::InvalidPoint);
@@ -446,7 +446,7 @@ fn deserialize_uncompressed_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
         return Ok(ECP2::new());
     }
 
-    if (g2_bytes[0] & 0b_0010_0000) > 0 {
+    if (g2_bytes[0] & Y_FLAG) > 0 {
         return Err(AmclError::InvalidYFlag);
     }
 
