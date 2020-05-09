@@ -7,5 +7,5 @@ pub enum AmclError {
     InvalidPoint,
     InvalidG1Size,
     InvalidG2Size,
-    InvalidCompressionFlag,
+    InvalidYFlag,
 }

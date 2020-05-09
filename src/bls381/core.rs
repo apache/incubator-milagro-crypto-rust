@@ -115,15 +115,11 @@ pub(crate) fn subgroup_check_g2(point: &ECP2) -> bool {
 // -1 if num1 < num2; 0 if num1 == num2; 1 if num1 > num2
 fn zcash_cmp_fp2(num1: &mut FP2, num2: &mut FP2) -> isize {
     // First compare FP2.b
-    let num1_b = num1.getb();
-    let num2_b = num2.getb();
-    let mut result = Big::comp(&num1_b, &num2_b);
+    let mut result = Big::comp(&num1.getb(), &num2.getb());
 
     // If FP2.b is equal compare FP2.a
     if result == 0 {
-        let num1_a = num1.geta();
-        let num2_a = num2.geta();
-        result = Big::comp(&num1_a, &num2_a);
+        result = Big::comp(&num1.geta(), &num2.geta());
     }
     result
 }
@@ -159,30 +155,52 @@ pub fn serialize_g1(g1: &ECP) -> [u8; G1_BYTES] {
     result
 }
 
+pub fn serialize_uncompressed_g1(g1: &ECP) -> [u8; G1_BYTES * 2] {
+    // Check point at inifinity
+    let mut result = [0u8; G1_BYTES * 2];
+    if g1.is_infinity() {
+        result[0] = 0b_0100_0000;
+        return result;
+    }
+
+    // Convert x-coordinate to bytes
+    g1.getx().tobytes(&mut result[..MODBYTES]);
+    g1.gety().tobytes(&mut result[MODBYTES..]);
+
+    result
+}
+
 // Take a 48 byte array and convert to a G1 point (x, y)
 // See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
 pub fn deserialize_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
     // Length must be 48 bytes
-    if g1_bytes.len() != G1_BYTES {
+    if g1_bytes.len() == 0 {
         return Err(AmclError::InvalidG1Size);
     }
 
     // compression flag must be set
     if g1_bytes[0] & 0b_1000_0000 == 0 {
-        return Err(AmclError::InvalidCompressionFlag);
+        deserialize_uncompressed_g1(g1_bytes)
+    } else {
+        deserialize_compressed_g1(g1_bytes)
+    }
+}
+
+fn deserialize_compressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
+    // Length must be 48 bytes
+    if g1_bytes.len() != G1_BYTES {
+        return Err(AmclError::InvalidG1Size);
     }
 
     // Check infinity flag
     if g1_bytes[0] & 0b_0100_0000 != 0 {
         // Trailing bits should all be 0.
         if g1_bytes[0] & 0b_0011_1111 != 0 {
-            println!("wannabe zero boffa");
             return Err(AmclError::InvalidPoint);
         }
 
         for item in g1_bytes.iter().skip(1) {
             if *item != 0 {
-                println!("almost zero boffa");
                 return Err(AmclError::InvalidPoint);
             }
         }
@@ -200,15 +218,13 @@ pub fn deserialize_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
 
     // Require element less than field modulus
     let m = Big::new_ints(&MODULUS);
-    if x > m {
-        println!("Big boffa");
+    if x >= m {
         return Err(AmclError::InvalidPoint);
     }
 
     // Convert to G1 from x-coordinate
     let point = ECP::new_big(&x);
     if point.is_infinity() {
-        println!("Not a boffa");
         return Err(AmclError::InvalidPoint);
     }
 
@@ -221,6 +237,55 @@ pub fn deserialize_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
     } else {
         Ok(point)
     }
+}
+
+fn deserialize_uncompressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
+    // Length must be 96 bytes
+    if g1_bytes.len() != G1_BYTES * 2 {
+        return Err(AmclError::InvalidG1Size);
+    }
+
+    // Check infinity flag
+    if g1_bytes[0] & 0b_0100_0000 != 0 {
+        // Trailing bits should all be 0.
+        if g1_bytes[0] & 0b_0011_1111 != 0 {
+            return Err(AmclError::InvalidPoint);
+        }
+
+        for item in g1_bytes.iter().skip(1) {
+            if *item != 0 {
+                return Err(AmclError::InvalidPoint);
+            }
+        }
+
+        // Point is infinity
+        return Ok(ECP::new());
+    }
+
+    // Require y_flag to be zero
+    if (g1_bytes[0] & 0b_0010_0000) > 0 {
+        return Err(AmclError::InvalidYFlag);
+    }
+
+    // Zero flags
+    let mut g1_bytes = g1_bytes.to_owned();
+    g1_bytes[0] = g1_bytes[0] & 0b_0001_1111;
+    let x = Big::frombytes(&g1_bytes[..MODBYTES]);
+    let y = Big::frombytes(&g1_bytes[MODBYTES..]);
+
+    // Require elements less than field modulus
+    let m = Big::new_ints(&MODULUS);
+    if x >= m || y >= m {
+        return Err(AmclError::InvalidPoint);
+    }
+
+    // Convert to G1
+    let point = ECP::new_bigs(&x, &y);
+    if point.is_infinity() {
+        return Err(AmclError::InvalidPoint);
+    }
+
+    Ok(point)
 }
 
 // Take a GroupG2 point (x, y) and compress it to a 384*2 bit array.
@@ -255,16 +320,47 @@ pub fn serialize_g2(g2: &ECP2) -> [u8; G2_BYTES] {
     result
 }
 
+pub fn serialize_uncompressed_g2(g2: &ECP2) -> [u8; G2_BYTES * 2] {
+    let mut result = [0; G2_BYTES * 2];
+
+    // Check point at inifinity
+    if g2.is_infinity() {
+        // Set infinity flag
+        result[0] += 0b_0100_0000;
+        return result;
+    }
+
+    // Convert to bytes
+    // Note: Zcash uses (x_im, x_re), (y_im, y_re)
+    let x = g2.getx();
+    x.getb().tobytes(&mut result[0..MODBYTES]);
+    x.geta().tobytes(&mut result[MODBYTES..(MODBYTES * 2)]);
+    let x = g2.gety();
+    x.getb()
+        .tobytes(&mut result[(MODBYTES * 2)..(MODBYTES * 3)]);
+    x.geta().tobytes(&mut result[(MODBYTES * 3)..]);
+
+    result
+}
+
 // Take a 96 byte array and convert to G2 point (x, y)
 // See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
 pub fn deserialize_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
-    if g2_bytes.len() != G2_BYTES {
+    if g2_bytes.len() == 0 {
         return Err(AmclError::InvalidG2Size);
     }
 
     // Compression flag must be set
     if g2_bytes[0] & 0b_1000_0000 == 0 {
-        return Err(AmclError::InvalidCompressionFlag);
+        deserialize_uncompressed_g2(g2_bytes)
+    } else {
+        deserialize_compressed_g2(g2_bytes)
+    }
+}
+
+fn deserialize_compressed_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
+    if g2_bytes.len() != G2_BYTES {
+        return Err(AmclError::InvalidG2Size);
     }
 
     // Check infinity flag
@@ -294,7 +390,7 @@ pub fn deserialize_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
 
     // Require elements less than field modulus
     let m = Big::new_ints(&MODULUS);
-    if x_imaginary > m || x_real > m {
+    if x_imaginary >= m || x_real >= m {
         return Err(AmclError::InvalidPoint);
     }
     let x = FP2::new_bigs(x_real, x_imaginary);
@@ -314,6 +410,57 @@ pub fn deserialize_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
     } else {
         Ok(point)
     }
+}
+
+fn deserialize_uncompressed_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
+    if g2_bytes.len() != G2_BYTES * 2 {
+        return Err(AmclError::InvalidG2Size);
+    }
+
+    // Check infinity flag
+    if g2_bytes[0] & 0b_0100_0000 != 0 {
+        // Trailing bits should all be 0.
+        if g2_bytes[0] & 0b_0011_1111 != 0 {
+            return Err(AmclError::InvalidPoint);
+        }
+        for item in g2_bytes.iter().skip(1) {
+            if *item != 0 {
+                return Err(AmclError::InvalidPoint);
+            }
+        }
+
+        return Ok(ECP2::new());
+    }
+
+    if (g2_bytes[0] & 0b_0010_0000) > 0 {
+        return Err(AmclError::InvalidYFlag);
+    }
+
+    // Zero flags
+    let mut g2_bytes = g2_bytes.to_owned();
+    g2_bytes[0] = g2_bytes[0] & 0b_0001_1111;
+
+    // Convert from array to FP2
+    let x_imaginary = Big::frombytes(&g2_bytes[..MODBYTES]);
+    let x_real = Big::frombytes(&g2_bytes[MODBYTES..(MODBYTES * 2)]);
+    let y_imaginary = Big::frombytes(&g2_bytes[(MODBYTES * 2)..(MODBYTES * 3)]);
+    let y_real = Big::frombytes(&g2_bytes[(MODBYTES * 3)..]);
+
+    // Require elements less than field modulus
+    let m = Big::new_ints(&MODULUS);
+    if x_imaginary >= m || x_real >= m || y_imaginary >= m || y_real >= m {
+        return Err(AmclError::InvalidPoint);
+    }
+    let x = FP2::new_bigs(x_real, x_imaginary);
+    let y = FP2::new_bigs(y_real, y_imaginary);
+
+    // Convert to G2 from x-coordinate
+    let point = ECP2::new_fp2s(x, y);
+    if point.is_infinity() {
+        return Err(AmclError::InvalidPoint);
+    }
+
+    Ok(point)
 }
 
 /*************************************************************************************************
@@ -630,7 +777,7 @@ pub(crate) fn core_aggregate_verify_g2(
 /// Hash to Curve
 ///
 /// Takes a message as input and converts it to a Curve Point
-/// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-06#section-3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#section-3
 pub fn hash_to_curve_g1(msg: &[u8], dst: &[u8]) -> ECP {
     let u =
         hash_to_field_fp(msg, 2, dst).expect("hash to field should not fail for given parameters");
@@ -658,7 +805,7 @@ fn map_to_curve_g1(u: FP) -> ECP {
 /// Hash to Curve
 ///
 /// Takes a message as input and converts it to a Curve Point
-/// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-06#section-3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#section-3
 pub fn hash_to_curve_g2(msg: &[u8], dst: &[u8]) -> ECP2 {
     let u =
         hash_to_field_fp2(msg, 2, dst).expect("hash to field should not fail for given parameters");
@@ -1027,5 +1174,39 @@ mod tests {
         let decompressed = deserialize_g2(&compressed).unwrap();
         let compressed_result = serialize_g2(&decompressed).to_vec();
         assert_eq!(compressed, compressed_result);
+    }
+
+    #[test]
+    fn serde_g1_uncompressed_round_trip() {
+        let mut rng = create_rng();
+        let n = 5;
+        let g = ECP::generator();
+        let r = Big::new_ints(&CURVE_ORDER);
+
+        for _ in 0..n {
+            let num = Big::randomnum(&r, &mut rng);
+            let point = pair::g1mul(&g, &num);
+
+            let uncompressed = serialize_uncompressed_g1(&point);
+            let point_round_trip = deserialize_g1(&uncompressed).unwrap();
+            assert_eq!(point, point_round_trip);
+        }
+    }
+
+    #[test]
+    fn serde_g2_uncompressed_round_trip() {
+        let mut rng = create_rng();
+        let n = 5;
+        let g = ECP2::generator();
+        let r = Big::new_ints(&CURVE_ORDER);
+
+        for _ in 0..n {
+            let num = Big::randomnum(&r, &mut rng);
+            let point = pair::g2mul(&g, &num);
+
+            let uncompressed = serialize_uncompressed_g2(&point);
+            let point_round_trip = deserialize_g2(&uncompressed).unwrap();
+            assert_eq!(point, point_round_trip);
+        }
     }
 }
