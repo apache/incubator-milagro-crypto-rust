@@ -129,9 +129,9 @@ fn zcash_cmp_fp2(num1: &mut FP2, num2: &mut FP2) -> isize {
     result
 }
 
-// Take a G1 point (x, y) and compress it to a 48 byte array.
+/// Take a G1 point (x, y) and compress it to a 48 byte array.
 ///
-// See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
+/// See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
 pub fn serialize_g1(g1: &ECP) -> [u8; G1_BYTES] {
     // Check point at inifinity
     if g1.is_infinity() {
@@ -214,8 +214,7 @@ fn deserialize_compressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
             }
         }
 
-        // Point is infinity
-        return Ok(ECP::new());
+        return Ok(ECP::new()); // infinity
     }
 
     let y_flag: bool = (g1_bytes[0] & Y_FLAG) > 0;
@@ -268,8 +267,7 @@ fn deserialize_uncompressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
             }
         }
 
-        // Point is infinity
-        return Ok(ECP::new());
+        return Ok(ECP::new()); // infinity
     }
 
     // Require y_flag to be zero
@@ -388,7 +386,7 @@ fn deserialize_compressed_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
             }
         }
 
-        return Ok(ECP2::new());
+        return Ok(ECP2::new()); // infinity
     }
 
     let y_flag: bool = (g2_bytes[0] & Y_FLAG) > 0;
@@ -443,7 +441,7 @@ fn deserialize_uncompressed_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
             }
         }
 
-        return Ok(ECP2::new());
+        return Ok(ECP2::new()); // infinity
     }
 
     if (g2_bytes[0] & Y_FLAG) > 0 {
