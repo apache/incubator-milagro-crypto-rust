@@ -125,6 +125,7 @@ fn zcash_cmp_fp2(num1: &mut FP2, num2: &mut FP2) -> isize {
 }
 
 // Take a G1 point (x, y) and compress it to a 48 byte array.
+///
 // See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
 pub fn serialize_g1(g1: &ECP) -> [u8; G1_BYTES] {
     // Check point at inifinity
@@ -155,6 +156,9 @@ pub fn serialize_g1(g1: &ECP) -> [u8; G1_BYTES] {
     result
 }
 
+/// Take a G1 point (x, y) and converti it to a 96 byte array.
+///
+/// See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
 pub fn serialize_uncompressed_g1(g1: &ECP) -> [u8; G1_BYTES * 2] {
     // Check point at inifinity
     let mut result = [0u8; G1_BYTES * 2];
@@ -170,8 +174,9 @@ pub fn serialize_uncompressed_g1(g1: &ECP) -> [u8; G1_BYTES * 2] {
     result
 }
 
-// Take a 48 byte array and convert to a G1 point (x, y)
-// See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
+/// Take a 48 or 96 byte array and convert to a G1 point (x, y)
+///
+/// See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
 pub fn deserialize_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
     // Length must be 48 bytes
     if g1_bytes.len() == 0 {
@@ -186,6 +191,7 @@ pub fn deserialize_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
     }
 }
 
+// Deserialization of a G1 point from x-coordinate
 fn deserialize_compressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
     // Length must be 48 bytes
     if g1_bytes.len() != G1_BYTES {
@@ -239,6 +245,7 @@ fn deserialize_compressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
     }
 }
 
+// Deserialization of a G1 point from (x, y).
 fn deserialize_uncompressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
     // Length must be 96 bytes
     if g1_bytes.len() != G1_BYTES * 2 {
@@ -288,8 +295,9 @@ fn deserialize_uncompressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
     Ok(point)
 }
 
-// Take a GroupG2 point (x, y) and compress it to a 384*2 bit array.
-// See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
+/// Take a GroupG2 point (x, y) and compress it to a 96 byte array as the x-coordinate.
+///
+/// See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
 pub fn serialize_g2(g2: &ECP2) -> [u8; G2_BYTES] {
     // Check point at inifinity
     if g2.is_infinity() {
@@ -320,6 +328,9 @@ pub fn serialize_g2(g2: &ECP2) -> [u8; G2_BYTES] {
     result
 }
 
+/// Take a GroupG2 point (x, y) and convert it to a 192 byte array as (x, y).
+///
+/// See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
 pub fn serialize_uncompressed_g2(g2: &ECP2) -> [u8; G2_BYTES * 2] {
     let mut result = [0; G2_BYTES * 2];
 
@@ -343,8 +354,9 @@ pub fn serialize_uncompressed_g2(g2: &ECP2) -> [u8; G2_BYTES * 2] {
     result
 }
 
-// Take a 96 byte array and convert to G2 point (x, y)
-// See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
+/// Take a 96 or 192 byte array and convert to G2 point (x, y)
+///
+/// See https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization
 pub fn deserialize_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
     if g2_bytes.len() == 0 {
         return Err(AmclError::InvalidG2Size);
@@ -358,6 +370,7 @@ pub fn deserialize_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
     }
 }
 
+// Decompress a G2 point from x-coordinate
 fn deserialize_compressed_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
     if g2_bytes.len() != G2_BYTES {
         return Err(AmclError::InvalidG2Size);
@@ -412,6 +425,7 @@ fn deserialize_compressed_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
     }
 }
 
+// Decompress a G2 point from (x, y)
 fn deserialize_uncompressed_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
     if g2_bytes.len() != G2_BYTES * 2 {
         return Err(AmclError::InvalidG2Size);
