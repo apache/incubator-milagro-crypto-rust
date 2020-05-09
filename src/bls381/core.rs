@@ -561,7 +561,6 @@ pub(crate) fn aggregate_g2(points: &[&[u8]]) -> Result<[u8; G2_BYTES], AmclError
         return Err(AmclError::AggregateEmptyPoints);
     }
 
-    // TODO: Error if bytes are invalid
     let mut aggregate = deserialize_g2(&points[0])?;
     for point in points.iter().skip(1) {
         aggregate.add(&deserialize_g2(&point)?);
