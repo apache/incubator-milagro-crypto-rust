@@ -6,5 +6,8 @@ pub mod basic;
 pub mod message_augmentation;
 pub mod proof_of_possession;
 
+// Expose helper functions for external libraries.
+pub mod utils;
+
 mod core;
 mod iso;
