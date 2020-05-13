@@ -1,20 +1,16 @@
 use super::super::ecp::ECP;
 use super::super::ecp2::ECP2;
 use super::super::pair;
-use super::core;
 use super::core::{
-    hash_to_curve_g1, hash_to_curve_g2, secret_key_from_bytes, subgroup_check_g1,
-    subgroup_check_g2, G1_BYTES, G2_BYTES, SECRET_KEY_BYTES,
+    self, deserialize_g1, deserialize_g2, hash_to_curve_g1, hash_to_curve_g2,
+    secret_key_from_bytes, serialize_g1, serialize_g2, subgroup_check_g1, subgroup_check_g2,
 };
 
 use errors::AmclError;
 use rand::RAND;
 
-// Re-export serialization functions.
-pub use super::core::{
-    deserialize_g1, deserialize_g2, serialize_g1, serialize_g2, serialize_uncompressed_g1,
-    serialize_uncompressed_g2,
-};
+// Re-export constants from core.
+pub use super::core::{G1_BYTES, G2_BYTES, SECRET_KEY_BYTES};
 
 /// Domain Separation Tag for signatures on G1
 pub const DST_G1: &[u8] = b"BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_POP_";

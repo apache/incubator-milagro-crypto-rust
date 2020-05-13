@@ -75,7 +75,7 @@ pub(crate) fn key_generate(ikm: &[u8], key_info: &[u8]) -> [u8; SECRET_KEY_BYTES
 }
 
 // Converts secret key bytes to a Big
-pub(crate) fn secret_key_from_bytes(secret_key: &[u8]) -> Result<Big, AmclError> {
+pub fn secret_key_from_bytes(secret_key: &[u8]) -> Result<Big, AmclError> {
     if secret_key.len() != SECRET_KEY_BYTES {
         return Err(AmclError::InvalidSecretKeySize);
     }
@@ -94,7 +94,7 @@ pub(crate) fn secret_key_from_bytes(secret_key: &[u8]) -> Result<Big, AmclError>
 }
 
 // Converts secret key Big to bytes
-pub(crate) fn secret_key_to_bytes(secret_key: &Big) -> [u8; SECRET_KEY_BYTES] {
+pub fn secret_key_to_bytes(secret_key: &Big) -> [u8; SECRET_KEY_BYTES] {
     let mut big_bytes = [0u8; MODBYTES];
     secret_key.tobytes(&mut big_bytes);
     let mut secret_key_bytes = [0u8; SECRET_KEY_BYTES];
@@ -103,14 +103,14 @@ pub(crate) fn secret_key_to_bytes(secret_key: &Big) -> [u8; SECRET_KEY_BYTES] {
 }
 
 // Verifies a G1 point is in subgroup `r`.
-pub(crate) fn subgroup_check_g1(point: &ECP) -> bool {
+pub fn subgroup_check_g1(point: &ECP) -> bool {
     let r = Big::new_ints(&CURVE_ORDER);
     let check = pair::g1mul(&point, &r);
     check.is_infinity()
 }
 
 // Verifies a G2 point is in subgroup `r`.
-pub(crate) fn subgroup_check_g2(point: &ECP2) -> bool {
+pub fn subgroup_check_g2(point: &ECP2) -> bool {
     let r = Big::new_ints(&CURVE_ORDER);
     let check = pair::g2mul(&point, &r);
     check.is_infinity()
