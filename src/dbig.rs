@@ -17,10 +17,10 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::super::arch;
-use super::super::arch::Chunk;
 use super::big;
 use super::big::{Big, MODBYTES};
+use crate::arch;
+use crate::arch::Chunk;
 
 #[derive(Clone)]
 pub struct DBig {

@@ -17,18 +17,17 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::ecp::ECP;
-use super::ecp4::ECP4;
-use std::str;
-//use super::fp24::FP24;
 use super::big;
 use super::big::Big;
+use super::ecp::ECP;
+use super::ecp4::ECP4;
 use super::pair192;
 use super::rom;
+use crate::rand::RAND;
+use crate::sha3::SHA3;
+use crate::sha3::SHAKE256;
 
-use rand::RAND;
-use sha3::SHA3;
-use sha3::SHAKE256;
+use std::str;
 
 // BLS API Functions
 

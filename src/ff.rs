@@ -17,19 +17,16 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::super::arch::Chunk;
 use super::big;
 use super::big::Big;
 use super::dbig::DBig;
-use rand::RAND;
-
-use super::super::arch::DChunk;
+use crate::arch::{Chunk, DChunk};
+use crate::rand::RAND;
 
 /* Finite field support - for RSA, DH etc. */
 /* RSA/DH modulus length as multiple of BIGBITS */
 
 pub use super::rom::FFLEN;
-//use std::str::SplitWhitespace;
 
 pub const FF_BITS: usize = big::BIGBITS * FFLEN; /* Finite Field Size in bits - must be 256.2^n */
 pub const HFLEN: usize = FFLEN / 2; /* Useful for half-size RSA private key operations */

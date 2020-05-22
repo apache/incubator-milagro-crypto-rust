@@ -23,12 +23,12 @@ use super::ecp;
 use super::ecp::ECP;
 use super::rom;
 
-use aes;
-use aes::AES;
-use hash256::HASH256;
-use hash384::HASH384;
-use hash512::HASH512;
-use rand::RAND;
+use crate::aes;
+use crate::aes::AES;
+use crate::hash256::HASH256;
+use crate::hash384::HASH384;
+use crate::hash512::HASH512;
+use crate::rand::RAND;
 
 pub const INVALID_PUBLIC_KEY: isize = -2;
 pub const ERROR: isize = -3;

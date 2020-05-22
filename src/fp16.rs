@@ -20,7 +20,6 @@ under the License.
 use super::big::Big;
 use super::fp2::FP2;
 use super::fp8::FP8;
-//use std::str::SplitWhitespace;
 
 #[derive(Clone)]
 pub struct FP16 {

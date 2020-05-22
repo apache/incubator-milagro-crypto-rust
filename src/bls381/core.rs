@@ -26,10 +26,9 @@ use super::super::hash_to_curve::*;
 use super::super::pair;
 use super::super::rom::*;
 use super::iso::{iso11_to_ecp, iso3_to_ecp2};
-
-use errors::AmclError;
-use hash256::HASH256;
-use rand::RAND;
+use crate::errors::AmclError;
+use crate::hash256::HASH256;
+use crate::rand::RAND;
 
 // Key Generation Constants
 /// Domain for key generation.

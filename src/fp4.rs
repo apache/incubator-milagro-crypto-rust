@@ -17,10 +17,11 @@ specific language governing permissions and limitations
 under the License.
 */
 
+use std::str::SplitWhitespace;
+
 use super::big::Big;
 use super::fp::FP;
 use super::fp2::FP2;
-use std::str::SplitWhitespace;
 
 #[derive(Clone)]
 pub struct FP4 {

@@ -17,9 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::super::arch::Chunk;
-use bn254::big::NLEN;
-use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
+use super::big::NLEN;
+use crate::arch::Chunk;
+use crate::types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // BN254 Modulus
 // Base Bits= 56

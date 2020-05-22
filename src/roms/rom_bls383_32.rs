@@ -18,8 +18,8 @@ under the License.
 */
 
 use super::super::arch::Chunk;
-use bls383::big::NLEN;
-use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
+use super::big::NLEN;
+use crate::types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 29
 pub const MODULUS: [Chunk; NLEN] = [

@@ -22,10 +22,11 @@ use super::big::Big;
 use super::fp::FP;
 use super::rom;
 
-pub use super::rom::{AESKEY, CURVETYPE, CURVE_PAIRING_TYPE, HASH_TYPE, SEXTIC_TWIST, SIGN_OF_X};
 use std::fmt;
 use std::str::SplitWhitespace;
-pub use types::CurveType;
+
+pub use super::rom::{AESKEY, CURVETYPE, CURVE_PAIRING_TYPE, HASH_TYPE, SEXTIC_TWIST, SIGN_OF_X};
+pub use crate::types::CurveType;
 
 #[derive(Clone)]
 pub struct ECP {

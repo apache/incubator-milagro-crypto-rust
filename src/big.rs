@@ -17,18 +17,15 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::super::arch;
-use super::super::arch::Chunk;
-
-use super::super::arch::DChunk;
-
 use super::dbig::DBig;
-use rand::RAND;
+use crate::arch::{self, Chunk, DChunk};
+use crate::rand::RAND;
+
+use std::cmp::Ordering;
+use std::fmt;
 
 pub use super::rom::BASEBITS;
 pub use super::rom::MODBYTES;
-use std::cmp::Ordering;
-use std::fmt;
 
 pub const NLEN: usize = 1 + (8 * MODBYTES - 1) / BASEBITS;
 pub const DNLEN: usize = 2 * NLEN;

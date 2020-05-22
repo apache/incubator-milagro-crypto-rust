@@ -1,11 +1,11 @@
 [package]
 name = "amcl"
-version = "0.2.0"
-authors = ["Nikita Khateev <nikita.khateev@dsr-corporation.com>"]
-
+version = "0.3.0"
+authors = ["Nikita Khateev <nikita.khateev@dsr-corporation.com>", "Kirk Baird <baird.k@outlook.com>"]
 description = "The Apache Milagro Cryptographic Library (version 3)"
 license = "Apache-2.0"
-repository = "https://github.com/milagro-crypto/amcl"
+repository = "https://github.com/apache/incubator-milagro-crypto-rust"
+edition = "2018"
 
 [dependencies]
 hex = "0.3"
@@ -22,7 +22,7 @@ rand = "0.7.2"
 default = ["bn254"]
 all = [
   "anssi","bls24","bls48","bls381","bls383","bls461","bn254","bn254cx",
-  "brainpool","c25519","c41417","ed25519","fp256BN","fp512BN","goldilocks","hifive",
+  "brainpool","c25519","c41417","ed25519","fp256bn","fp512bn","goldilocks","hifive",
   "nist256","nist384","nist521","nums256e","nums256w","nums384e","nums384w","nums512e",
   "nums512w","rsa2048","rsa3072","rsa4096","secp256k1",
 ]
@@ -38,8 +38,8 @@ brainpool = []
 c25519 = []
 c41417 = []
 ed25519 = []
-fp256BN = []
-fp512BN = []
+fp256bn = []
+fp512bn = []
 goldilocks = []
 hifive = []
 nist256 = []

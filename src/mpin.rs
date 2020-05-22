@@ -29,11 +29,10 @@ use super::fp12::FP12;
 use super::fp4::FP4;
 use super::pair;
 use super::rom;
-
-use hash256::HASH256;
-use hash384::HASH384;
-use hash512::HASH512;
-use rand::RAND;
+use crate::hash256::HASH256;
+use crate::hash384::HASH384;
+use crate::hash512::HASH512;
+use crate::rand::RAND;
 
 // MPIN API Functions
 

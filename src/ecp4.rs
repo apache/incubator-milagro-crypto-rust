@@ -23,7 +23,7 @@ use super::ecp;
 use super::fp2::FP2;
 use super::fp4::FP4;
 use super::rom;
-use types::{SexticTwist, SignOfX};
+use crate::types::{SexticTwist, SignOfX};
 
 #[derive(Clone)]
 pub struct ECP4 {

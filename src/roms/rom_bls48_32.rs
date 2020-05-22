@@ -17,9 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::super::arch::Chunk;
-use bls48::big::NLEN;
-use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
+use crate::arch::Chunk;
+use crate::bls48::big::NLEN;
+use crate::types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 29
 // bls48 Modulus
