@@ -17,12 +17,12 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::super::arch::Chunk;
+use super::big::{Big, NLEN};
 use super::fp::FP;
 use super::fp2::FP2;
 use super::hash_to_curve::HashAlgorithm;
-use bls381::big::{Big, NLEN};
-use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
+use crate::arch::Chunk;
+use crate::types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 58
 // bls381 Modulus

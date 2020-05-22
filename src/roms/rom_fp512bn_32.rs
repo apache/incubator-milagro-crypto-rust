@@ -17,9 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::super::arch::Chunk;
-use fp512bn::big::NLEN;
-use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
+use super::big::NLEN;
+use crate::arch::Chunk;
+use crate::types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 29
 pub const MODULUS: [Chunk; NLEN] = [
@@ -232,8 +232,8 @@ pub const USE_GS_G2: bool = true;
 pub const USE_GS_GT: bool = true;
 pub const GT_STRONG: bool = false;
 
-pub const MODBYTES: usize = 32;
-pub const BASEBITS: usize = 28;
+pub const MODBYTES: usize = 64;
+pub const BASEBITS: usize = 29;
 
 pub const MODBITS: usize = 512;
 pub const MOD8: usize = 3;

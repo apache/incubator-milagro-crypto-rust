@@ -22,9 +22,10 @@ use super::big::Big;
 use super::ecp;
 use super::fp2::FP2;
 use super::rom;
+use crate::types::{CurvePairingType, SexticTwist, SignOfX};
+
 use std::fmt;
 use std::str::SplitWhitespace;
-use types::{CurvePairingType, SexticTwist, SignOfX};
 
 #[derive(Clone)]
 pub struct ECP2 {

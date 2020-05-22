@@ -5,9 +5,8 @@ use super::core::{
     self, deserialize_g1, deserialize_g2, hash_to_curve_g1, hash_to_curve_g2,
     secret_key_from_bytes, serialize_g1, serialize_g2, subgroup_check_g1, subgroup_check_g2,
 };
-
-use errors::AmclError;
-use rand::RAND;
+use crate::errors::AmclError;
+use crate::rand::RAND;
 
 // Re-export constants from core.
 pub use super::core::{G1_BYTES, G2_BYTES, SECRET_KEY_BYTES};

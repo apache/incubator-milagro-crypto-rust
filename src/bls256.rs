@@ -23,11 +23,11 @@ use super::ecp::ECP;
 use super::ecp8::ECP8;
 use super::pair256;
 use super::rom;
-use std::str;
+use crate::rand::RAND;
+use crate::sha3::SHA3;
+use crate::sha3::SHAKE256;
 
-use rand::RAND;
-use sha3::SHA3;
-use sha3::SHAKE256;
+use std::str;
 
 // BLS API Functions
 pub const BFS: usize = big::MODBYTES as usize;

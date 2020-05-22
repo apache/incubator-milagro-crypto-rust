@@ -28,7 +28,7 @@ use super::fp12::FP12;
 use super::fp2::FP2;
 use super::fp4::FP4;
 use super::rom;
-use types::{CurvePairingType, SexticTwist, SignOfX};
+use crate::types::{CurvePairingType, SexticTwist, SignOfX};
 
 #[allow(non_snake_case)]
 fn linedbl(A: &mut ECP2, qx: &FP, qy: &FP) -> FP12 {

@@ -19,9 +19,9 @@ under the License.
 
 /* Note that the original curve has been transformed to an isomorphic curve with A=-3 */
 
-use super::super::arch::Chunk;
-use brainpool::big::NLEN;
-use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
+use super::big::NLEN;
+use crate::arch::Chunk;
+use crate::types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 56
 // brainpool Modulus

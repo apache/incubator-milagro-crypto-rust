@@ -17,14 +17,14 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::super::arch;
-use super::super::arch::Chunk;
+use std::str::FromStr;
+
 use super::big;
 use super::big::Big;
 use super::dbig::DBig;
 use super::rom;
-use std::str::FromStr;
-use types::ModType;
+use crate::arch::{self, Chunk};
+use crate::types::ModType;
 
 #[derive(Clone)]
 pub struct FP {

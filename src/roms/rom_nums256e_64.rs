@@ -17,9 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::super::arch::Chunk;
-use nums256e::big::NLEN;
-use types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
+use super::big::NLEN;
+use crate::arch::Chunk;
+use crate::types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
 
 // Base Bits= 56
 // nums256 Modulus

@@ -1,7 +1,6 @@
 use super::core;
-
-use errors::AmclError;
-use rand::RAND;
+use crate::errors::AmclError;
+use crate::rand::RAND;
 
 // Re-export constants from core.
 pub use super::core::{G1_BYTES, G2_BYTES, SECRET_KEY_BYTES};

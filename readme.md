@@ -2,21 +2,22 @@
 
 ## Updates
 
-NOTE: Updated to Rust 2018
+BLS12-381 has been updated to the the most recent standards being [bls-signatures-02](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02) and [hash-to-curve-07](https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07).
 
-NOTE: This version of the library requires Version 1.31+ of Rust for 64-bit
+Updated to Rust 2018.
+
+This version of the library requires Version 1.31+ of Rust for 64-bit
 integer support and for Rust 2018.
 
-Now AMCL version 3 is distributed as a cargo crate.
+AMCL version 2 is distributed as a cargo crate.
 
-Namespaces are used to separate different curves.
+Modulues (namespaces) are used to separate different curves.
 
 ## Testing
 
-Unit testing can be done using cargo testing framework. it is recommended to
-run these in release mode as some tests especially `mpin` tests are very slow.
+Unit testing can be done using cargo testing framework.
 
-Additional `--all-features` can be replaced by `--features xx` where `xx` is
+Note: `--all-features` may be replaced by `--features xx` where `xx` is
 the desired feature e.g. `bls381`.
 
 ```
@@ -64,7 +65,7 @@ And to use primitives of the needed curve in your source code:
 use amcl::bls48::{ECP, ECP8}; // any primitive you need
 ```
 
-## Features
+## Features and Protocol
 
 * Elliptic Curves
   * ed25519
@@ -87,10 +88,10 @@ use amcl::bls48::{ECP, ECP8}; // any primitive you need
 * Pairing-Friendly Elliptic Curves
   * bn254
   * bn254cx
+  * fp256bn
+  * fp512bn
   * bls383
   * bls381
-  * fp256BN
-  * fp512BN
   * bls461
   * bls24
   * bls48
@@ -99,9 +100,16 @@ use amcl::bls48::{ECP, ECP8}; // any primitive you need
   * rsa3072
   * rsa4096
 * SHA-2
-  * SHA256
-  * SHA384
-  * SHA512
+  * SHA2-256
+  * SHA2-384
+  * SHA2-512
+* SHA-3
+  * SHA3-224
+  * SHA3-256
+  * SHA3-384
+  * SHA3-512
+  * SHAKE-128
+  * SHAKE-256
 
-Note `SHA-2` features will always be compiled however all other features require
+Note `SHA-2` and `SHA-3` features will always be compiled however all other features require
 the feature flag `--features xx`

@@ -27,7 +27,7 @@ use super::fp24;
 use super::fp24::FP24;
 use super::fp8::FP8;
 use super::rom;
-use types::{SexticTwist, SignOfX};
+use crate::types::{SexticTwist, SignOfX};
 
 #[allow(non_snake_case)]
 fn linedbl(A: &mut ECP4, qx: &FP, qy: &FP) -> FP24 {
