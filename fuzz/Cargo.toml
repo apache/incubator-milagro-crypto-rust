@@ -1,0 +1,33 @@
+
+[package]
+name = "amcl-fuzz"
+version = "0.0.0"
+authors = ["Automatically generated"]
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.2"
+
+[dependencies.amcl]
+path = ".."
+features = ["all"]
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "bls381_deserialize_g1"
+path = "fuzz_targets/bls381_deserialize_g1.rs"
+
+[[bin]]
+name = "bls381_deserialize_g2"
+path = "fuzz_targets/bls381_deserialize_g2.rs"
+
+[[bin]]
+name = "bls381_secret_key_from_bytes"
+path = "fuzz_targets/bls381_secret_key_from_bytes.rs"
