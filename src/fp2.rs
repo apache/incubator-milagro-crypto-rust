@@ -410,7 +410,7 @@ impl FP2 {
     /// false if Positive
     ///
     /// Not constant time.
-    /// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#section-4.1
+    /// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-4.1
     pub fn sgn0(&self) -> bool {
         if self.a.iszilch() {
             self.b.sgn0()
