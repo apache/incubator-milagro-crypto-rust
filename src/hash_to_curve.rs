@@ -1,9 +1,29 @@
+/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+
 use super::big::Big;
 use super::dbig::DBig;
 use super::fp::FP;
 use super::fp2::FP2;
 use super::rom::{
-    H2C_L, HASH_ALGORITHM, MODULUS, SSWU_A1, SSWU_A2, SSWU_B1, SSWU_B2, SSWU_Z1, SSWU_Z2,
+    H2C_L, HASH_ALGORITHM, MODULUS, SSWU_A1, SSWU_A2_A, SSWU_A2_B, SSWU_B1, SSWU_B2_A, SSWU_B2_B,
+    SSWU_Z1, SSWU_Z2_A, SSWU_Z2_B,
 };
 use crate::errors::AmclError;
 use crate::hash256::{BLOCK_SIZE as SHA256_BLOCK_SIZE, HASH256, HASH_BYTES as SHA256_HASH_BYTES};
@@ -65,7 +85,7 @@ pub fn hash(msg: &[u8], hash_function: HashAlgorithm) -> Vec<u8> {
 // Hash To Field - Fp
 //
 // Take a message as bytes and convert it to a Field Point
-// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#section-5.2
+// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-5.2
 pub fn hash_to_field_fp(msg: &[u8], count: usize, dst: &[u8]) -> Result<Vec<FP>, AmclError> {
     let m = 1;
     let p = Big::new_ints(&MODULUS);
@@ -87,7 +107,7 @@ pub fn hash_to_field_fp(msg: &[u8], count: usize, dst: &[u8]) -> Result<Vec<FP>,
 // Hash To Field - Fp2
 //
 // Take a message as bytes and convert it to a vector of Field Points with extension degree 2.
-// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#section-5.2
+// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-5.2
 pub fn hash_to_field_fp2(msg: &[u8], count: usize, dst: &[u8]) -> Result<Vec<FP2>, AmclError> {
     let m = 2;
     let p = Big::new_ints(&MODULUS);
@@ -113,7 +133,7 @@ pub fn hash_to_field_fp2(msg: &[u8], count: usize, dst: &[u8]) -> Result<Vec<FP2
 // Expand Message XMD
 //
 // Take a message and convert it to pseudo random bytes of specified length
-// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#section-5.3.1
+// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-5.3.1
 fn expand_message_xmd(msg: &[u8], len_in_bytes: usize, dst: &[u8]) -> Result<Vec<u8>, AmclError> {
     // ell = ceiling(len_in_bytes / b_in_bytes)
     let ell = (len_in_bytes + HASH_ALGORITHM.length() - 1) / HASH_ALGORITHM.length();
@@ -183,13 +203,17 @@ fn expand_message_xmd(msg: &[u8], len_in_bytes: usize, dst: &[u8]) -> Result<Vec
 // Simplified Shallue-van de Woestijne-Ulas Method - Fp
 //
 // Returns projectives as (XZ, YZ, Z)
-// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#section-6.6.2
+// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-6.6.2
 pub fn simplified_swu_fp(u: FP) -> (FP, FP) {
+    let sswu_a = FP::new_big(Big::new_ints(&SSWU_A1));
+    let sswu_b = FP::new_big(Big::new_ints(&SSWU_B1));
+    let sswu_z = FP::new_big(Big::new_ints(&SSWU_Z1));
+
     // tmp1 = Z * u^2
     // tv1 = 1 / (Z^2 * u^4 + Z * u^2)
     let mut tmp1 = u.clone();
     tmp1.sqr();
-    tmp1.mul(&SSWU_Z1);
+    tmp1.mul(&sswu_z);
     let mut tv1 = tmp1.clone();
     tv1.sqr();
     tv1.add(&tmp1);
@@ -198,27 +222,27 @@ pub fn simplified_swu_fp(u: FP) -> (FP, FP) {
     // x = (-B / A) * (1 + tv1)
     let mut x = tv1.clone();
     x.add(&FP::new_int(1));
-    x.mul(&SSWU_B1); // b * (Z^2 * u^4 + Z * u^2 + 1)
+    x.mul(&sswu_b); // b * (Z^2 * u^4 + Z * u^2 + 1)
     x.neg();
-    let mut a_inverse = SSWU_A1.clone();
+    let mut a_inverse = sswu_a.clone();
     a_inverse.inverse();
     x.mul(&a_inverse);
 
     // Deal with case where Z^2 * u^4 + Z * u^2 == 0
     if tv1.iszilch() {
         // x = B / (Z * A)
-        x = SSWU_Z1.clone();
+        x = sswu_z.clone();
         x.inverse();
-        x.mul(&SSWU_B1);
+        x.mul(&sswu_b);
         x.mul(&a_inverse);
     }
 
     // gx = x^3 + A * x + B
     let mut gx = x.clone();
     gx.sqr();
-    gx.add(&SSWU_A1);
+    gx.add(&sswu_a);
     gx.mul(&x);
-    gx.add(&SSWU_B1);
+    gx.add(&sswu_b);
 
     // y = sqrt(gx)
     let mut y = gx.clone();
@@ -234,9 +258,9 @@ pub fn simplified_swu_fp(u: FP) -> (FP, FP) {
         // gx = x^3 + A * x + B
         let mut gx = x.clone();
         gx.sqr();
-        gx.add(&SSWU_A1);
+        gx.add(&sswu_a);
         gx.mul(&x);
-        gx.add(&SSWU_B1);
+        gx.add(&sswu_b);
 
         y = gx.sqrt();
         y2 = y.clone();
@@ -255,13 +279,17 @@ pub fn simplified_swu_fp(u: FP) -> (FP, FP) {
 // Simplified Shallue-van de Woestijne-Ulas Method - Fp2
 //
 // Returns projectives as (X, Y)
-// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#section-6.6.2
+// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-6.6.2
 pub fn simplified_swu_fp2(u: FP2) -> (FP2, FP2) {
+    let sswu_a = FP2::new_bigs(Big::new_ints(&SSWU_A2_A), Big::new_ints(&SSWU_A2_B));
+    let sswu_b = FP2::new_bigs(Big::new_ints(&SSWU_B2_A), Big::new_ints(&SSWU_B2_B));
+    let sswu_z = FP2::new_bigs(Big::new_ints(&SSWU_Z2_A), Big::new_ints(&SSWU_Z2_B));
+
     // tmp1 = Z * u^2
     // tv1 = 1 / (Z^2 * u^4 + Z * u^2)
     let mut tmp1 = u.clone();
     tmp1.sqr();
-    tmp1.mul(&SSWU_Z2);
+    tmp1.mul(&sswu_z);
     let mut tv1 = tmp1.clone();
     tv1.sqr();
     tv1.add(&tmp1);
@@ -270,27 +298,27 @@ pub fn simplified_swu_fp2(u: FP2) -> (FP2, FP2) {
     // x = (-B / A) * (1 + tv1)
     let mut x = tv1.clone();
     x.add(&FP2::new_ints(1, 0));
-    x.mul(&SSWU_B2); // b * (Z^2 * u^4 + Z * u^2 + 1)
+    x.mul(&sswu_b); // b * (Z^2 * u^4 + Z * u^2 + 1)
     x.neg();
-    let mut a_inverse = SSWU_A2.clone();
+    let mut a_inverse = sswu_a.clone();
     a_inverse.inverse();
     x.mul(&a_inverse);
 
     // Deal with case where Z^2 * u^4 + Z * u^2 == 0
     if tv1.iszilch() {
         // x = B / (Z * A)
-        x = SSWU_Z2.clone();
+        x = sswu_z.clone();
         x.inverse();
-        x.mul(&SSWU_B2);
+        x.mul(&sswu_b);
         x.mul(&a_inverse);
     }
 
     // gx = x^3 + A * x + B
     let mut gx = x.clone();
     gx.sqr();
-    gx.add(&SSWU_A2);
+    gx.add(&sswu_a);
     gx.mul(&x);
-    gx.add(&SSWU_B2);
+    gx.add(&sswu_b);
 
     // y = sqrt(gx)
     let mut y = gx.clone();
@@ -301,9 +329,9 @@ pub fn simplified_swu_fp2(u: FP2) -> (FP2, FP2) {
         // gx = x^3 + A * x + B
         let mut gx = x.clone();
         gx.sqr();
-        gx.add(&SSWU_A2);
+        gx.add(&sswu_a);
         gx.mul(&x);
-        gx.add(&SSWU_B2);
+        gx.add(&sswu_b);
 
         y = gx;
         assert!(y.sqrt(), "Hash to Curve SSWU failure - no square roots");

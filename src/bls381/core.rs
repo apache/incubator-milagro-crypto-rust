@@ -788,22 +788,22 @@ pub(crate) fn core_aggregate_verify_g2(
 /// Hash to Curve
 ///
 /// Takes a message as input and converts it to a Curve Point
-/// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#section-3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-3
 pub fn hash_to_curve_g1(msg: &[u8], dst: &[u8]) -> ECP {
     let u =
         hash_to_field_fp(msg, 2, dst).expect("hash to field should not fail for given parameters");
     let mut q0 = map_to_curve_g1(u[0].clone());
     let q1 = map_to_curve_g1(u[1].clone());
     q0.add(&q1);
-    let p = q0.mul(&H_EFF_G1);
+    let p = q0.mul(&Big::new_ints(&H_EFF_G1));
     p
 }
 
 // Simplified SWU for Pairing-Friendly Curves
 //
 // Take a field point and map it to a Curve Point.
-// SSWU - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#section-6.6.2
-// ISO11 - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#appendix-C.2
+// SSWU - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-6.6.2
+// ISO11 - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#appendix-C.2
 fn map_to_curve_g1(u: FP) -> ECP {
     let (x, y) = simplified_swu_fp(u);
     iso11_to_ecp(&x, &y)
@@ -816,7 +816,7 @@ fn map_to_curve_g1(u: FP) -> ECP {
 /// Hash to Curve
 ///
 /// Takes a message as input and converts it to a Curve Point
-/// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#section-3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-3
 pub fn hash_to_curve_g2(msg: &[u8], dst: &[u8]) -> ECP2 {
     let u =
         hash_to_field_fp2(msg, 2, dst).expect("hash to field should not fail for given parameters");
@@ -830,8 +830,8 @@ pub fn hash_to_curve_g2(msg: &[u8], dst: &[u8]) -> ECP2 {
 // Simplified SWU for Pairing-Friendly Curves
 //
 // Take a field point and map it to a Curve Point.
-// SSWU - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#section-6.6.2
-// ISO3 - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-07#appendix-C.3
+// SSWU - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-6.6.2
+// ISO3 - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#appendix-C.3
 fn map_to_curve_g2(u: FP2) -> ECP2 {
     let (x, y) = simplified_swu_fp2(u);
     iso3_to_ecp2(&x, &y)
@@ -941,7 +941,7 @@ mod tests {
             let q1 = map_to_curve_g1(u[1].clone());
             let mut r = q0.clone();
             r.add(&q1);
-            let p = r.mul(&H_EFF_G1);
+            let p = r.mul(&Big::new_ints(&H_EFF_G1));
 
             // Verify against hash_to_curve()
             let hash_to_curve_p =

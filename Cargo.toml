@@ -10,6 +10,7 @@ edition = "2018"
 [dependencies]
 hex = "0.3"
 lazy_static = "1.2.0"
+criterion = { version = "0.3.0", optional = true }
 
 [dev-dependencies]
 serde = "1.0"
@@ -17,6 +18,38 @@ serde_json = "1.0"
 serde_derive = "1.0"
 criterion = "0.3.0"
 rand = "0.7.2"
+
+[[bench]]
+name = "bls381"
+harness = false
+
+[[bench]]
+name = "ed25519"
+harness = false
+
+[[bench]]
+name = "goldilocks"
+harness = false
+
+[[bench]]
+name = "nist256"
+harness = false
+
+[[bench]]
+name = "bn254"
+harness = false
+
+[[bench]]
+name = "rsa2048"
+harness = false
+
+[[bench]]
+name = "rsa3072"
+harness = false
+
+[[bench]]
+name = "rsa4096"
+harness = false
 
 [features]
 default = ["bn254"]
@@ -55,3 +88,4 @@ rsa2048 = []
 rsa3072 = []
 rsa4096 = []
 secp256k1 = []
+bench = ["all", "criterion"]
