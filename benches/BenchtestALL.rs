@@ -16,209 +16,20 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 */
+
 #![allow(non_snake_case)]
 extern crate amcl;
 
 use amcl::arch;
 use amcl::rand::RAND;
-use amcl::types::{CurveType, CurvePairingType, ModType};
+use amcl::types::CurvePairingType;
 
 use std::time::Instant;
 
 const MIN_ITERS: isize = 10;
 const MIN_TIME: isize = 10;
 
-fn ed25519(mut rng: &mut RAND) {
-	//use amcl::ed25519;
-	use amcl::ed25519::big;
-	use amcl::ed25519::ecp;
-	use amcl::ed25519::fp;
-	use amcl::ed25519::rom;
-	let mut fail = false;
-	println!("\nTesting/Timing ed25519 ECC");
-
-	if ecp::CURVETYPE == CurveType::Weierstrass {
-		println!("Weierstrass parameterization");
-	}
-	if ecp::CURVETYPE == CurveType::Edwards {
-		println!("Edwards parameterization");
-	}
-	if ecp::CURVETYPE == CurveType::Montgomery {
-		println!("Montgomery parameterization");
-	}
-
-	if fp::MODTYPE == ModType::PseudoMersenne {
-		println!("Pseudo-Mersenne Modulus");
-	}
-	if fp::MODTYPE == ModType::MontgomeryFriendly {
-		println!("Montgomery friendly Modulus");
-	}
-	if fp::MODTYPE == ModType::GeneralisedMersenne {
-		println!("Generalised-Mersenne Modulus");
-	}
-	if fp::MODTYPE == ModType::NotSpecial {
-		println!("Not special Modulus");
-	}
-
-	println!("Modulus size {:} bits", fp::MODBITS);
-	println!("{:} bit build", arch::CHUNK);
-
-	let G = ecp::ECP::generator();
-
-	let mut r = big::Big::new_ints(&rom::CURVE_ORDER);
-	let mut s = big::Big::randomnum(&r, &mut rng);
-
-	let P = G.mul(&mut r);
-	if !P.is_infinity() {
-		println!("FAILURE - rG!=O");
-		fail = true;
-	}
-
-	let start = Instant::now();
-	let mut iterations = 0;
-	let mut dur = 0 as u64;
-	while dur < (MIN_TIME as u64) * 1000 || iterations < MIN_ITERS {
-		let _ = G.mul(&mut s);
-		iterations += 1;
-		let elapsed = start.elapsed();
-		dur = (elapsed.as_secs() * 1_000) + (elapsed.subsec_nanos() / 1_000_000) as u64;
-	}
-	let duration = (dur as f64) / (iterations as f64);
-	print!("EC  mul - {:} iterations  ", iterations);
-	println!(" {:0.2} ms per iteration", duration);
-	if !fail {
-		println!("All tests pass");
-	}
-}
-
-fn nist256(mut rng: &mut RAND) {
-	//use amcl::nist256;
-	use amcl::nist256::big;
-	use amcl::nist256::ecp;
-	use amcl::nist256::fp;
-	use amcl::nist256::rom;
-	let mut fail = false;
-	println!("\nTesting/Timing nist256 ECC");
-
-	if ecp::CURVETYPE == CurveType::Weierstrass {
-		println!("Weierstrass parameterization");
-	}
-	if ecp::CURVETYPE == CurveType::Edwards {
-		println!("Edwards parameterization");
-	}
-	if ecp::CURVETYPE == CurveType::Montgomery {
-		println!("Montgomery parameterization");
-	}
-
-	if fp::MODTYPE == ModType::PseudoMersenne {
-		println!("Pseudo-Mersenne Modulus");
-	}
-	if fp::MODTYPE == ModType::MontgomeryFriendly {
-		println!("Montgomery friendly Modulus");
-	}
-	if fp::MODTYPE == ModType::GeneralisedMersenne {
-		println!("Generalised-Mersenne Modulus");
-	}
-	if fp::MODTYPE == ModType::NotSpecial {
-		println!("Not special Modulus");
-	}
-
-	println!("Modulus size {:} bits", fp::MODBITS);
-	println!("{:} bit build", arch::CHUNK);
-
-	let G = ecp::ECP::generator();
-
-	let mut r = big::Big::new_ints(&rom::CURVE_ORDER);
-	let mut s = big::Big::randomnum(&r, &mut rng);
-
-	let P = G.mul(&mut r);
-	if !P.is_infinity() {
-		println!("FAILURE - rG!=O");
-		fail = true;
-	}
-
-	let start = Instant::now();
-	let mut iterations = 0;
-	let mut dur = 0 as u64;
-	while dur < (MIN_TIME as u64) * 1000 || iterations < MIN_ITERS {
-		let _ = G.mul(&mut s);
-		iterations += 1;
-		let elapsed = start.elapsed();
-		dur = (elapsed.as_secs() * 1_000) + (elapsed.subsec_nanos() / 1_000_000) as u64;
-	}
-	let duration = (dur as f64) / (iterations as f64);
-	print!("EC  mul - {:} iterations  ", iterations);
-	println!(" {:0.2} ms per iteration", duration);
-	if !fail {
-		println!("All tests pass");
-	}
-}
-
-fn goldilocks(mut rng: &mut RAND) {
-	//use amcl::goldilocks;
-	use amcl::goldilocks::big;
-	use amcl::goldilocks::ecp;
-	use amcl::goldilocks::fp;
-	use amcl::goldilocks::rom;
-	let mut fail = false;
-	println!("\nTesting/Timing goldilocks ECC");
-
-	if ecp::CURVETYPE == CurveType::Weierstrass {
-		println!("Weierstrass parameterization");
-	}
-	if ecp::CURVETYPE == CurveType::Edwards {
-		println!("Edwards parameterization");
-	}
-	if ecp::CURVETYPE == CurveType::Montgomery {
-		println!("Montgomery parameterization");
-	}
-
-	if fp::MODTYPE == ModType::PseudoMersenne {
-		println!("Pseudo-Mersenne Modulus");
-	}
-	if fp::MODTYPE == ModType::MontgomeryFriendly {
-		println!("Montgomery friendly Modulus");
-	}
-	if fp::MODTYPE == ModType::GeneralisedMersenne {
-		println!("Generalised-Mersenne Modulus");
-	}
-	if fp::MODTYPE == ModType::NotSpecial {
-		println!("Not special Modulus");
-	}
-
-	println!("Modulus size {:} bits", fp::MODBITS);
-	println!("{:} bit build", arch::CHUNK);
-
-	let G = ecp::ECP::generator();
-
-	let mut r = big::Big::new_ints(&rom::CURVE_ORDER);
-	let mut s = big::Big::randomnum(&r, &mut rng);
-
-	let P = G.mul(&mut r);
-	if !P.is_infinity() {
-		println!("FAILURE - rG!=O");
-		fail = true;
-	}
-
-	let start = Instant::now();
-	let mut iterations = 0;
-	let mut dur = 0 as u64;
-	while dur < (MIN_TIME as u64) * 1000 || iterations < MIN_ITERS {
-		let _ = G.mul(&mut s);
-		iterations += 1;
-		let elapsed = start.elapsed();
-		dur = (elapsed.as_secs() * 1_000) + (elapsed.subsec_nanos() / 1_000_000) as u64;
-	}
-	let duration = (dur as f64) / (iterations as f64);
-	print!("EC  mul - {:} iterations  ", iterations);
-	println!(" {:0.2} ms per iteration", duration);
-	if !fail {
-		println!("All tests pass");
-	}
-}
-
 fn bn254(mut rng: &mut RAND) {
-	//use amcl::bn254;
 	use amcl::bn254::big;
 	use amcl::bn254::ecp;
 	use amcl::bn254::ecp2;
@@ -346,14 +157,14 @@ fn bn254(mut rng: &mut RAND) {
 	print!("PAIRing FEXP         - {:} iterations  ", iterations);
 	println!(" {:0.2} ms per iteration", duration);
 
-	P.copy(&G);
-	Q.copy(&W);
+	P = G.clone();
+	Q = W.clone();
 
 	P = pair::g1mul(&mut P, &mut s);
 	g = pair::ate(&mut Q, &mut P);
 	g = pair::fexp(&g);
 
-	P.copy(&G);
+	P = G.clone();
 	Q = pair::g2mul(&mut Q, &mut s);
 	w = pair::ate(&mut Q, &mut P);
 	w = pair::fexp(&w);
@@ -363,7 +174,7 @@ fn bn254(mut rng: &mut RAND) {
 		fail = true;
 	}
 
-	Q.copy(&W);
+	Q = W.clone();
 	g = pair::ate(&mut Q, &mut P);
 	g = pair::fexp(&g);
 	g = pair::gtpow(&mut g, &mut s);
@@ -378,7 +189,6 @@ fn bn254(mut rng: &mut RAND) {
 }
 
 fn bls383(mut rng: &mut RAND) {
-	//use amcl::bls383;
 	use amcl::bls383::big;
 	use amcl::bls383::ecp;
 	use amcl::bls383::ecp2;
@@ -506,14 +316,14 @@ fn bls383(mut rng: &mut RAND) {
 	print!("PAIRing FEXP         - {:} iterations  ", iterations);
 	println!(" {:0.2} ms per iteration", duration);
 
-	P.copy(&G);
-	Q.copy(&W);
+	P = G.clone();
+	Q = W.clone();
 
 	P = pair::g1mul(&mut P, &mut s);
 	g = pair::ate(&mut Q, &mut P);
 	g = pair::fexp(&g);
 
-	P.copy(&G);
+	P = G.clone();
 	Q = pair::g2mul(&mut Q, &mut s);
 	w = pair::ate(&mut Q, &mut P);
 	w = pair::fexp(&w);
@@ -523,7 +333,7 @@ fn bls383(mut rng: &mut RAND) {
 		fail = true;
 	}
 
-	Q.copy(&W);
+	Q = W.clone();
 	g = pair::ate(&mut Q, &mut P);
 	g = pair::fexp(&g);
 	g = pair::gtpow(&mut g, &mut s);
@@ -538,7 +348,6 @@ fn bls383(mut rng: &mut RAND) {
 }
 
 fn bls24(mut rng: &mut RAND) {
-	//use amcl::bls24;
 	use amcl::bls24::big;
 	use amcl::bls24::ecp;
 	use amcl::bls24::ecp4;
@@ -666,14 +475,14 @@ fn bls24(mut rng: &mut RAND) {
 	print!("PAIRing FEXP         - {:} iterations  ", iterations);
 	println!(" {:0.2} ms per iteration", duration);
 
-	P.copy(&G);
-	Q.copy(&W);
+	P = G.clone();
+	Q = W.clone();
 
 	P = pair192::g1mul(&mut P, &mut s);
 	g = pair192::ate(&mut Q, &mut P);
 	g = pair192::fexp(&g);
 
-	P.copy(&G);
+	P = G.clone();
 	Q = pair192::g2mul(&mut Q, &mut s);
 	w = pair192::ate(&mut Q, &mut P);
 	w = pair192::fexp(&w);
@@ -683,7 +492,7 @@ fn bls24(mut rng: &mut RAND) {
 		fail = true;
 	}
 
-	Q.copy(&W);
+	Q = W.clone();
 	g = pair192::ate(&mut Q, &mut P);
 	g = pair192::fexp(&g);
 	g = pair192::gtpow(&mut g, &mut s);
@@ -698,7 +507,6 @@ fn bls24(mut rng: &mut RAND) {
 }
 
 fn bls48(mut rng: &mut RAND) {
-	//use amcl::bls48;
 	use amcl::bls48::big;
 	use amcl::bls48::ecp;
 	use amcl::bls48::ecp8;
@@ -826,14 +634,14 @@ fn bls48(mut rng: &mut RAND) {
 	print!("PAIRing FEXP         - {:} iterations  ", iterations);
 	println!(" {:0.2} ms per iteration", duration);
 
-	P.copy(&G);
-	Q.copy(&W);
+	P = G.clone();
+	Q = W.clone();
 
 	P = pair256::g1mul(&mut P, &mut s);
 	g = pair256::ate(&mut Q, &mut P);
 	g = pair256::fexp(&g);
 
-	P.copy(&G);
+	P = G.clone();
 	Q = pair256::g2mul(&mut Q, &mut s);
 	w = pair256::ate(&mut Q, &mut P);
 	w = pair256::fexp(&w);
@@ -843,7 +651,7 @@ fn bls48(mut rng: &mut RAND) {
 		fail = true;
 	}
 
-	Q.copy(&W);
+	Q = W.clone();
 	g = pair256::ate(&mut Q, &mut P);
 	g = pair256::fexp(&g);
 	g = pair256::gtpow(&mut g, &mut s);
@@ -857,81 +665,7 @@ fn bls48(mut rng: &mut RAND) {
 	}
 }
 
-fn rsa2048(mut rng: &mut RAND) {
-	use amcl::rsa2048::ff;
-	use amcl::rsa2048::rsa;
-	let mut pbc = rsa::new_public_key(ff::FFLEN);
-	let mut prv = rsa::new_private_key(ff::HFLEN);
-	let mut c: [u8; rsa::RFS] = [0; rsa::RFS];
-	let mut m: [u8; rsa::RFS] = [0; rsa::RFS];
-	let mut p: [u8; rsa::RFS] = [0; rsa::RFS];
-
-	let mut fail = false;
-	println!("\nTesting/Timing 2048-bit RSA");
-	println!("Generating 2048 -bit RSA public/private key pair");
-
-	let start = Instant::now();
-	let mut iterations = 0;
-	let mut dur = 0 as u64;
-	while dur < (MIN_TIME as u64) * 1000 || iterations < MIN_ITERS {
-		rsa::key_pair(&mut rng, 65537, &mut prv, &mut pbc);
-		iterations += 1;
-		let elapsed = start.elapsed();
-		dur = (elapsed.as_secs() * 1_000) + (elapsed.subsec_nanos() / 1_000_000) as u64;
-	}
-	let duration = (dur as f64) / (iterations as f64);
-	print!("RSA gen - {:} iterations  ", iterations);
-	println!(" {:0.2} ms per iteration", duration);
-
-	for i in 0..rsa::RFS {
-		m[i] = (i % 128) as u8;
-	}
-
-	let start = Instant::now();
-	let mut iterations = 0;
-	let mut dur = 0 as u64;
-	while dur < (MIN_TIME as u64) * 1000 || iterations < MIN_ITERS {
-		rsa::encrypt(&pbc, &m, &mut c);
-		iterations += 1;
-		let elapsed = start.elapsed();
-		dur = (elapsed.as_secs() * 1_000) + (elapsed.subsec_nanos() / 1_000_000) as u64;
-	}
-	let duration = (dur as f64) / (iterations as f64);
-	print!("RSA enc - {:} iterations  ", iterations);
-	println!(" {:0.2} ms per iteration", duration);
-
-	let start = Instant::now();
-	let mut iterations = 0;
-	let mut dur = 0 as u64;
-	while dur < (MIN_TIME as u64) * 1000 || iterations < MIN_ITERS {
-		rsa::decrypt(&prv, &c, &mut p);
-		iterations += 1;
-		let elapsed = start.elapsed();
-		dur = (elapsed.as_secs() * 1_000) + (elapsed.subsec_nanos() / 1_000_000) as u64;
-	}
-	let duration = (dur as f64) / (iterations as f64);
-	print!("RSA dec - {:} iterations  ", iterations);
-	println!(" {:0.2} ms per iteration", duration);
-
-	let mut cmp = true;
-	for i in 0..rsa::RFS {
-		if p[i] != m[i] {
-			cmp = false;
-		}
-	}
-
-	if !cmp {
-		println!("FAILURE - RSA decryption");
-		fail = true;
-	}
-
-	if !fail {
-		println!("All tests pass");
-	}
-}
-
 #[allow(non_snake_case)]
-//#[test]
 fn main() {
 	let mut raw: [u8; 100] = [0; 100];
 
@@ -943,12 +677,8 @@ fn main() {
 
 	rng.seed(100, &raw);
 
-	ed25519(&mut rng);
-	nist256(&mut rng);
-	goldilocks(&mut rng);
 	bn254(&mut rng);
 	bls383(&mut rng);
 	bls24(&mut rng);
 	bls48(&mut rng);
-	rsa2048(&mut rng);
 }

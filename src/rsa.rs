@@ -472,7 +472,6 @@ pub fn decrypt(prv: &RsaPrivateKey, g: &[u8], f: &mut [u8]) {
 mod tests {
     use super::*;
     use crate::test_utils::*;
-    use std::str;
 
     #[test]
     fn test_rsa() {
@@ -491,50 +490,24 @@ mod tests {
         let mut s: [u8; RFS] = [0; RFS];
         let mut e: [u8; RFS] = [0; RFS];
 
-        println!("\nTesting RSA");
-        println!("Generating public/private key pair");
-        super::key_pair(&mut rng, 65537, &mut prv, &mut pbc);
+        key_pair(&mut rng, 65537, &mut prv, &mut pbc);
+        oaep_encode(sha, &message, &mut rng, None, &mut e); /* OAEP encode message M to E  */
+        encrypt(&pbc, &e, &mut c); /* encrypt encoded message */
 
-        println!("Encrypting test string\n");
-        super::oaep_encode(sha, &message, &mut rng, None, &mut e); /* OAEP encode message M to E  */
+        decrypt(&prv, &c, &mut ml);
+        oaep_decode(sha, None, &mut ml); /* OAEP decode message  */
 
-        super::encrypt(&pbc, &e, &mut c); /* encrypt encoded message */
-        print!("Ciphertext= 0x");
-        printbinary(&c);
+        pkcs15(sha, message, &mut c);
 
-        println!("Decrypting test string");
-        super::decrypt(&prv, &c, &mut ml);
-        let mlen = super::oaep_decode(sha, None, &mut ml); /* OAEP decode message  */
+        decrypt(&prv, &c, &mut s); /* create signature in S */
 
-        let mess = str::from_utf8(&ml[0..mlen]).unwrap();
-        print!("{}", &mess);
+        encrypt(&pbc, &s, &mut ms);
 
-        println!("Signing message");
-        super::pkcs15(sha, message, &mut c);
-
-        super::decrypt(&prv, &c, &mut s); /* create signature in S */
-
-        print!("Signature= 0x");
-        printbinary(&s);
-
-        super::encrypt(&pbc, &s, &mut ms);
-
-        let mut cmp = true;
-        if c.len() != ms.len() {
-            cmp = false;
-        } else {
-            for j in 0..c.len() {
-                if c[j] != ms[j] {
-                    cmp = false
-                }
-            }
-        }
-        if cmp {
-            println!("Signature is valid");
-        } else {
-            println!("Signature is INVALID");
+        assert_eq!(c.len(), ms.len());
+        for j in 0..c.len() {
+            assert_eq!(c[j], ms[j])
         }
 
-        super::private_key_kill(&mut prv);
+        private_key_kill(&mut prv);
     }
 }
