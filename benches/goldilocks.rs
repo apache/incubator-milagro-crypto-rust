@@ -21,7 +21,6 @@ use amcl::goldilocks::*;
 use amcl::rand::RAND;
 use criterion::{black_box, criterion_group, criterion_main, Benchmark, Criterion};
 
-
 fn create_rng() -> RAND {
     let mut raw: [u8; 100] = [0; 100];
 
@@ -39,11 +38,11 @@ fn curve_ops(c: &mut Criterion) {
     let mut rng = create_rng();
     let generator = ecp::ECP::generator();
 
-	let r = big::Big::new_ints(&rom::CURVE_ORDER);
-	let s = big::Big::randomnum(&r, &mut rng);
+    let r = big::Big::new_ints(&rom::CURVE_ORDER);
+    let s = big::Big::randomnum(&r, &mut rng);
 
-	let point = generator.mul(&r);
-	assert!(point.is_infinity());
+    let point = generator.mul(&r);
+    assert!(point.is_infinity());
 
     c.bench(
         "multiplication",
@@ -79,8 +78,5 @@ fn curve_ops(c: &mut Criterion) {
     );
 }
 
-criterion_group!(
-    benches,
-    curve_ops,
-);
+criterion_group!(benches, curve_ops,);
 criterion_main!(benches);

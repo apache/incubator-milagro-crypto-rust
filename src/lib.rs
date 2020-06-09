@@ -28,10 +28,10 @@ pub mod types;
 #[path = "./"]
 pub mod bls48 {
     #[cfg(target_pointer_width = "32")]
-    #[path = "roms/rom_bls48_32.rs"]
+    #[path = "roms/rom_bls48_64.rs"]
     pub mod rom;
     #[cfg(target_pointer_width = "64")]
-    #[path = "roms/rom_bls48_64.rs"]
+    #[path = "roms/rom_bls48_32.rs"]
     pub mod rom;
 
     pub mod big;

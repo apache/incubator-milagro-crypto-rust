@@ -17,10 +17,9 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use amcl::rsa3072::{ff, rsa};
 use amcl::rand::RAND;
+use amcl::rsa3072::{ff, rsa};
 use criterion::{black_box, criterion_group, criterion_main, Benchmark, Criterion};
-
 
 fn create_rng() -> RAND {
     let mut raw: [u8; 100] = [0; 100];
@@ -38,15 +37,15 @@ fn create_rng() -> RAND {
 fn rsa(criterion: &mut Criterion) {
     let mut rng = create_rng();
     let mut pbc = rsa::new_public_key(ff::FFLEN);
-	let mut prv = rsa::new_private_key(ff::HFLEN);
-	let mut c: [u8; rsa::RFS] = [0; rsa::RFS];
-	let mut m: [u8; rsa::RFS] = [0; rsa::RFS];
-	let mut p: [u8; rsa::RFS] = [0; rsa::RFS];
+    let mut prv = rsa::new_private_key(ff::HFLEN);
+    let mut c: [u8; rsa::RFS] = [0; rsa::RFS];
+    let mut m: [u8; rsa::RFS] = [0; rsa::RFS];
+    let mut p: [u8; rsa::RFS] = [0; rsa::RFS];
 
     // Store copies for later
     let mut rng_copy = create_rng(); // Note this is deterministic so we can re-use this.
     let mut pbc_copy = rsa::new_public_key(ff::FFLEN);
-	let mut prv_copy = rsa::new_private_key(ff::HFLEN);
+    let mut prv_copy = rsa::new_private_key(ff::HFLEN);
     rsa::key_pair(&mut rng_copy, 65537, &mut prv_copy, &mut pbc_copy);
 
     criterion.bench(
@@ -59,9 +58,9 @@ fn rsa(criterion: &mut Criterion) {
         .sample_size(10),
     );
 
-	for i in 0..rsa::RFS {
-		m[i] = (i % 128) as u8;
-	}
+    for i in 0..rsa::RFS {
+        m[i] = (i % 128) as u8;
+    }
 
     criterion.bench(
         "rsa3072",
@@ -84,8 +83,5 @@ fn rsa(criterion: &mut Criterion) {
     );
 }
 
-criterion_group!(
-    benches,
-    rsa,
-);
+criterion_group!(benches, rsa,);
 criterion_main!(benches);

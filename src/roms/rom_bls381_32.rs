@@ -17,9 +17,7 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use super::big::{Big, NLEN};
-use super::fp::FP;
-use super::fp2::FP2;
+use super::big::NLEN;
 use super::hash_to_curve::HashAlgorithm;
 use crate::arch::Chunk;
 use crate::types::{CurvePairingType, CurveType, ModType, SexticTwist, SignOfX};
@@ -122,17 +120,42 @@ pub const AESKEY: usize = 16;
 /// L = ceil(ceil(log2(p) + 128) / 8)
 pub const H2C_L: usize = 64;
 
-lazy_static! {
-    // G1 h_eff
-    pub static ref H_EFF_G1: Big = Big::frombytes(&mut hex::decode("d201000000010001").unwrap());
+// G1 h_eff
+pub const H_EFF_G1: [Chunk; NLEN] = [
+    0x10001, 0x10080000, 0x34, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+];
 
-    // Curve parameters of G2 ISO-3: y^2 = x^3 + ax + b
-    pub static ref SSWU_A1: FP = FP::new_big(Big::frombytes(&hex::decode("00144698a3b8e9433d693a02c96d4982b0ea985383ee66a8d8e8981aefd881ac98936f8da0e0f97f5cf428082d584c1d").unwrap()));
-    pub static ref SSWU_B1: FP = FP::new_big(Big::frombytes(&hex::decode("12e2908d11688030018b12e8753eee3b2016c1f0f24f4070a0b9c14fcef35ef55a23215a316ceaa5d1cc48e98e172be0").unwrap()));
-    pub static ref SSWU_Z1: FP = FP::new_int(11);
+// Curve parameters of G2 ISO-3: y^2 = x^3 + ax + b
+pub const SSWU_A1: [Chunk; NLEN] = [
+    0xd584c1d, 0x7a14041, 0x183e5fd7, 0x6df1b41, 0x81ac989, 0xc0d77ec, 0x1aa363a2, 0xa707dcc,
+    0x2b0ea98, 0x164b6a4c, 0xf5a4e80, 0x771d286, 0x144698a, 0x0,
+];
+pub const SSWU_B1: [Chunk; NLEN] = [
+    0xe172be0, 0xe62474c, 0x1b3aa974, 0x642b462, 0x15ef55a2, 0xa7e779, 0x1c282e7, 0x1e1e49e8,
+    0x1b2016c1, 0x3a9f771, 0x62c4ba, 0x2d10060, 0xe2908d1, 0x9,
+];
+pub const SSWU_Z1: [Chunk; NLEN] = [
+    0xb, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+];
 
-    // Curve parameters of G2 ISO-3: y^2 = x^3 + ax + b
-    pub static ref SSWU_A2: FP2 = FP2::new_ints(0, 240);
-    pub static ref SSWU_B2: FP2 = FP2::new_ints(1012, 1012);
-    pub static ref SSWU_Z2: FP2 = FP2::new_ints(-2, -1);
-}
+// Curve parameters of G2 ISO-3: y^2 = x^3 + ax + b
+pub const SSWU_A2_A: [Chunk; NLEN] = [
+    0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+];
+pub const SSWU_A2_B: [Chunk; NLEN] = [
+    0xf0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+];
+pub const SSWU_B2_A: [Chunk; NLEN] = [
+    0x3f4, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+];
+pub const SSWU_B2_B: [Chunk; NLEN] = [
+    0x3f4, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+];
+pub const SSWU_Z2_A: [Chunk; NLEN] = [
+    0x1fffaaa9, 0xff7ffff, 0x14ffffee, 0x17fffd62, 0xf6241ea, 0x9507b58, 0xafd9cc3, 0x109e70a2,
+    0x1764774b, 0x121a5d66, 0x12c6e9ed, 0x12ffcd34, 0x111ea3, 0xd,
+];
+pub const SSWU_Z2_B: [Chunk; NLEN] = [
+    0x1fffaaaa, 0xff7ffff, 0x14ffffee, 0x17fffd62, 0xf6241ea, 0x9507b58, 0xafd9cc3, 0x109e70a2,
+    0x1764774b, 0x121a5d66, 0x12c6e9ed, 0x12ffcd34, 0x111ea3, 0xd,
+];

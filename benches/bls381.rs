@@ -17,12 +17,11 @@ specific language governing permissions and limitations
 under the License.
 */
 
-use amcl::bls381::bls381::utils::*;
 use amcl::bls381::bls381::basic;
+use amcl::bls381::bls381::utils::*;
 use amcl::bls381::*;
 use amcl::rand::RAND;
 use criterion::{black_box, criterion_group, criterion_main, Benchmark, Criterion};
-
 
 fn create_rng() -> RAND {
     let mut raw: [u8; 100] = [0; 100];
@@ -262,7 +261,11 @@ fn aggregate_verfication(c: &mut Criterion) {
                 let pks_g1_refs: Vec<&[u8]> = pks_g1.iter().map(|x| x.as_slice()).collect();
                 let msgs_refs: Vec<&[u8]> = msgs.iter().map(|x| x.as_slice()).collect();
 
-                assert!(basic::aggregate_verify_g1(&pks_g1_refs, &msgs_refs, &agg_sig_g1));
+                assert!(basic::aggregate_verify_g1(
+                    &pks_g1_refs,
+                    &msgs_refs,
+                    &agg_sig_g1
+                ));
             })
         })
         .sample_size(10),
@@ -275,7 +278,11 @@ fn aggregate_verfication(c: &mut Criterion) {
                 let pks_g2_refs: Vec<&[u8]> = pks_g2.iter().map(|x| x.as_slice()).collect();
                 let msgs_refs: Vec<&[u8]> = msgs_2.iter().map(|x| x.as_slice()).collect();
 
-                assert!(basic::aggregate_verify_g2(&pks_g2_refs, &msgs_refs, &agg_sig_g2));
+                assert!(basic::aggregate_verify_g2(
+                    &pks_g2_refs,
+                    &msgs_refs,
+                    &agg_sig_g2
+                ));
             })
         })
         .sample_size(10),
@@ -304,19 +311,18 @@ fn key_generation(c: &mut Criterion) {
     );
 }
 
-
 fn curve_ops(c: &mut Criterion) {
     let mut rng = create_rng();
     let generator_g1 = ecp::ECP::generator();
     let generator_g2 = ecp2::ECP2::generator();
 
-	let r = big::Big::new_ints(&rom::CURVE_ORDER);
-	let s = big::Big::randomnum(&r, &mut rng);
+    let r = big::Big::new_ints(&rom::CURVE_ORDER);
+    let s = big::Big::randomnum(&r, &mut rng);
     let s_copy = s.clone();
 
-	let point_g1 = generator_g1.mul(&s);
+    let point_g1 = generator_g1.mul(&s);
     let point_g2 = generator_g2.mul(&s);
-	assert!(!point_g1.is_infinity());
+    assert!(!point_g1.is_infinity());
     assert!(!point_g2.is_infinity());
 
     c.bench(

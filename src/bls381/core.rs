@@ -795,7 +795,7 @@ pub fn hash_to_curve_g1(msg: &[u8], dst: &[u8]) -> ECP {
     let mut q0 = map_to_curve_g1(u[0].clone());
     let q1 = map_to_curve_g1(u[1].clone());
     q0.add(&q1);
-    let p = q0.mul(&H_EFF_G1);
+    let p = q0.mul(&Big::new_ints(&H_EFF_G1));
     p
 }
 
@@ -941,7 +941,7 @@ mod tests {
             let q1 = map_to_curve_g1(u[1].clone());
             let mut r = q0.clone();
             r.add(&q1);
-            let p = r.mul(&H_EFF_G1);
+            let p = r.mul(&Big::new_ints(&H_EFF_G1));
 
             // Verify against hash_to_curve()
             let hash_to_curve_p =
