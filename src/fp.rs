@@ -70,11 +70,17 @@ impl FP {
         }
     }
 
+    /// Creates a FP from an int
     pub fn new_int(a: isize) -> FP {
         let mut f = FP::new();
         f.x.inc(a);
         f.nres();
         return f;
+    }
+
+    /// Creates a FP from a slice of raw ints in Big from
+    pub fn new_ints(w: &[Chunk]) -> FP {
+        Self::new_big(Big::new_ints(w))
     }
 
     pub fn new_big(x: Big) -> FP {
