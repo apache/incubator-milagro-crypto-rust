@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate lazy_static;
-
 #[cfg(test)]
 extern crate serde_json;
 #[cfg(test)]
