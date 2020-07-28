@@ -80,11 +80,13 @@ impl PartialOrd for Big {
 }
 
 impl Big {
+    #[inline(always)]
     pub fn new() -> Big {
         Big { w: [0; NLEN] }
     }
 
     /// Convert a integer to a Big
+    #[inline(always)]
     pub fn new_int(x: isize) -> Big {
         let mut s = Big::new();
         s.w[0] = x as Chunk;
@@ -92,6 +94,7 @@ impl Big {
     }
 
     /// Takes an array of integers and converts to a Big
+    #[inline(always)]
     pub fn new_ints(a: &[Chunk]) -> Big {
         let mut s = Big::new();
         for i in 0..NLEN {
@@ -100,6 +103,7 @@ impl Big {
         s
     }
 
+    #[inline(always)]
     pub fn new_dcopy(y: &DBig) -> Big {
         let mut s = Big::new();
         for i in 0..NLEN {
@@ -306,6 +310,7 @@ impl Big {
     }
 
     /// From Hex String
+    #[inline(always)]
     pub fn fromstring(val: String) -> Big {
         let mut res = Big::new();
         let len = val.len();
@@ -343,6 +348,7 @@ impl Big {
     }
 
     /// Return self + x
+    #[inline(always)]
     pub fn plus(&self, x: &Big) -> Big {
         let mut s = Big::new();
         for i in 0..NLEN {
@@ -358,6 +364,7 @@ impl Big {
     }
 
     ///  Return self - x
+    #[inline(always)]
     pub fn minus(&self, x: &Big) -> Big {
         let mut d = Big::new();
         for i in 0..NLEN {
@@ -409,6 +416,7 @@ impl Big {
     /// From Byte Array
     ///
     /// Convert from byte array starting at index `n` to Big
+    #[inline(always)]
     pub fn frombytearray(b: &[u8], n: usize) -> Big {
         let mut m = Big::new();
 
@@ -437,6 +445,8 @@ impl Big {
     /// From bytes
     ///
     /// Convert from bytes from index 0
+    /// Panics if input bytes length is less than required.
+    #[inline(always)]
     pub fn frombytes(b: &[u8]) -> Big {
         Big::frombytearray(b, 0)
     }
@@ -453,7 +463,8 @@ impl Big {
         carry
     }
 
-    /// self*=c and catch overflow in DBig
+    /// self *= c and catch overflow in DBig
+    #[inline(always)]
     pub fn pxmul(&self, c: isize) -> DBig {
         let mut m = DBig::new();
         let mut carry = 0 as Chunk;
@@ -480,6 +491,7 @@ impl Big {
     }
 
     /// return a*b where result fits in a Big
+    #[inline(always)]
     pub fn smul(a: &Big, b: &Big) -> Big {
         let mut c = Big::new();
         for i in 0..NLEN {
@@ -686,6 +698,7 @@ impl Big {
     /// Random
     ///
     /// Get 8*MODBYTES size random number
+    #[inline(always)]
     pub fn random(rng: &mut RAND) -> Big {
         let mut m = Big::new();
         let mut j = 0;
@@ -711,6 +724,7 @@ impl Big {
     /// Random Number
     ///
     /// Create random Big in portable way, one bit at a time
+    #[inline(always)]
     pub fn randomnum(q: &Big, rng: &mut RAND) -> Big {
         let mut d = DBig::new();
         let mut j = 0;
@@ -947,6 +961,7 @@ impl Big {
     /// Montegomery Reduction
     ///
     /// https://eprint.iacr.org/2015/1247.pdf
+    #[inline(always)]
     pub fn monty(md: &Big, mc: Chunk, d: &mut DBig) -> Big {
         let mut b = Big::new();
         let rm = BMASK as DChunk;
@@ -1011,6 +1026,7 @@ impl Big {
     /// Modular Multiplication
     ///
     /// return a*b mod m
+    #[inline(always)]
     pub fn modmul(a1: &Big, b1: &Big, m: &Big) -> Big {
         let mut a = a1.clone();
         let mut b = b1.clone();
@@ -1021,6 +1037,7 @@ impl Big {
     }
 
     /// return a^2 mod m
+    #[inline(always)]
     pub fn modsqr(a1: &Big, m: &Big) -> Big {
         let mut a = a1.clone();
         a.rmod(m);
@@ -1031,6 +1048,7 @@ impl Big {
     /// Modular Negation
     ///
     /// return -a mod m
+    #[inline(always)]
     pub fn modneg(a1: &Big, m: &Big) -> Big {
         let mut a = a1.clone();
         a.rmod(m);
@@ -1040,6 +1058,7 @@ impl Big {
     /// Raise to Power with Modulus
     ///
     /// return this^e mod m
+    #[inline(always)]
     pub fn powmod(&mut self, e1: &Big, m: &Big) -> Big {
         self.norm();
         let mut e = e1.clone();

@@ -28,6 +28,7 @@ pub struct FP16 {
 }
 
 impl FP16 {
+    #[inline(always)]
     pub fn new() -> FP16 {
         FP16 {
             a: FP8::new(),
@@ -35,6 +36,7 @@ impl FP16 {
         }
     }
 
+    #[inline(always)]
     pub fn new_int(a: isize) -> FP16 {
         FP16 {
             a: FP8::new_int(a),
@@ -42,10 +44,12 @@ impl FP16 {
         }
     }
 
+    #[inline(always)]
     pub fn new_fp8s(a: FP8, b: FP8) -> FP16 {
         FP16 { a, b }
     }
 
+    #[inline(always)]
     pub fn new_fp8(a: FP8) -> FP16 {
         FP16 { a, b: FP8::new() }
     }
@@ -99,15 +103,18 @@ impl FP16 {
     }
 
     /// Extract real part a
+    #[inline(always)]
     pub fn real(&self) -> FP8 {
         self.geta()
     }
 
+    #[inline(always)]
     pub fn geta(&self) -> FP8 {
         self.a.clone()
     }
 
     /// Extract imaginary part b
+    #[inline(always)]
     pub fn getb(&self) -> FP8 {
         self.b.clone()
     }
@@ -325,6 +332,7 @@ impl FP16 {
     }
 
     /* self=self^e */
+    #[inline(always)]
     pub fn pow(&self, e: &Big) -> FP16 {
         let mut w = self.clone();
         w.norm();
@@ -377,6 +385,7 @@ impl FP16 {
     }
 
     /* r=x^n using XTR method on traces of FP24s */
+    #[inline(always)]
     pub fn xtr_pow(&self, n: &Big) -> FP16 {
         let mut sf = self.clone();
         sf.norm();
@@ -420,6 +429,7 @@ impl FP16 {
     }
 
     /* r=ck^a.cl^n using XTR double exponentiation method on traces of FP12s. See Stam thesis. */
+    #[inline(always)]
     pub fn xtr_pow2(&mut self, ck: &FP16, ckml: &FP16, ckm2l: &FP16, a: &Big, b: &Big) -> FP16 {
         let mut e = a.clone();
         let mut d = b.clone();

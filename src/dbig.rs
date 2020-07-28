@@ -28,12 +28,20 @@ pub struct DBig {
 }
 
 impl DBig {
+
+    /// Creates new DBig as 0.
+    #[inline(always)]
     pub fn new() -> DBig {
         DBig {
             w: [0; big::DNLEN as usize],
         }
     }
 
+    /// New Small Copy
+    ///
+    /// Creates a new DBig from a Big
+    /// Most significant bits are set to zero.
+    #[inline(always)]
     pub fn new_scopy(x: &Big) -> DBig {
         let mut b = DBig::new();
         for i in 0..big::NLEN {
@@ -48,7 +56,10 @@ impl DBig {
         b
     }
 
-    /// split DBig at position n, return higher half, keep lower half
+    /// Split DBig
+    ///
+    /// Splits the DBig at position n, return higher half, keep lower half
+    #[inline(always)]
     pub fn split(&mut self, n: usize) -> Big {
         let mut t = Big::new();
         let m = n % big::BASEBITS;
@@ -159,6 +170,7 @@ impl DBig {
     }
 
     /// Reduces self DBig mod a Big, and returns the Big
+    #[inline(always)]
     pub fn dmod(&mut self, c: &Big) -> Big {
         let mut k = 0;
         self.norm();
@@ -193,6 +205,7 @@ impl DBig {
     }
 
     /// return self / c
+    #[inline(always)]
     pub fn div(&mut self, c: &Big) -> Big {
         let mut k = 0;
         let mut m = DBig::new_scopy(c);
@@ -277,6 +290,7 @@ impl DBig {
     }
 
     // convert from byte array to DBig
+    #[inline(always)]
     pub fn frombytes(b: &[u8]) -> DBig {
         let mut m = DBig::new();
 

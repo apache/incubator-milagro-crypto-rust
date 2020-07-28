@@ -29,6 +29,8 @@ pub struct FP8 {
 }
 
 impl FP8 {
+    /// New
+    #[inline(always)]
     pub fn new() -> FP8 {
         FP8 {
             a: FP4::new(),
@@ -36,6 +38,8 @@ impl FP8 {
         }
     }
 
+    /// New Int
+    #[inline(always)]
     pub fn new_int(a: isize) -> FP8 {
         FP8 {
             a: FP4::new_int(a),
@@ -43,10 +47,14 @@ impl FP8 {
         }
     }
 
+    /// New Fp4's
+    #[inline(always)]
     pub fn new_fp4s(a: FP4, b: FP4) -> FP8 {
         FP8 { a, b }
     }
 
+    /// New Fp4
+    #[inline(always)]
     pub fn new_fp4(a: FP4) -> FP8 {
         FP8 { a, b: FP4::new() }
     }
@@ -98,38 +106,53 @@ impl FP8 {
     pub fn isreal(&self) -> bool {
         return self.b.iszilch();
     }
-    /* extract real part a */
+
+    /// Real
+    ///
+    /// Extract real part (`a`)
+    #[inline(always)]
     pub fn real(&self) -> FP4 {
         self.geta()
     }
 
+    /// Get A
     pub fn geta(&self) -> FP4 {
         self.a.clone()
     }
 
-    /* extract imaginary part b */
+    /// Get B
+    ///
+    /// Extract imaginary part `(b)`
     pub fn getb(&self) -> FP4 {
         self.b.clone()
     }
 
-    /* test self=x */
+    /// Equals
+    ///
+    /// self == x
     pub fn equals(&self, x: &FP8) -> bool {
         return self.a.equals(&x.a) && self.b.equals(&x.b);
     }
 
-    /* set self=0 */
+    /// Zero
+    ///
+    /// Set self = 0
     pub fn zero(&mut self) {
         self.a.zero();
         self.b.zero();
     }
 
-    /* set self=1 */
+    /// One
+    ///
+    // Set self = 1
     pub fn one(&mut self) {
         self.a.one();
         self.b.zero();
     }
 
-    /* negate self mod Modulus */
+    /// Negation
+    ///
+    /// Negate self mod Modulus.
     pub fn neg(&mut self) {
         self.norm();
         let mut m = self.geta();
@@ -319,7 +342,9 @@ impl FP8 {
         self.b.times_i();
     }
 
-    /* self=self^p using Frobenius */
+    /// Frobenius
+    ///
+    /// self = self ^ p using Frobenius.
     pub fn frob(&mut self, f: &FP2) {
         let mut ff = f.clone();
         ff.sqr();
@@ -331,7 +356,10 @@ impl FP8 {
         self.b.times_i();
     }
 
-    /* self=self^e */
+    /// Power
+    ///
+    /// self ^ e
+    #[inline(always)]
     pub fn pow(&self, e: &Big) -> FP8 {
         let mut w = self.clone();
         w.norm();
@@ -353,7 +381,9 @@ impl FP8 {
         return r;
     }
 
-    /* XTR xtr_a function */
+    /// XTR A
+    ///
+    /// XTR xtr_a function.
     pub fn xtr_a(&mut self, w: &FP8, y: &FP8, z: &FP8) {
         let mut r = w.clone();
         let mut t = w.clone();
@@ -384,7 +414,10 @@ impl FP8 {
         self.reduce();
     }
 
-    /* r=x^n using XTR method on traces of FP24s */
+    /// XTR Power
+    ///
+    /// r = x^n using XTR method on traces of FP24s
+    #[inline(always)]
     pub fn xtr_pow(&self, n: &Big) -> FP8 {
         let mut sf = self.clone();
         sf.norm();
@@ -427,7 +460,11 @@ impl FP8 {
         r
     }
 
-    /* r=ck^a.cl^n using XTR double exponentiation method on traces of FP12s. See Stam thesis. */
+    /// XTR Power 2
+    ///
+    /// r = ck ^ a * cl ^ n
+    /// using XTR double exponentiation method on traces of FP12s. See Stam thesis.
+    #[inline(always)]
     pub fn xtr_pow2(&mut self, ck: &FP8, ckml: &FP8, ckm2l: &FP8, a: &Big, b: &Big) -> FP8 {
         let mut e = a.clone();
         let mut d = b.clone();

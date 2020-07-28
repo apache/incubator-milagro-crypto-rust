@@ -64,6 +64,7 @@ impl FF {
     }
 
     /* Constructors */
+    #[inline(always)]
     pub fn new_int(n: usize) -> FF {
         let mut f = FF {
             v: Vec::new(),
@@ -454,6 +455,7 @@ impl FF {
     }
 
     /* z=x*y. Assumes x and y are of same length. */
+    #[inline(always)]
     pub fn mul(x: &FF, y: &FF) -> FF {
         let n = x.length;
         let mut z = FF::new_int(2 * n);
@@ -500,6 +502,7 @@ impl FF {
     }
 
     /* z=x^2 */
+    #[inline(always)]
     pub fn sqr(x: &FF) -> FF {
         let n = x.length;
         let mut z = FF::new_int(2 * n);
@@ -509,6 +512,7 @@ impl FF {
     }
 
     /* return This mod modulus, ms is modulus, md is Montgomery Constant */
+    #[inline(always)]
     pub fn reduce(&mut self, ms: &FF, md: &FF) -> FF {
         /* fast karatsuba Montgomery reduction */
         let n = ms.length;
@@ -531,6 +535,7 @@ impl FF {
     /* Set r=this mod b */
     /* this is of length - 2*n */
     /* r,b is of length - n */
+    #[inline(always)]
     pub fn dmod(&mut self, b: &FF) -> FF {
         let n = b.length;
         let mut m = FF::new_int(2 * n);
@@ -668,6 +673,7 @@ impl FF {
     }
 
     /* U=1/a mod 2^m - Arazi & Qi */
+    #[inline(always)]
     pub fn invmod2m(&self) -> FF {
         let n = self.length;
 

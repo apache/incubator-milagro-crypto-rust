@@ -38,6 +38,10 @@ impl PartialEq for FP4 {
 impl Eq for FP4 {}
 
 impl FP4 {
+    /// New Fp4
+    ///
+    /// Create a new Fp4 set to 0.
+    #[inline(always)]
     pub fn new() -> FP4 {
         FP4 {
             a: FP2::new(),
@@ -45,6 +49,8 @@ impl FP4 {
         }
     }
 
+    /// New Int
+    #[inline(always)]
     pub fn new_int(a: isize) -> FP4 {
         FP4 {
             a: FP2::new_int(a),
@@ -52,10 +58,18 @@ impl FP4 {
         }
     }
 
+    /// New Fp2's
+    ///
+    /// Create a Fp4 from two Fp2's
+    #[inline(always)]
     pub fn new_fp2s(a: FP2, b: FP2) -> FP4 {
         FP4 { a, b }
     }
 
+    /// New Fp2
+    ///
+    /// Create a Fp4 setting `a` from an Fp and `b` to 0.
+    #[inline(always)]
     pub fn new_fp2(a: FP2) -> FP4 {
         FP4 { a, b: FP2::new() }
     }
@@ -108,21 +122,33 @@ impl FP4 {
         self.b.iszilch()
     }
 
-    /* extract real part a */
+    /// Real
+    ///
+    /// Extract real part (`a`).
+    #[inline(always)]
     pub fn real(&self) -> FP2 {
         self.geta()
     }
 
+    /// Get A
+    ///
+    /// Returns `a`
+    #[inline(always)]
     pub fn geta(&self) -> FP2 {
         self.a.clone()
     }
 
-    /* extract imaginary part b */
+    /// Get B
+    ///
+    /// Extract imaginary part (`b`).
+    #[inline(always)]
     pub fn getb(&self) -> FP2 {
         self.b.clone()
     }
 
-    /* test self=x */
+    /// Equals
+    ///
+    /// self == x
     pub fn equals(&self, x: &FP4) -> bool {
         return self.a.equals(&x.a) && self.b.equals(&x.b);
     }
@@ -290,6 +316,8 @@ impl FP4 {
         format!("{} {}", self.a.to_hex(), self.b.to_hex())
     }
 
+    /// From Hex Iterator
+    #[inline(always)]
     pub fn from_hex_iter(iter: &mut SplitWhitespace) -> FP4 {
         FP4 {
             a: FP2::from_hex_iter(iter),
@@ -297,12 +325,16 @@ impl FP4 {
         }
     }
 
+    /// From Hex
+    #[inline(always)]
     pub fn from_hex(val: String) -> FP4 {
         let mut iter = val.split_whitespace();
         return FP4::from_hex_iter(&mut iter);
     }
 
-    /* self=1/self */
+    /// Inverse
+    ///
+    /// self = 1 / self
     pub fn inverse(&mut self) {
         //self.norm();
 
@@ -339,7 +371,10 @@ impl FP4 {
         self.b.mul(f);
     }
 
-    /* self=self^e */
+    /// Power
+    ///
+    /// Return self ^ e
+    #[inline(always)]
     pub fn pow(&self, e: &Big) -> FP4 {
         let mut w = self.clone();
         w.norm();
@@ -391,7 +426,10 @@ impl FP4 {
         self.reduce();
     }
 
-    /* r=x^n using XTR method on traces of FP12s */
+    /// XTR Power
+    ///
+    /// r = x^n using XTR method on traces of FP12s
+    #[inline(always)]
     pub fn xtr_pow(&self, n: &Big) -> FP4 {
         let mut sf = self.clone();
         sf.norm();
@@ -434,7 +472,11 @@ impl FP4 {
         r
     }
 
-    /* r=ck^a.cl^n using XTR double exponentiation method on traces of FP12s. See Stam thesis. */
+    /// XTR Power 2
+    ///
+    /// Return ck ^ a * cl ^ n
+    /// Using XTR double exponentiation method on traces of FP12s. See Stam thesis.
+    #[inline(always)]
     pub fn xtr_pow2(&mut self, ck: &FP4, ckml: &FP4, ckm2l: &FP4, a: &Big, b: &Big) -> FP4 {
         let mut e = a.clone();
         let mut d = b.clone();

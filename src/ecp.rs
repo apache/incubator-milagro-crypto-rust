@@ -57,6 +57,10 @@ impl fmt::Debug for ECP {
 
 #[allow(non_snake_case)]
 impl ECP {
+    /// Projective New
+    ///
+    /// Creates a new projective elliptic curve point at infinity (0, 1, 0).
+    #[inline(always)]
     pub fn pnew() -> ECP {
         ECP {
             x: FP::new(),
@@ -65,6 +69,10 @@ impl ECP {
         }
     }
 
+    /// New
+    ///
+    /// Creates a new ECP at infinity
+    #[inline(always)]
     pub fn new() -> ECP {
         let mut E = ECP::pnew();
         if CURVETYPE == CurveType::Edwards {
@@ -73,7 +81,11 @@ impl ECP {
         return E;
     }
 
-    /* set (x,y) from two Bigs */
+    /// New Bigs
+    ///
+    /// Set (x,y) from two Bigs
+    /// Set to infinity if not on curve.
+    #[inline(always)]
     pub fn new_bigs(ix: &Big, iy: &Big) -> ECP {
         let mut E = ECP::new();
         E.x.bcopy(ix);
@@ -95,7 +107,11 @@ impl ECP {
         return E;
     }
 
-    /* set (x,y) from Big and a bit */
+    /// New BigInt
+    ///
+    /// Set (x, y) from x and sign of y.
+    /// Set to infinity if not on curve.
+    #[inline(always)]
     pub fn new_bigint(ix: &Big, s: isize) -> ECP {
         let mut E = ECP::new();
         E.x.bcopy(ix);
@@ -116,8 +132,12 @@ impl ECP {
         E
     }
 
+    /// New Big
+    ///
+    /// Create point from x, calculates y from curve equation
+    /// Set to infinity if not on curve.
+    #[inline(always)]
     #[allow(non_snake_case)]
-    /* set from x - calculate y from curve equation */
     pub fn new_big(ix: &Big) -> ECP {
         let mut E = ECP::new();
         E.x.bcopy(ix);
@@ -134,7 +154,11 @@ impl ECP {
         return E;
     }
 
-    // construct this from (x,y), set to 0 if not on curve
+    /// New Fp's
+    ///
+    /// Constructs from (x,y).
+    /// Set to infinity if not on curve.
+    #[inline(always)]
     pub fn new_fps(x: FP, y: FP) -> ECP {
         let mut point = ECP {
             x,
@@ -151,13 +175,18 @@ impl ECP {
         point
     }
 
-    // Create new point from (x, y, z)
-    // Assumes coordinates are valid
+    /// New Projective
+    ///
+    /// Create new point from (X, Y, Z).
+    /// Assumes coordinates are valid.
+    #[inline(always)]
     pub fn new_projective(x: FP, y: FP, z: FP) -> ECP {
         ECP { x, y, z }
     }
 
-    /* set this=O */
+    /// Infinity
+    ///
+    /// Set self to infinity.
     pub fn inf(&mut self) {
         self.x.zero();
         if CURVETYPE != CurveType::Montgomery {
@@ -170,7 +199,9 @@ impl ECP {
         }
     }
 
-    /* Calculate RHS of curve equation */
+    /// Right Hand Side
+    ///
+    /// Calculate RHS of curve equation.
     fn rhs(x: &FP) -> FP {
         let mut r = x.clone();
         r.sqr();
@@ -215,7 +246,9 @@ impl ECP {
         return r;
     }
 
-    /* test for O point-at-infinity */
+    /// Is Infinity
+    ///
+    /// self == infinity
     pub fn is_infinity(&self) -> bool {
         match CURVETYPE {
             CurveType::Edwards => self.x.iszilch() && self.y.equals(&self.z),
@@ -224,7 +257,9 @@ impl ECP {
         }
     }
 
-    /* Conditional swap of P and Q dependant on d */
+    /// Conditional Swap
+    ///
+    /// Conditional swap of self and Q dependant on d
     pub fn cswap(&mut self, Q: &mut ECP, d: isize) {
         self.x.cswap(&mut Q.x, d);
         if CURVETYPE != CurveType::Montgomery {
@@ -233,7 +268,9 @@ impl ECP {
         self.z.cswap(&mut Q.z, d);
     }
 
-    /* Conditional move of Q to P dependant on d */
+    /// Conditional Move
+    ///
+    /// Conditional move of Q to self dependant on d
     pub fn cmove(&mut self, Q: &ECP, d: isize) {
         self.x.cmove(&Q.x, d);
         if CURVETYPE != CurveType::Montgomery {
@@ -242,14 +279,18 @@ impl ECP {
         self.z.cmove(&Q.z, d);
     }
 
-    /* return 1 if b==c, no branching */
+    /// ConstantTime Equals
+    ///
+    /// Return 1 if b == c, no branching
     fn teq(b: i32, c: i32) -> isize {
         let mut x = b ^ c;
         x -= 1; // if x=0, x now -1
         return ((x >> 31) & 1) as isize;
     }
 
-    /* this=-this */
+    /// Negation
+    ///
+    /// self = -self
     pub fn neg(&mut self) {
         if CURVETYPE == CurveType::Weierstrass {
             self.y.neg();
@@ -261,12 +302,17 @@ impl ECP {
         }
         return;
     }
-    /* multiply x coordinate */
+
+    /// Multiply X
+    ///
+    /// Multiplies the X coordinate
     pub fn mulx(&mut self, c: &mut FP) {
         self.x.mul(c);
     }
 
-    /* Constant time select from pre-computed table */
+    /// Selector
+    ///
+    /// Constant time select from pre-computed table.
     fn selector(&mut self, W: &[ECP], b: i32) {
         let m = b >> 31;
         let mut babs = (b ^ m) - m;
@@ -287,7 +333,9 @@ impl ECP {
         self.cmove(&MP, (m & 1) as isize);
     }
 
-    /* Test P == Q */
+    /// Equals
+    ///
+    /// self == Q
     pub fn equals(&self, Q: &ECP) -> bool {
         let mut a = self.getpx();
         a.mul(&Q.z);
@@ -308,7 +356,9 @@ impl ECP {
         return true;
     }
 
-    /* set to affine - from (x,y,z) to (x,y) */
+    /// Affine
+    ///
+    /// Set to affine, from (X, Y, Z) to (x, y).
     pub fn affine(&mut self) {
         if self.is_infinity() {
             return;
@@ -328,41 +378,57 @@ impl ECP {
         self.z = one;
     }
 
-    /* extract x as a Big */
+    /// Get X
+    ///
+    /// Extract affine x as a Big.
     pub fn getx(&self) -> Big {
         let mut W = self.clone();
         W.affine();
         return W.x.redc();
     }
 
-    /* extract y as a Big */
+    /// Get Y
+    ///
+    /// Extract affine y as a Big.
     pub fn gety(&self) -> Big {
         let mut W = self.clone();
         W.affine();
         return W.y.redc();
     }
 
-    /* get sign of Y */
+    /// Get Sign Y
+    ///
+    /// Returns the sign of Y.
     pub fn gets(&self) -> isize {
         let y = self.gety();
         return y.parity();
     }
 
-    /* extract x as an FP */
+    /// Get Proejctive X
+    ///
+    /// Extract X as an FP.
     pub fn getpx(&self) -> FP {
         self.x.clone()
     }
-    /* extract y as an FP */
+
+    /// Get Projective Y
+    ///
+    /// Extract Y as an FP.
     pub fn getpy(&self) -> FP {
         self.y.clone()
     }
 
-    /* extract z as an FP */
+    /// Get Porjective Z
+    ///
+    /// Extract Z as an FP.
     pub fn getpz(&self) -> FP {
         self.z.clone()
     }
 
-    /* convert to byte array */
+    /// To Bytes
+    ///
+    /// Convert to byte array
+    /// Panics if byte array is insufficient length.
     pub fn tobytes(&self, b: &mut [u8], compress: bool) {
         let mb = big::MODBYTES as usize;
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
@@ -395,7 +461,11 @@ impl ECP {
         }
     }
 
-    /* convert from byte array to point */
+    /// From Bytes
+    ///
+    /// Convert from byte array to point
+    /// Panics if input bytes are less than required bytes.
+    #[inline(always)]
     pub fn frombytes(b: &[u8]) -> ECP {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
@@ -431,7 +501,9 @@ impl ECP {
         return ECP::new();
     }
 
-    /* convert to hex string */
+    /// To String
+    ///
+    /// Convert to hex string
     pub fn tostring(&self) -> String {
         let mut W = self.clone();
         W.affine();
@@ -445,6 +517,9 @@ impl ECP {
         };
     }
 
+    /// To Hex
+    ///
+    /// Converts the projectives to a hex string separated by a space.
     pub fn to_hex(&self) -> String {
         format!(
             "{} {} {}",
@@ -454,6 +529,8 @@ impl ECP {
         )
     }
 
+    /// From Hex Iterator
+    #[inline(always)]
     pub fn from_hex_iter(iter: &mut SplitWhitespace) -> ECP {
         ECP {
             x: FP::from_hex_iter(iter),
@@ -462,12 +539,16 @@ impl ECP {
         }
     }
 
+    /// From Hex
+    #[inline(always)]
     pub fn from_hex(val: String) -> ECP {
         let mut iter = val.split_whitespace();
         return ECP::from_hex_iter(&mut iter);
     }
 
-    /* this*=2 */
+    /// Double
+    ///
+    /// self *= 2
     pub fn dbl(&mut self) {
         if CURVETYPE == CurveType::Weierstrass {
             if rom::CURVE_A == 0 {
@@ -656,7 +737,9 @@ impl ECP {
         }
     }
 
-    /* self+=Q */
+    /// Addition
+    ///
+    /// self += Q
     pub fn add(&mut self, Q: &ECP) {
         if CURVETYPE == CurveType::Weierstrass {
             if rom::CURVE_A == 0 {
@@ -907,7 +990,10 @@ impl ECP {
         return;
     }
 
-    /* Differential Add for Montgomery curves. this+=Q where W is this-Q and is affine. */
+    /// Differential Add for Montgomery curves.
+    ///
+    /// self += Q
+    /// where W is (self - Q) and is affine
     pub fn dadd(&mut self, Q: &ECP, W: &ECP) {
         let mut a = self.x.clone();
         let mut b = self.x.clone();
@@ -946,14 +1032,19 @@ impl ECP {
         self.z.mul(&b);
     }
 
-    /// self-=Q
+    /// Subtraction
+    ///
+    /// self -= Q
     pub fn sub(&mut self, Q: &ECP) {
         let mut NQ = Q.clone();
         NQ.neg();
         self.add(&NQ);
     }
 
-    // Constant time multiply by small integer of length bts - use ladder
+    /// Pin Multiplication
+    ///
+    /// Constant time multiply by small integer of length bts - use ladder
+    #[inline(always)]
     pub fn pinmul(&self, e: i32, bts: i32) -> ECP {
         if CURVETYPE == CurveType::Montgomery {
             return self.mul(&mut Big::new_int(e as isize));
@@ -976,7 +1067,10 @@ impl ECP {
         }
     }
 
-    /// Return e.self
+    /// Multiplication
+    ///
+    /// Return e * self
+    #[inline(always)]
     pub fn mul(&self, e: &Big) -> ECP {
         if e.iszilch() || self.is_infinity() {
             return ECP::new();
@@ -1065,8 +1159,10 @@ impl ECP {
         T
     }
 
-    /* Return e.this+f.Q */
-
+    /// Multiply two points by scalars
+    ///
+    /// Return e * self + f * Q
+    #[inline(always)]
     pub fn mul2(&self, e: &Big, Q: &ECP, f: &Big) -> ECP {
         let mut W: [ECP; 8] = [
             ECP::new(),
@@ -1191,8 +1287,13 @@ impl ECP {
         *self = P.clone();
     }
 
-    // Map a given byte slice to a point on the curve. The byte slice should be atleast the size of the modulus
+
+    /// Map It
+    ///
+    /// Maps bytes to a curve point using hash and test.
+    /// Not conformant to hash-to-curve standards.
     #[allow(non_snake_case)]
+    #[inline(always)]
     pub fn mapit(h: &[u8]) -> ECP {
         let q = Big::new_ints(&rom::MODULUS);
         let mut x = Big::frombytes(h);
@@ -1221,6 +1322,10 @@ impl ECP {
         return P;
     }
 
+    /// Generator
+    ///
+    /// Returns the generator of the group.
+    #[inline(always)]
     pub fn generator() -> ECP {
         let G: ECP;
 

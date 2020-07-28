@@ -62,7 +62,10 @@ pub const TBITS: usize = MODBITS % big::BASEBITS; // Number of active bits in to
 pub const TMASK: Chunk = (1 << TBITS) - 1;
 
 impl FP {
-    // Constructors
+    /// New
+    ///
+    /// Creates a new Fp at 0.
+    #[inline(always)]
     pub fn new() -> FP {
         FP {
             x: Big::new(),
@@ -70,7 +73,10 @@ impl FP {
         }
     }
 
-    /// Creates a FP from an int
+    /// New Int
+    ///
+    /// Creates a FP from an int.
+    #[inline(always)]
     pub fn new_int(a: isize) -> FP {
         let mut f = FP::new();
         f.x.inc(a);
@@ -78,11 +84,18 @@ impl FP {
         return f;
     }
 
-    /// Creates a FP from a slice of raw ints in Big from
+    /// New Ints
+    ///
+    /// Creates a Fp from a slice of raw ints in Big form.
+    #[inline(always)]
     pub fn new_ints(w: &[Chunk]) -> FP {
         Self::new_big(Big::new_ints(w))
     }
 
+    /// New Big
+    ///
+    /// Creates a Fp from a Big.
+    #[inline(always)]
     pub fn new_big(x: Big) -> FP {
         let mut f = FP { x, xes: 1 };
         f.nres();
@@ -100,6 +113,8 @@ impl FP {
         }
     }
 
+    /// From Hex Iterator
+    #[inline(always)]
     pub fn from_hex_iter(iter: &mut SplitWhitespace) -> FP {
         let xes = i32::from_str(iter.next().unwrap()).unwrap();
         let x = iter.next().unwrap();
@@ -109,6 +124,10 @@ impl FP {
         }
     }
 
+    /// From Hex
+    ///
+    /// Converts to Fp from a hex string.
+    #[inline(always)]
     pub fn from_hex(val: String) -> FP {
         let mut s = val.split_whitespace();
         FP::from_hex_iter(&mut s)
@@ -414,9 +433,11 @@ impl FP {
         }
     }
 
-    /// Return this^(p-3)/4 or this^(p-5)/8
+    /// Modular Inverse for pseudo-Mersenne primes
     ///
+    /// Return self ^ (p - 3) / 4 or self ^ (p - 5) / 8
     /// https://eprint.iacr.org/2018/1038
+    #[inline(always)]
     pub fn fpow(&self) -> FP {
         let ac: [isize; 11] = [1, 2, 3, 6, 12, 15, 30, 60, 120, 240, 255];
         let mut xp: [FP; 11] = [
@@ -600,7 +621,10 @@ impl FP {
         return false;
     }
 
-    /// return self^e mod Modulus
+    /// Power
+    ///
+    /// return self ^ e mod Modulus
+    #[inline(always)]
     pub fn pow(&mut self, e: &mut Big) -> FP {
         let mut tb: [FP; 16] = [
             FP::new(),
@@ -654,7 +678,10 @@ impl FP {
         return r;
     }
 
+    /// Square Root
+    ///
     /// return sqrt(this) mod Modulus
+    #[inline(always)]
     pub fn sqrt(&mut self) -> FP {
         self.reduce();
 
