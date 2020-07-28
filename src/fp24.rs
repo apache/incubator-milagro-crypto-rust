@@ -41,6 +41,7 @@ pub struct FP24 {
 }
 
 impl FP24 {
+    #[inline(always)]
     pub fn new() -> FP24 {
         FP24 {
             a: FP8::new(),
@@ -58,6 +59,7 @@ impl FP24 {
         return self.stype;
     }
 
+    #[inline(always)]
     pub fn new_int(a: isize) -> FP24 {
         let stype = if a == 1 { ONE } else { SPARSER };
 
@@ -69,6 +71,7 @@ impl FP24 {
         }
     }
 
+    #[inline(always)]
     pub fn new_fp8s(a: FP8, b: FP8, c: FP8) -> FP24 {
         FP24 {
             a,
@@ -78,6 +81,7 @@ impl FP24 {
         }
     }
 
+    #[inline(always)]
     pub fn new_fp8(a: FP8) -> FP24 {
         FP24 {
             a,
@@ -155,14 +159,17 @@ impl FP24 {
         return self.a.equals(&x.a) && self.b.equals(&x.b) && self.c.equals(&x.c);
     }
 
+    #[inline(always)]
     pub fn geta(&self) -> FP8 {
         self.a.clone()
     }
 
+    #[inline(always)]
     pub fn getb(&self) -> FP8 {
         self.b.clone()
     }
 
+    #[inline(always)]
     pub fn getc(&self) -> FP8 {
         self.c.clone()
     }
@@ -761,6 +768,7 @@ impl FP24 {
     }
 
     /* trace function */
+    #[inline(always)]
     pub fn trace(&mut self) -> FP8 {
         let mut t = self.geta();
         t.imul(3);
@@ -769,6 +777,7 @@ impl FP24 {
     }
 
     /* convert from byte array to FP24 */
+    #[inline(always)]
     pub fn frombytes(w: &[u8]) -> FP24 {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
@@ -1035,6 +1044,7 @@ impl FP24 {
     }
 
     /* self=self^e */
+    #[inline(always)]
     pub fn pow(&self, e: &Big) -> FP24 {
         let mut r = self.clone();
         r.norm();
@@ -1076,6 +1086,7 @@ impl FP24 {
         *self = r[0].clone();
     }
 
+    #[inline(always)]
     pub fn compow(&mut self, e: &Big, r: &Big) -> FP8 {
         let f = FP2::new_bigs(Big::new_ints(&rom::FRA), Big::new_ints(&rom::FRB));
         let q = Big::new_ints(&rom::MODULUS);
@@ -1116,6 +1127,7 @@ impl FP24 {
     // Bos & Costello https://eprint.iacr.org/2013/458.pdf
     // Faz-Hernandez & Longa & Sanchez  https://eprint.iacr.org/2013/158.pdf
     // Side channel attack secure
+    #[inline(always)]
     pub fn pow8(q: &[FP24], u: &[Big]) -> FP24 {
         let mut g1: [FP24; 8] = [
             FP24::new(),

@@ -27,6 +27,10 @@ use crate::types::{CurvePairingType, SexticTwist, SignOfX};
 use std::fmt;
 use std::str::SplitWhitespace;
 
+/// Elliptic Curve Point over Fp2
+///
+/// A projective elliptic curve point defined over Fp2.
+/// (X, Y, Z)
 #[derive(Clone)]
 pub struct ECP2 {
     x: FP2,
@@ -56,6 +60,10 @@ impl fmt::Debug for ECP2 {
 
 #[allow(non_snake_case)]
 impl ECP2 {
+    /// New
+    ///
+    /// Creates a new elliptic curve point at infinity: (0, 1, 0).
+    #[inline(always)]
     pub fn new() -> ECP2 {
         ECP2 {
             x: FP2::new(),
@@ -63,8 +71,13 @@ impl ECP2 {
             z: FP2::new(),
         }
     }
+
+    /// New Fp2's
+    ///
+    /// Constructs from (x,y).
+    /// Set to infinity if not on curve.
     #[allow(non_snake_case)]
-    /* construct this from (x,y) - but set to O if not on curve */
+    #[inline(always)]
     pub fn new_fp2s(x: FP2, y: FP2) -> ECP2 {
         let mut E = ECP2 {
             x,
@@ -82,7 +95,11 @@ impl ECP2 {
         E
     }
 
-    /* construct this from x - but set to O if not on curve */
+    /// New Fp2
+    ///
+    /// Constructs point from x, by calculating y.
+    /// Set to infinity if not on curve.
+    #[inline(always)]
     pub fn new_fp2(ix: &FP2) -> ECP2 {
         let mut E = ECP2::new();
         E.x = ix.clone();
@@ -98,7 +115,11 @@ impl ECP2 {
         return E;
     }
 
-    // Construct from (X, Y, Z) with no gaurentee of correctness.
+    /// New Porjective
+    ///
+    /// Constructs point from (X, Y, Z) with no gaurentee of correctness.
+    /// Do not use this on untrusted input!
+    #[inline(always)]
     pub fn new_projective(x: FP2, y: FP2, z: FP2) -> ECP2 {
         ECP2 { x, y, z }
     }
@@ -249,7 +270,11 @@ impl ECP2 {
         }
     }
 
-    /* convert from byte array to point */
+    /// From Bytes
+    ///
+    /// Converts byte array to point.
+    /// Pancis if insufficient bytes are given.
+    #[inline(always)]
     pub fn frombytes(b: &[u8]) -> ECP2 {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
@@ -287,6 +312,9 @@ impl ECP2 {
         return format!("({},{})", W.x.tostring(), W.y.tostring());
     }
 
+    /// To Hex
+    ///
+    /// Converts each projective (X, Y, Z) to a hex string, separated by spaces.
     pub fn to_hex(&self) -> String {
         format!(
             "{} {} {}",
@@ -296,6 +324,8 @@ impl ECP2 {
         )
     }
 
+    /// From Hex Iterator
+    #[inline(always)]
     pub fn from_hex_iter(iter: &mut SplitWhitespace) -> ECP2 {
         ECP2 {
             x: FP2::from_hex_iter(iter),
@@ -304,6 +334,8 @@ impl ECP2 {
         }
     }
 
+    /// From Hex
+    #[inline(always)]
     pub fn from_hex(val: String) -> ECP2 {
         let mut iter = val.split_whitespace();
         return ECP2::from_hex_iter(&mut iter);
@@ -513,7 +545,10 @@ impl ECP2 {
         self.y.mul(x);
     }
 
-    /* self*=e */
+    /// Multiplication
+    ///
+    /// Return e * self
+    #[inline(always)]
     pub fn mul(&self, e: &Big) -> ECP2 {
         if self.is_infinity() {
             return ECP2::new();
@@ -582,11 +617,15 @@ impl ECP2 {
         P
     }
 
-    /* P=u0.Q0+u1*Q1+u2*Q2+u3*Q3 */
-    // Bos & Costello https://eprint.iacr.org/2013/458.pdf
-    // Faz-Hernandez & Longa & Sanchez  https://eprint.iacr.org/2013/158.pdf
-    // Side channel attack secure
-
+    /// Multiply 4 Points
+    ///
+    /// P = u0 * Q0 + u1 * Q1 + u2 * Q2 + u3 * Q3
+    /// Bos & Costello https://eprint.iacr.org/2013/458.pdf
+    /// Faz-Hernandez & Longa & Sanchez  https://eprint.iacr.org/2013/158.pdf
+    /// Side channel attack secure
+    ///
+    /// Panics if 4 points and 4 scalars are not given.
+    #[inline(always)]
     pub fn mul4(Q: &mut [ECP2], u: &[Big]) -> ECP2 {
         let mut P = ECP2::new();
 
@@ -686,8 +725,13 @@ impl ECP2 {
 
         return P;
     }
-
+    
+    /// Map It
+    ///
+    /// Maps bytes to a curve point using hash and test.
+    /// Not conformant to hash-to-curve standards.
     #[allow(non_snake_case)]
+    #[inline(always)]
     pub fn mapit(h: &[u8]) -> ECP2 {
         let q = Big::new_ints(&rom::MODULUS);
         let mut x = Big::frombytes(h);
@@ -759,6 +803,10 @@ impl ECP2 {
         self.affine();
     }
 
+    /// Generator
+    ///
+    /// Returns the generator of the group.
+    #[inline(always)]
     pub fn generator() -> ECP2 {
         return ECP2::new_fp2s(
             FP2::new_bigs(

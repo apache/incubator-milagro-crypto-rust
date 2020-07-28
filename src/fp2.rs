@@ -53,6 +53,10 @@ impl fmt::Debug for FP2 {
 }
 
 impl FP2 {
+    /// New
+    ///
+    /// Create a Fp2 set to 0.
+    #[inline(always)]
     pub fn new() -> FP2 {
         FP2 {
             a: FP::new(),
@@ -60,6 +64,10 @@ impl FP2 {
         }
     }
 
+    /// New Int
+    ///
+    /// Create a Fp2 setting `a` as an int, `b` to 0.
+    #[inline(always)]
     pub fn new_int(a: isize) -> FP2 {
         FP2 {
             a: FP::new_int(a),
@@ -67,6 +75,10 @@ impl FP2 {
         }
     }
 
+    /// New Ints
+    ///
+    /// Creates a Fp2 setting `a` and `b` as ints.
+    #[inline(always)]
     pub fn new_ints(a: isize, b: isize) -> FP2 {
         FP2 {
             a: FP::new_int(a),
@@ -74,10 +86,18 @@ impl FP2 {
         }
     }
 
+    /// New Fp's
+    ///
+    /// Create a new Fp2 from two Fp's.
+    #[inline(always)]
     pub fn new_fps(a: FP, b: FP) -> FP2 {
         FP2 { a, b }
     }
 
+    /// New Bigs
+    ///
+    /// Create a new Fp2 from two Bigs.
+    #[inline(always)]
     pub fn new_bigs(c: Big, d: Big) -> FP2 {
         FP2 {
             a: FP::new_big(c),
@@ -85,10 +105,18 @@ impl FP2 {
         }
     }
 
+    /// New Fp
+    ///
+    /// Creates a Fp2 setting `a` from a Fp.
+    #[inline(always)]
     pub fn new_fp(a: FP) -> FP2 {
         FP2 { a, b: FP::new() }
     }
 
+    /// New Big
+    ///
+    /// Creates a new Fp2 setting `a` from a Big.
+    #[inline(always)]
     pub fn new_big(c: Big) -> FP2 {
         FP2 {
             a: FP::new_big(c),
@@ -319,6 +347,8 @@ impl FP2 {
         format!("{} {}", self.a.to_hex(), self.b.to_hex())
     }
 
+    /// From Hex Iterator
+    #[inline(always)]
     pub fn from_hex_iter(iter: &mut SplitWhitespace) -> FP2 {
         FP2 {
             a: FP::from_hex_iter(iter),
@@ -326,6 +356,8 @@ impl FP2 {
         }
     }
 
+    /// From Hex
+    #[inline(always)]
     pub fn from_hex(val: String) -> FP2 {
         let mut iter = val.split_whitespace();
         return FP2::from_hex_iter(&mut iter);

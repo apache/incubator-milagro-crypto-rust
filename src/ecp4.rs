@@ -34,6 +34,8 @@ pub struct ECP4 {
 
 #[allow(non_snake_case)]
 impl ECP4 {
+    /// New
+    #[inline(always)]
     pub fn new() -> ECP4 {
         ECP4 {
             x: FP4::new(),
@@ -41,8 +43,13 @@ impl ECP4 {
             z: FP4::new(),
         }
     }
+
+    /// New Fp4's
+    ///
+    /// Constructs from (x,y)
+    /// Set to infinity if not on curve
+    #[inline(always)]
     #[allow(non_snake_case)]
-    /* construct this from (x,y) - but set to O if not on curve */
     pub fn new_fp4s(ix: &FP4, iy: &FP4) -> ECP4 {
         let mut E = ECP4::new();
         E.x = ix.clone();
@@ -59,7 +66,11 @@ impl ECP4 {
         return E;
     }
 
-    /* construct this from x - but set to O if not on curve */
+    /// New Fp4
+    ///
+    /// Construct this from x, calulating y.
+    /// Set to infinity if not on curve.
+    #[inline(always)]
     pub fn new_fp4(ix: &FP4) -> ECP4 {
         let mut E = ECP4::new();
         E.x = ix.clone();
@@ -244,7 +255,11 @@ impl ECP4 {
         }
     }
 
-    /* convert from byte array to point */
+    /// From Bytes
+    ///
+    /// Convert from byte array to point
+    /// Panics if insufficient bytes are given.
+    #[inline(always)]
     pub fn frombytes(b: &[u8]) -> ECP4 {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
@@ -531,7 +546,10 @@ impl ECP4 {
         }
     }
 
-    /* self*=e */
+    /// Multiplication
+    ///
+    /// Return self * e
+    #[inline(always)]
     pub fn mul(&self, e: &Big) -> ECP4 {
         /* fixed size windows */
         if self.is_infinity() {
@@ -601,11 +619,14 @@ impl ECP4 {
         P
     }
 
-    /* P=u0.Q0+u1*Q1+u2*Q2+u3*Q3.. */
-    // Bos & Costello https://eprint.iacr.org/2013/458.pdf
-    // Faz-Hernandez & Longa & Sanchez  https://eprint.iacr.org/2013/158.pdf
-    // Side channel attack secure
-
+    /// Multiplication 8
+    ///
+    /// P = u0 * Q0 + u1 * Q1 + u2 * Q2 + u3 * Q3 ..
+    /// Bos & Costello https://eprint.iacr.org/2013/458.pdf
+    /// Faz-Hernandez & Longa & Sanchez  https://eprint.iacr.org/2013/158.pdf
+    /// Side channel attack secure
+    /// Panics if 8 points and 8 scalars are not given.
+    #[inline(always)]
     pub fn mul8(Q: &mut [ECP4], u: &[Big]) -> ECP4 {
         let mut P = ECP4::new();
 
@@ -762,6 +783,10 @@ impl ECP4 {
         return P;
     }
 
+    /// Generator
+    ///
+    /// Returns the generator of the group.
+    #[inline(always)]
     pub fn generator() -> ECP4 {
         return ECP4::new_fp4s(
             &FP4::new_fp2s(
@@ -787,7 +812,12 @@ impl ECP4 {
         );
     }
 
+    /// Map It
+    ///
+    /// Maps bytes to a curve point using hash and test.
+    /// Not conformant to hash-to-curve standards.
     #[allow(non_snake_case)]
+    #[inline(always)]
     pub fn mapit(h: &[u8]) -> ECP4 {
         let mut q = Big::new_ints(&rom::MODULUS);
         let mut x = Big::frombytes(h);

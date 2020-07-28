@@ -30,6 +30,7 @@ use super::rom;
 use crate::types::{SexticTwist, SignOfX};
 
 #[allow(non_snake_case)]
+#[inline(always)]
 fn linedbl(A: &mut ECP4, qx: &FP, qy: &FP) -> FP24 {
     let mut xx = A.getpx(); //X
     let mut yy = A.getpy(); //Y
@@ -81,6 +82,7 @@ fn linedbl(A: &mut ECP4, qx: &FP, qy: &FP) -> FP24 {
 }
 
 #[allow(non_snake_case)]
+#[inline(always)]
 fn lineadd(A: &mut ECP4, B: &ECP4, qx: &FP, qy: &FP) -> FP24 {
     let mut x1 = A.getpx(); // X1
     let mut y1 = A.getpy(); // Y1
@@ -138,6 +140,7 @@ fn lbits(n3: &mut Big, n: &mut Big) -> usize {
 }
 
 /* prepare for multi-pairing */
+#[inline(always)]
 pub fn initmp() -> Vec<FP24> {
     let mut r: Vec<FP24> = Vec::with_capacity(rom::ATE_BITS);
     for _ in 0..rom::ATE_BITS {
@@ -147,6 +150,7 @@ pub fn initmp() -> Vec<FP24> {
 }
 
 /* basic Miller loop */
+#[inline(always)]
 pub fn miller(r: &[FP24]) -> FP24 {
     let mut res = FP24::new_int(1);
     for i in (1..rom::ATE_BITS).rev() {
@@ -198,8 +202,9 @@ pub fn another(r: &mut [FP24], P1: &ECP4, Q1: &ECP) {
     }
 }
 
-#[allow(non_snake_case)]
 /* Optimal R-ate pairing */
+#[allow(non_snake_case)]
+#[inline(always)]
 pub fn ate(P1: &ECP4, Q1: &ECP) -> FP24 {
     let mut n = Big::new();
     let mut n3 = Big::new();
@@ -243,8 +248,9 @@ pub fn ate(P1: &ECP4, Q1: &ECP) -> FP24 {
     return r;
 }
 
-#[allow(non_snake_case)]
 /* Optimal R-ate double pairing e(P,Q).e(R,S) */
+#[allow(non_snake_case)]
+#[inline(always)]
 pub fn ate2(P1: &ECP4, Q1: &ECP, R1: &ECP4, S1: &ECP) -> FP24 {
     let mut n = Big::new();
     let mut n3 = Big::new();
@@ -304,6 +310,7 @@ pub fn ate2(P1: &ECP4, Q1: &ECP, R1: &ECP4, S1: &ECP) -> FP24 {
 }
 
 /* final exponentiation - keep separate for multi-pairings and to avoid thrashing stack */
+#[inline(always)]
 pub fn fexp(m: &FP24) -> FP24 {
     let f = FP2::new_bigs(Big::new_ints(&rom::FRA), Big::new_ints(&rom::FRB));
     let mut x = Big::new_ints(&rom::CURVE_BNX);
@@ -401,8 +408,9 @@ pub fn fexp(m: &FP24) -> FP24 {
     return r;
 }
 
-#[allow(non_snake_case)]
 /* GLV method */
+#[allow(non_snake_case)]
+#[inline(always)]
 fn glv(e: &Big) -> [Big; 2] {
     let mut u: [Big; 2] = [Big::new(), Big::new()];
     let q = Big::new_ints(&rom::CURVE_ORDER);
@@ -418,8 +426,9 @@ fn glv(e: &Big) -> [Big; 2] {
     return u;
 }
 
-#[allow(non_snake_case)]
 /* Galbraith & Scott Method */
+#[allow(non_snake_case)]
+#[inline(always)]
 pub fn gs(e: &Big) -> [Big; 8] {
     let mut u: [Big; 8] = [
         Big::new(),
@@ -449,8 +458,9 @@ pub fn gs(e: &Big) -> [Big; 8] {
     u
 }
 
-#[allow(non_snake_case)]
 /* Multiply P by e in group G1 */
+#[allow(non_snake_case)]
+#[inline(always)]
 pub fn g1mul(P: &ECP, e: &mut Big) -> ECP {
     if rom::USE_GLV {
         let mut R = P.clone();
@@ -484,8 +494,9 @@ pub fn g1mul(P: &ECP, e: &mut Big) -> ECP {
     }
 }
 
-#[allow(non_snake_case)]
 /* Multiply P by e in group G2 */
+#[allow(non_snake_case)]
+#[inline(always)]
 pub fn g2mul(P: &ECP4, e: &Big) -> ECP4 {
     if rom::USE_GS_G2 {
         let mut Q: [ECP4; 8] = [
@@ -527,6 +538,7 @@ pub fn g2mul(P: &ECP4, e: &Big) -> ECP4 {
 
 /* f=f^e */
 /* Note that this method requires a lot of RAM! Better to use compressed XTR method, see FP4.java */
+#[inline(always)]
 pub fn gtpow(d: &FP24, e: &Big) -> FP24 {
     if rom::USE_GS_GT {
         let mut g: [FP24; 8] = [

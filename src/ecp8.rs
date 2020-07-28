@@ -26,6 +26,10 @@ use super::fp8::FP8;
 use super::rom;
 use crate::types::{SexticTwist, SignOfX};
 
+/// Elliptic Curve Point over Fp8
+///
+/// An eliptic curve point defined over the extension field Fp8
+/// (X, Y , Z)
 #[derive(Clone)]
 pub struct ECP8 {
     x: FP8,
@@ -35,6 +39,10 @@ pub struct ECP8 {
 
 #[allow(non_snake_case)]
 impl ECP8 {
+    /// New
+    ///
+    /// Creates a new projective point at infinity: (0, 1, 0)
+    #[inline(always)]
     pub fn new() -> ECP8 {
         ECP8 {
             x: FP8::new(),
@@ -42,8 +50,13 @@ impl ECP8 {
             z: FP8::new(),
         }
     }
+
+    /// New Fp8's
+    ///
+    /// Construct this from (x,y).
+    /// Set to infinity if not on curve.
     #[allow(non_snake_case)]
-    /* construct this from (x,y) - but set to O if not on curve */
+    #[inline(always)]
     pub fn new_fp8s(ix: &FP8, iy: &FP8) -> ECP8 {
         let mut E = ECP8::new();
         E.x = ix.clone();
@@ -60,7 +73,11 @@ impl ECP8 {
         return E;
     }
 
-    /* construct this from x - but set to O if not on curve */
+    /// New Fp8
+    ///
+    /// Constructs from x, calculating y.
+    /// Set to infinity if not on curve.
+    #[inline(always)]
     pub fn new_fp8(ix: &FP8) -> ECP8 {
         let mut E = ECP8::new();
         E.x = ix.clone();
@@ -282,7 +299,11 @@ impl ECP8 {
         }
     }
 
-    /* convert from byte array to point */
+    /// From Bytes
+    ///
+    /// Convert from byte array to point
+    /// Panics if insufficient bytes are given.
+    #[inline(always)]
     pub fn frombytes(b: &[u8]) -> ECP8 {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
@@ -637,7 +658,10 @@ impl ECP8 {
         }
     }
 
-    /* self*=e */
+    /// Multiplication
+    ///
+    /// Returns self * e
+    #[inline(always)]
     pub fn mul(&self, e: &Big) -> ECP8 {
         /* fixed size windows */
         let mut P = ECP8::new();
@@ -709,11 +733,14 @@ impl ECP8 {
         return P;
     }
 
-    /* P=u0.Q0+u1*Q1+u2*Q2+u3*Q3.. */
-    // Bos & Costello https://eprint.iacr.org/2013/458.pdf
-    // Faz-Hernandez & Longa & Sanchez  https://eprint.iacr.org/2013/158.pdf
-    // Side channel attack secure
-
+    /// Multiplication 16
+    ///
+    /// P = u0 * Q0 + u1 * Q1 + u2 * Q2 + u3 * Q3 ...
+    /// Bos & Costello https://eprint.iacr.org/2013/458.pdf
+    /// Faz-Hernandez & Longa & Sanchez  https://eprint.iacr.org/2013/158.pdf
+    /// Side channel attack secure
+    /// Panics if less than 8 points and 8 scalars are given.
+    #[inline(always)]
     pub fn mul16(Q: &mut [ECP8], u: &[Big]) -> ECP8 {
         let mut P = ECP8::new();
 
@@ -1010,6 +1037,10 @@ impl ECP8 {
         return P;
     }
 
+    /// Generator
+    ///
+    /// Returns the generator of the group.
+    #[inline(always)]
     pub fn generator() -> ECP8 {
         return ECP8::new_fp8s(
             &FP8::new_fp4s(
@@ -1059,7 +1090,12 @@ impl ECP8 {
         );
     }
 
+    /// Map It
+    ///
+    /// Maps bytes to a curve point using hash and test.
+    /// Not conformant to hash-to-curve standards.
     #[allow(non_snake_case)]
+    #[inline(always)]
     pub fn mapit(h: &[u8]) -> ECP8 {
         let mut q = Big::new_ints(&rom::MODULUS);
         let mut x = Big::frombytes(h);

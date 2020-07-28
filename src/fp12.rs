@@ -50,6 +50,7 @@ impl PartialEq for FP12 {
 impl Eq for FP12 {}
 
 impl FP12 {
+    #[inline(always)]
     pub fn new() -> FP12 {
         FP12 {
             a: FP4::new(),
@@ -67,6 +68,7 @@ impl FP12 {
         self.stype
     }
 
+    #[inline(always)]
     pub fn new_int(a: isize) -> FP12 {
         let stype = if a == 1 { ONE } else { SPARSER };
 
@@ -78,6 +80,7 @@ impl FP12 {
         }
     }
 
+    #[inline(always)]
     pub fn new_fp4s(a: FP4, b: FP4, c: FP4) -> FP12 {
         FP12 {
             a,
@@ -87,6 +90,7 @@ impl FP12 {
         }
     }
 
+    #[inline(always)]
     pub fn new_fp4(a: FP4) -> FP12 {
         FP12 {
             a,
@@ -165,14 +169,17 @@ impl FP12 {
         self.a.equals(&x.a) && self.b.equals(&x.b) && self.c.equals(&x.c)
     }
 
+    #[inline(always)]
     pub fn geta(&self) -> FP4 {
         self.a.clone()
     }
 
+    #[inline(always)]
     pub fn getb(&self) -> FP4 {
         self.b.clone()
     }
 
+    #[inline(always)]
     pub fn getc(&mut self) -> FP4 {
         self.c.clone()
     }
@@ -764,6 +771,7 @@ impl FP12 {
     }
 
     /* trace function */
+    #[inline(always)]
     pub fn trace(&mut self) -> FP4 {
         let mut t = self.geta();
         t.imul(3);
@@ -772,6 +780,7 @@ impl FP12 {
     }
 
     /* convert from byte array to FP12 */
+    #[inline(always)]
     pub fn frombytes(w: &[u8]) -> FP12 {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
@@ -922,6 +931,7 @@ impl FP12 {
         )
     }
 
+    #[inline(always)]
     pub fn from_hex_iter(iter: &mut SplitWhitespace) -> FP12 {
         FP12 {
             a: FP4::from_hex_iter(iter),
@@ -931,12 +941,14 @@ impl FP12 {
         }
     }
 
+    #[inline(always)]
     pub fn from_hex(val: String) -> FP12 {
         let mut iter = val.split_whitespace();
         return FP12::from_hex_iter(&mut iter);
     }
 
     /* self=self^e */
+    #[inline(always)]
     pub fn pow(&self, e: &Big) -> FP12 {
         let mut r = self.clone();
         r.norm();
@@ -978,6 +990,7 @@ impl FP12 {
         *self = r[0].clone();
     }
 
+    #[inline(always)]
     pub fn compow(&mut self, e: &Big, r: &Big) -> FP4 {
         let f = FP2::new_bigs(Big::new_ints(&rom::FRA), Big::new_ints(&rom::FRB));
         let q = Big::new_ints(&rom::MODULUS);
@@ -1018,6 +1031,7 @@ impl FP12 {
     // Bos & Costello https://eprint.iacr.org/2013/458.pdf
     // Faz-Hernandez & Longa & Sanchez  https://eprint.iacr.org/2013/158.pdf
     // Side channel attack secure
+    #[inline(always)]
     pub fn pow4(q: &[FP12], u: &[Big]) -> FP12 {
         let mut g: [FP12; 8] = [
             FP12::new(),

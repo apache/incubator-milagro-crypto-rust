@@ -42,6 +42,7 @@ pub struct FP48 {
 }
 
 impl FP48 {
+    #[inline(always)]
     pub fn new() -> FP48 {
         FP48 {
             a: FP16::new(),
@@ -59,6 +60,7 @@ impl FP48 {
         return self.stype;
     }
 
+    #[inline(always)]
     pub fn new_int(a: isize) -> FP48 {
         let mut f = FP48::new();
         f.a = FP16::new_int(a);
@@ -72,6 +74,7 @@ impl FP48 {
         return f;
     }
 
+    #[inline(always)]
     pub fn new_fp16s(a: FP16, b: FP16, c: FP16) -> FP48 {
         FP48 {
             a,
@@ -81,6 +84,7 @@ impl FP48 {
         }
     }
 
+    #[inline(always)]
     pub fn new_fp16(a: FP16) -> FP48 {
         FP48 {
             a,
@@ -158,14 +162,17 @@ impl FP48 {
         return self.a.equals(&x.a) && self.b.equals(&x.b) && self.c.equals(&x.c);
     }
 
+    #[inline(always)]
     pub fn geta(&self) -> FP16 {
         self.a.clone()
     }
 
+    #[inline(always)]
     pub fn getb(&self) -> FP16 {
         self.b.clone()
     }
 
+    #[inline(always)]
     pub fn getc(&self) -> FP16 {
         self.c.clone()
     }
@@ -767,6 +774,7 @@ impl FP48 {
     }
 
     /// Trace function
+    #[inline(always)]
     pub fn trace(&mut self) -> FP16 {
         let mut t = self.geta();
         t.imul(3);
@@ -775,6 +783,7 @@ impl FP48 {
     }
 
     /// Convert from byte array to FP48
+    #[inline(always)]
     pub fn frombytes(w: &[u8]) -> FP48 {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
@@ -1287,6 +1296,7 @@ impl FP48 {
     }
 
     /* self=self^e */
+    #[inline(always)]
     pub fn pow(&self, e: &Big) -> FP48 {
         let mut r = self.clone();
         r.norm();
@@ -1328,6 +1338,7 @@ impl FP48 {
         *self = r[0].clone();
     }
 
+    #[inline(always)]
     pub fn compow(&mut self, e: &Big, r: &Big) -> FP16 {
         let f = FP2::new_bigs(Big::new_ints(&rom::FRA), Big::new_ints(&rom::FRB));
         let q = Big::new_ints(&rom::MODULUS);
@@ -1368,6 +1379,7 @@ impl FP48 {
     // Bos & Costello https://eprint.iacr.org/2013/458.pdf
     // Faz-Hernandez & Longa & Sanchez  https://eprint.iacr.org/2013/158.pdf
     // Side channel attack secure
+    #[inline(always)]
     pub fn pow16(q: &[FP48], u: &[Big]) -> FP48 {
         let mut g1: [FP48; 8] = [
             FP48::new(),
