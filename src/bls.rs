@@ -54,25 +54,25 @@ pub fn key_pair_generate(mut rng: &mut RAND, s: &mut [u8], w: &mut [u8]) -> isiz
     let q = Big::new_ints(&rom::CURVE_ORDER);
     let g = ECP2::generator();
     let sc = Big::randomnum(&q, &mut rng);
-    sc.tobytes(s);
-    pair::g2mul(&g, &sc).tobytes(w);
+    sc.to_bytes(s);
+    pair::g2mul(&g, &sc).to_bytes(w);
     BLS_OK
 }
 
 /// Sign message m using private key s to produce signature sig.
 pub fn sign(sig: &mut [u8], m: &str, s: &[u8]) -> isize {
     let d = bls_hashit(m);
-    let mut sc = Big::frombytes(&s);
-    pair::g1mul(&d, &mut sc).tobytes(sig, true);
+    let mut sc = Big::from_bytes(&s);
+    pair::g1mul(&d, &mut sc).to_bytes(sig, true);
     BLS_OK
 }
 
 /// Verify signature given message m, the signature sig, and the public key w
 pub fn verify(sig: &[u8], m: &str, w: &[u8]) -> isize {
     let hm = bls_hashit(m);
-    let mut d = ECP::frombytes(&sig);
+    let mut d = ECP::from_bytes(&sig);
     let g = ECP2::generator();
-    let pk = ECP2::frombytes(&w);
+    let pk = ECP2::from_bytes(&w);
     d.neg();
 
     // Use new multi-pairing mechanism

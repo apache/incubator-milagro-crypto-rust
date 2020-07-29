@@ -245,26 +245,26 @@ impl ECP2 {
     }
 
     /* convert to byte array */
-    pub fn tobytes(&self, b: &mut [u8]) {
+    pub fn to_bytes(&self, b: &mut [u8]) {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
         let mut W = self.clone();
 
         W.affine();
-        W.x.geta().tobytes(&mut t);
+        W.x.geta().to_bytes(&mut t);
         for i in 0..mb {
             b[i] = t[i]
         }
-        W.x.getb().tobytes(&mut t);
+        W.x.getb().to_bytes(&mut t);
         for i in 0..mb {
             b[i + mb] = t[i]
         }
 
-        W.y.geta().tobytes(&mut t);
+        W.y.geta().to_bytes(&mut t);
         for i in 0..mb {
             b[i + 2 * mb] = t[i]
         }
-        W.y.getb().tobytes(&mut t);
+        W.y.getb().to_bytes(&mut t);
         for i in 0..mb {
             b[i + 3 * mb] = t[i]
         }
@@ -275,28 +275,28 @@ impl ECP2 {
     /// Converts byte array to point.
     /// Pancis if insufficient bytes are given.
     #[inline(always)]
-    pub fn frombytes(b: &[u8]) -> ECP2 {
+    pub fn from_bytes(b: &[u8]) -> ECP2 {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
 
         for i in 0..mb {
             t[i] = b[i]
         }
-        let ra = Big::frombytes(&t);
+        let ra = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = b[i + mb]
         }
-        let rb = Big::frombytes(&t);
+        let rb = Big::from_bytes(&t);
         let rx = FP2::new_bigs(ra, rb);
 
         for i in 0..mb {
             t[i] = b[i + 2 * mb]
         }
-        let ra = Big::frombytes(&t);
+        let ra = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = b[i + 3 * mb]
         }
-        let rb = Big::frombytes(&t);
+        let rb = Big::from_bytes(&t);
         let ry = FP2::new_bigs(ra, rb);
 
         ECP2::new_fp2s(rx, ry)
@@ -736,7 +736,7 @@ impl ECP2 {
     #[inline(always)]
     pub fn mapit(h: &[u8]) -> ECP2 {
         let q = Big::new_ints(&rom::MODULUS);
-        let mut x = Big::frombytes(h);
+        let mut x = Big::from_bytes(h);
         x.rmod(&q);
         let mut Q: ECP2;
         let one = Big::new_int(1);

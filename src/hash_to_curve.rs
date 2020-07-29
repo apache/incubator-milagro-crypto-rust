@@ -97,7 +97,7 @@ pub fn hash_to_field_fp(msg: &[u8], count: usize, dst: &[u8]) -> Result<Vec<FP>,
     for i in 0..count as usize {
         let elm_offset = H2C_L as usize * i * m as usize;
         let mut dbig =
-            DBig::frombytes(&pseudo_random_bytes[elm_offset..elm_offset + H2C_L as usize]);
+            DBig::from_bytes(&pseudo_random_bytes[elm_offset..elm_offset + H2C_L as usize]);
         let e: Big = dbig.dmod(&p);
         u.push(FP::new_big(e));
     }
@@ -122,7 +122,7 @@ pub fn hash_to_field_fp2(msg: &[u8], count: usize, dst: &[u8]) -> Result<Vec<FP2
         for j in 0..m as usize {
             let elm_offset = H2C_L as usize * (j + i * m as usize);
             let mut big =
-                DBig::frombytes(&pseudo_random_bytes[elm_offset..elm_offset + H2C_L as usize]);
+                DBig::from_bytes(&pseudo_random_bytes[elm_offset..elm_offset + H2C_L as usize]);
             e.push(big.dmod(&p));
         }
         u.push(FP2::new_bigs(e[0].clone(), e[1].clone()));

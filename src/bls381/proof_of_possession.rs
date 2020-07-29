@@ -165,7 +165,7 @@ pub fn fast_aggregate_verify_g1(public_keys: &[&[u8]], msg: &[u8], signature: &[
     let mut g = ECP2::generator();
     g.neg();
 
-    let mut aggregate_public_key = ECP2::frombytes(&public_keys[0]);
+    let mut aggregate_public_key = ECP2::from_bytes(&public_keys[0]);
     for public_key in public_keys.iter().skip(1) {
         let public_key = deserialize_g2(public_key);
         if public_key.is_err() {
@@ -299,7 +299,7 @@ pub fn fast_aggregate_verify_g2(public_keys: &[&[u8]], msg: &[u8], signature: &[
     let mut g = ECP::generator();
     g.neg();
 
-    let mut aggregate_public_key = ECP::frombytes(&public_keys[0]);
+    let mut aggregate_public_key = ECP::from_bytes(&public_keys[0]);
     for public_key in public_keys.iter().skip(1) {
         let public_key = deserialize_g1(public_key);
         if public_key.is_err() {

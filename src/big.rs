@@ -472,7 +472,7 @@ impl Big {
     /// To Byte Array
     ///
     /// Convert this Big to byte array from index `n`
-    pub fn tobytearray(&self, b: &mut [u8], n: usize) {
+    pub fn to_byte_array(&self, b: &mut [u8], n: usize) {
         let mut c = self.clone();
         c.norm();
 
@@ -486,7 +486,7 @@ impl Big {
     ///
     /// Convert from byte array starting at index `n` to Big
     #[inline(always)]
-    pub fn frombytearray(b: &[u8], n: usize) -> Big {
+    pub fn from_byte_array(b: &[u8], n: usize) -> Big {
         let mut m = Big::new();
 
         // Restrict length
@@ -507,8 +507,8 @@ impl Big {
     /// To Bytes
     ///
     /// Convert to bytes from index 0
-    pub fn tobytes(&self, b: &mut [u8]) {
-        self.tobytearray(b, 0)
+    pub fn to_bytes(&self, b: &mut [u8]) {
+        self.to_byte_array(b, 0)
     }
 
     /// From bytes
@@ -516,8 +516,8 @@ impl Big {
     /// Convert from bytes from index 0
     /// Panics if input bytes length is less than required.
     #[inline(always)]
-    pub fn frombytes(b: &[u8]) -> Big {
-        Big::frombytearray(b, 0)
+    pub fn from_bytes(b: &[u8]) -> Big {
+        Big::from_byte_array(b, 0)
     }
 
     /// P Multiply

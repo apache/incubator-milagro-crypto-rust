@@ -41,7 +41,7 @@ pub const SHA512: usize = 64;
 
 #[allow(non_snake_case)]
 
-fn inttobytes(n: usize, b: &mut [u8]) {
+fn intto_bytes(n: usize, b: &mut [u8]) {
     let mut i = b.len();
     let mut m = n;
     while m > 0 && i > 0 {
@@ -197,7 +197,7 @@ pub fn pbkdf2(sha: usize, pass: &[u8], salt: &[u8], rep: usize, olen: usize, k: 
         for j in 0..sl {
             s[j] = salt[j]
         }
-        inttobytes(i + 1, &mut n);
+        intto_bytes(i + 1, &mut n);
         for j in 0..4 {
             s[sl + j] = n[j]
         }
@@ -404,15 +404,15 @@ pub fn key_pair_generate(rng: Option<&mut RAND>, s: &mut [u8], w: &mut [u8]) -> 
     if let Some(mut x) = rng {
         sc = Big::randomnum(&r, &mut x);
     } else {
-        sc = Big::frombytes(&s);
+        sc = Big::from_bytes(&s);
         sc.rmod(&r);
     }
 
-    sc.tobytes(s);
+    sc.to_bytes(s);
 
     let WP = G.mul(&sc);
 
-    WP.tobytes(w, false); // To use point compression on public keys, change to true
+    WP.to_bytes(w, false); // To use point compression on public keys, change to true
 
     res
 }
@@ -420,7 +420,7 @@ pub fn key_pair_generate(rng: Option<&mut RAND>, s: &mut [u8], w: &mut [u8]) -> 
 /// Validate public key
 #[allow(non_snake_case)]
 pub fn public_key_validate(w: &[u8]) -> isize {
-    let mut WP = ECP::frombytes(w);
+    let mut WP = ECP::from_bytes(w);
     let mut res = 0;
 
     let r = Big::new_ints(&rom::CURVE_ORDER);
@@ -458,9 +458,9 @@ pub fn ecpsvdp_dh(s: &[u8], wd: &[u8], z: &mut [u8]) -> isize {
     let mut res = 0;
     let mut t: [u8; EFS] = [0; EFS];
 
-    let mut sc = Big::frombytes(&s);
+    let mut sc = Big::from_bytes(&s);
 
-    let mut W = ECP::frombytes(&wd);
+    let mut W = ECP::from_bytes(&wd);
     if W.is_infinity() {
         res = ERROR
     }
@@ -472,7 +472,7 @@ pub fn ecpsvdp_dh(s: &[u8], wd: &[u8], z: &mut [u8]) -> isize {
         if W.is_infinity() {
             res = ERROR;
         } else {
-            W.getx().tobytes(&mut t);
+            W.getx().to_bytes(&mut t);
             for i in 0..EFS {
                 z[i] = t[i]
             }
@@ -500,8 +500,8 @@ pub fn ecpsp_dsa(
 
     let r = Big::new_ints(&rom::CURVE_ORDER);
 
-    let sc = Big::frombytes(s); // s or &s?
-    let fb = Big::frombytes(&b);
+    let sc = Big::from_bytes(s); // s or &s?
+    let fb = Big::from_bytes(&b);
 
     let mut cb = Big::new();
     let mut db = Big::new();
@@ -533,11 +533,11 @@ pub fn ecpsp_dsa(
         db = tb.clone();
     }
 
-    cb.tobytes(&mut t);
+    cb.to_bytes(&mut t);
     for i in 0..EFS {
         c[i] = t[i]
     }
-    db.tobytes(&mut t);
+    db.to_bytes(&mut t);
     for i in 0..EFS {
         d[i] = t[i]
     }
@@ -556,21 +556,21 @@ pub fn ecpvp_dsa(sha: usize, w: &[u8], f: &[u8], c: &[u8], d: &[u8]) -> isize {
     let G = ECP::generator();
     let r = Big::new_ints(&rom::CURVE_ORDER);
 
-    let cb = Big::frombytes(c); // c or &c ?
-    let mut db = Big::frombytes(d); // d or &d ?
+    let cb = Big::from_bytes(c); // c or &c ?
+    let mut db = Big::from_bytes(d); // d or &d ?
 
     if cb.is_zilch() || Big::comp(&cb, &r) >= 0 || db.is_zilch() || Big::comp(&db, &r) >= 0 {
         res = INVALID;
     }
 
     if res == 0 {
-        let mut fb = Big::frombytes(&b);
+        let mut fb = Big::from_bytes(&b);
         db.invmodp(&r);
         let tb = Big::modmul(&fb, &db, &r);
         fb = tb.clone();
         let h2 = Big::modmul(&cb, &db, &r);
 
-        let WP = ECP::frombytes(&w);
+        let WP = ECP::from_bytes(&w);
         if WP.is_infinity() {
             res = ERROR;
         } else {
@@ -639,7 +639,7 @@ pub fn ecies_encrypt(
     let mut l2: [u8; 8] = [0; 8];
     let p2l = p2.len();
 
-    inttobytes(p2l, &mut l2);
+    intto_bytes(p2l, &mut l2);
 
     for i in 0..p2l {
         c.push(p2[i]);
@@ -719,7 +719,7 @@ pub fn ecies_decrypt(
     let mut l2: [u8; 8] = [0; 8];
     let p2l = p2.len();
 
-    inttobytes(p2l, &mut l2);
+    intto_bytes(p2l, &mut l2);
 
     for i in 0..p2l {
         c.push(p2[i]);

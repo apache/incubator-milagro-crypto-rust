@@ -429,13 +429,13 @@ impl ECP {
     ///
     /// Convert to byte array
     /// Panics if byte array is insufficient length.
-    pub fn tobytes(&self, b: &mut [u8], compress: bool) {
+    pub fn to_bytes(&self, b: &mut [u8], compress: bool) {
         let mb = big::MODBYTES as usize;
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mut W = self.clone();
 
         W.affine();
-        W.x.redc().tobytes(&mut t);
+        W.x.redc().to_bytes(&mut t);
         for i in 0..mb {
             b[i + 1] = t[i]
         }
@@ -455,7 +455,7 @@ impl ECP {
 
         b[0] = 0x04;
 
-        W.y.redc().tobytes(&mut t);
+        W.y.redc().to_bytes(&mut t);
         for i in 0..mb {
             b[i + mb + 1] = t[i]
         }
@@ -466,7 +466,7 @@ impl ECP {
     /// Convert from byte array to point
     /// Panics if input bytes are less than required bytes.
     #[inline(always)]
-    pub fn frombytes(b: &[u8]) -> ECP {
+    pub fn from_bytes(b: &[u8]) -> ECP {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
         let p = Big::new_ints(&rom::MODULUS);
@@ -474,7 +474,7 @@ impl ECP {
         for i in 0..mb {
             t[i] = b[i + 1]
         }
-        let px = Big::frombytes(&t);
+        let px = Big::from_bytes(&t);
         if Big::comp(&px, &p) >= 0 {
             return ECP::new();
         }
@@ -487,7 +487,7 @@ impl ECP {
             for i in 0..mb {
                 t[i] = b[i + mb + 1]
             }
-            let py = Big::frombytes(&t);
+            let py = Big::from_bytes(&t);
             if Big::comp(&py, &p) >= 0 {
                 return ECP::new();
             }
@@ -1296,7 +1296,7 @@ impl ECP {
     #[inline(always)]
     pub fn mapit(h: &[u8]) -> ECP {
         let q = Big::new_ints(&rom::MODULUS);
-        let mut x = Big::frombytes(h);
+        let mut x = Big::from_bytes(h);
         x.rmod(&q);
         let mut P: ECP;
 

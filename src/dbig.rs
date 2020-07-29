@@ -291,7 +291,7 @@ impl DBig {
 
     // convert from byte array to DBig
     #[inline(always)]
-    pub fn frombytes(b: &[u8]) -> DBig {
+    pub fn from_bytes(b: &[u8]) -> DBig {
         let mut m = DBig::new();
 
         // Restrict length

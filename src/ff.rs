@@ -320,15 +320,15 @@ impl FF {
     }
 
     /* Convert FFs to/from byte arrays */
-    pub fn tobytes(&mut self, b: &mut [u8]) {
+    pub fn to_bytes(&mut self, b: &mut [u8]) {
         for i in 0..self.length {
-            self.v[i].tobytearray(b, (self.length - i - 1) * (big::MODBYTES as usize))
+            self.v[i].to_byte_array(b, (self.length - i - 1) * (big::MODBYTES as usize))
         }
     }
 
-    pub fn frombytes(x: &mut FF, b: &[u8]) {
+    pub fn from_bytes(x: &mut FF, b: &[u8]) {
         for i in 0..x.length {
-            x.v[i] = Big::frombytearray(b, (x.length - i - 1) * (big::MODBYTES as usize))
+            x.v[i] = Big::from_byte_array(b, (x.length - i - 1) * (big::MODBYTES as usize))
         }
     }
 
