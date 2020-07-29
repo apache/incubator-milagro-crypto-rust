@@ -28,6 +28,14 @@ pub struct FP8 {
     b: FP4,
 }
 
+impl PartialEq for FP8 {
+    fn eq(&self, other: &FP8) -> bool {
+        self.equals(other)
+    }
+}
+
+impl Eq for FP8 {}
+
 impl FP8 {
     /// New
     #[inline(always)]
@@ -92,19 +100,19 @@ impl FP8 {
     }
 
     /* test self=0 ? */
-    pub fn iszilch(&self) -> bool {
-        return self.a.iszilch() && self.b.iszilch();
+    pub fn is_zilch(&self) -> bool {
+        return self.a.is_zilch() && self.b.is_zilch();
     }
 
     /* test self=1 ? */
-    pub fn isunity(&self) -> bool {
+    pub fn is_unity(&self) -> bool {
         let one = FP4::new_int(1);
-        return self.a.equals(&one) && self.b.iszilch();
+        return self.a.equals(&one) && self.b.is_zilch();
     }
 
     /* test is w real? That is in a+ib test b is zero */
     pub fn isreal(&self) -> bool {
-        return self.b.iszilch();
+        return self.b.is_zilch();
     }
 
     /// Real
@@ -301,9 +309,11 @@ impl FP8 {
         self.norm();
     }
 
-    /* output to hex string */
-    pub fn tostring(&self) -> String {
-        return format!("[{},{}]", self.a.tostring(), self.b.tostring());
+    /// To String
+    ///
+    /// Converts a `FP8` to a hex string.
+    pub fn to_string(&self) -> String {
+        return format!("[{},{}]", self.a.to_string(), self.b.to_string());
     }
 
     /* self=1/self */
@@ -372,7 +382,7 @@ impl FP8 {
             if bt == 1 {
                 r.mul(&w)
             };
-            if z.iszilch() {
+            if z.is_zilch() {
                 break;
             }
             w.sqr();
@@ -644,7 +654,7 @@ impl FP8 {
     /* sqrt(a+ib) = sqrt(a+sqrt(a*a-n*b*b)/2)+ib/(2*sqrt(a+sqrt(a*a-n*b*b)/2)) */
     /* returns true if this is QR */
     pub fn sqrt(&mut self) -> bool {
-        if self.iszilch() {
+        if self.is_zilch() {
             return true;
         }
 
@@ -652,7 +662,7 @@ impl FP8 {
         let mut s = self.getb();
         let mut t = self.geta();
 
-        if s.iszilch() {
+        if s.is_zilch() {
             if t.sqrt() {
                 self.a = t.clone();
                 self.b.zero();

@@ -251,9 +251,9 @@ impl ECP {
     /// self == infinity
     pub fn is_infinity(&self) -> bool {
         match CURVETYPE {
-            CurveType::Edwards => self.x.iszilch() && self.y.equals(&self.z),
-            CurveType::Weierstrass => self.x.iszilch() && self.z.iszilch(),
-            CurveType::Montgomery => self.z.iszilch(),
+            CurveType::Edwards => self.x.is_zilch() && self.y.equals(&self.z),
+            CurveType::Weierstrass => self.x.is_zilch() && self.z.is_zilch(),
+            CurveType::Montgomery => self.z.is_zilch(),
         }
     }
 
@@ -503,17 +503,17 @@ impl ECP {
 
     /// To String
     ///
-    /// Convert to hex string
-    pub fn tostring(&self) -> String {
+    /// Converts `ECP` to a hex string.
+    pub fn to_string(&self) -> String {
         let mut W = self.clone();
         W.affine();
         if W.is_infinity() {
             return String::from("infinity");
         }
         if CURVETYPE == CurveType::Montgomery {
-            return format!("({})", W.x.redc().tostring());
+            return format!("({})", W.x.redc().to_string());
         } else {
-            return format!("({},{})", W.x.redc().tostring(), W.y.redc().tostring());
+            return format!("({},{})", W.x.redc().to_string(), W.y.redc().to_string());
         };
     }
 
@@ -1072,7 +1072,7 @@ impl ECP {
     /// Return e * self
     #[inline(always)]
     pub fn mul(&self, e: &Big) -> ECP {
-        if e.iszilch() || self.is_infinity() {
+        if e.is_zilch() || self.is_infinity() {
             return ECP::new();
         }
         let mut T = if CURVETYPE == CurveType::Montgomery {

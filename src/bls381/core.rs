@@ -554,7 +554,7 @@ pub(crate) fn core_verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8], ds
     v = pair::fexp(&v);
 
     // True if pairing output is 1
-    v.isunity()
+    v.is_unity()
 }
 
 /// Aggregate
@@ -623,7 +623,7 @@ pub(crate) fn core_aggregate_verify_g1(
     // True if pairing output is 1
     let mut v = pair::miller(&r);
     v = pair::fexp(&v);
-    v.isunity()
+    v.is_unity()
 }
 
 /*************************************************************************************************
@@ -708,7 +708,7 @@ pub(crate) fn core_verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8], ds
     v = pair::fexp(&v);
 
     // True if pairing output is 1
-    v.isunity()
+    v.is_unity()
 }
 
 /// Aggregate
@@ -778,7 +778,7 @@ pub(crate) fn core_aggregate_verify_g2(
     // True if pairing output is 1
     let mut v = pair::miller(&r);
     v = pair::fexp(&v);
-    v.isunity()
+    v.is_unity()
 }
 
 /*************************************************************************************************

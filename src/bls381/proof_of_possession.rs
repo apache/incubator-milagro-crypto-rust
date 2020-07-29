@@ -144,7 +144,7 @@ pub fn pop_verify_g1(public_key_bytes: &[u8], proof_bytes: &[u8]) -> bool {
     v = pair::fexp(&v);
 
     // True if pairing output is 1
-    v.isunity()
+    v.is_unity()
 }
 
 /// Proof of Possession - FastAggregateVerify
@@ -184,7 +184,7 @@ pub fn fast_aggregate_verify_g1(public_keys: &[&[u8]], msg: &[u8], signature: &[
     v = pair::fexp(&v);
 
     // True if pairing output is 1
-    v.isunity()
+    v.is_unity()
 }
 
 /*************************************************************************************************
@@ -278,7 +278,7 @@ pub fn pop_verify_g2(public_key_bytes: &[u8], proof_bytes: &[u8]) -> bool {
     v = pair::fexp(&v);
 
     // True if pairing output is 1
-    v.isunity()
+    v.is_unity()
 }
 
 /// Proof of Possession - FastAggregateVerify
@@ -318,5 +318,5 @@ pub fn fast_aggregate_verify_g2(public_keys: &[&[u8]], msg: &[u8], signature: &[
     v = pair::fexp(&v);
 
     // True if pairing output is 1
-    v.isunity()
+    v.is_unity()
 }

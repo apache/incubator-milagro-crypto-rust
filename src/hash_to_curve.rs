@@ -229,7 +229,7 @@ pub fn simplified_swu_fp(u: FP) -> (FP, FP) {
     x.mul(&a_inverse);
 
     // Deal with case where Z^2 * u^4 + Z * u^2 == 0
-    if tv1.iszilch() {
+    if tv1.is_zilch() {
         // x = B / (Z * A)
         x = sswu_z.clone();
         x.inverse();
@@ -305,7 +305,7 @@ pub fn simplified_swu_fp2(u: FP2) -> (FP2, FP2) {
     x.mul(&a_inverse);
 
     // Deal with case where Z^2 * u^4 + Z * u^2 == 0
-    if tv1.iszilch() {
+    if tv1.is_zilch() {
         // x = B / (Z * A)
         x = sswu_z.clone();
         x.inverse();

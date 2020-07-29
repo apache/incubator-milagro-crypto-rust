@@ -37,6 +37,15 @@ pub struct ECP8 {
     z: FP8,
 }
 
+impl PartialEq for ECP8 {
+    fn eq(&self, other: &ECP8) -> bool {
+        self.equals(other)
+    }
+}
+
+impl Eq for ECP8 {}
+
+
 #[allow(non_snake_case)]
 impl ECP8 {
     /// New
@@ -98,7 +107,7 @@ impl ECP8 {
     pub fn is_infinity(&self) -> bool {
         let xx = self.getpx();
         let zz = self.getpz();
-        return xx.iszilch() && zz.iszilch();
+        return xx.is_zilch() && zz.is_zilch();
     }
 
     /* set self=O */
@@ -151,7 +160,7 @@ impl ECP8 {
     }
 
     /* Test if P == Q */
-    pub fn equals(&mut self, Q: &mut ECP8) -> bool {
+    pub fn equals(&self, Q: &ECP8) -> bool {
         let mut a = self.getpx();
         let mut b = Q.getpx();
 
@@ -411,14 +420,16 @@ impl ECP8 {
         return ECP8::new_fp8s(&rx, &ry);
     }
 
-    /* convert this to hex string */
-    pub fn tostring(&self) -> String {
+    /// To String
+    ///
+    /// Converts `ECP8` to a hex string.
+    pub fn to_string(&self) -> String {
         let mut W = self.clone();
         W.affine();
         if W.is_infinity() {
             return String::from("infinity");
         }
-        return format!("({},{})", W.x.tostring(), W.y.tostring());
+        return format!("({},{})", W.x.to_string(), W.y.to_string());
     }
 
     /* Calculate RHS of twisted curve equation x^3+B/i */

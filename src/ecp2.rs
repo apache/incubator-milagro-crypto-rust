@@ -126,7 +126,7 @@ impl ECP2 {
 
     /* Test this=O? */
     pub fn is_infinity(&self) -> bool {
-        self.x.iszilch() && self.z.iszilch()
+        self.x.is_zilch() && self.z.is_zilch()
     }
 
     /* set self=O */
@@ -302,14 +302,16 @@ impl ECP2 {
         ECP2::new_fp2s(rx, ry)
     }
 
-    /* convert this to hex string */
-    pub fn tostring(&self) -> String {
+    /// To String
+    ///
+    /// Converts `ECP2` to a hex string.
+    pub fn to_string(&self) -> String {
         let mut W = self.clone();
         W.affine();
         if W.is_infinity() {
             return String::from("infinity");
         }
-        return format!("({},{})", W.x.tostring(), W.y.tostring());
+        return format!("({},{})", W.x.to_string(), W.y.to_string());
     }
 
     /// To Hex
@@ -725,7 +727,7 @@ impl ECP2 {
 
         return P;
     }
-    
+
     /// Map It
     ///
     /// Maps bytes to a curve point using hash and test.

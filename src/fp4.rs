@@ -107,19 +107,19 @@ impl FP4 {
     }
 
     /* test self=0 ? */
-    pub fn iszilch(&self) -> bool {
-        self.a.iszilch() && self.b.iszilch()
+    pub fn is_zilch(&self) -> bool {
+        self.a.is_zilch() && self.b.is_zilch()
     }
 
     /* test self=1 ? */
-    pub fn isunity(&self) -> bool {
+    pub fn is_unity(&self) -> bool {
         let one = FP2::new_int(1);
-        self.a.equals(&one) && self.b.iszilch()
+        self.a.equals(&one) && self.b.is_zilch()
     }
 
     /* test is w real? That is in a+ib test b is zero */
     pub fn isreal(&self) -> bool {
-        self.b.iszilch()
+        self.b.is_zilch()
     }
 
     /// Real
@@ -307,9 +307,11 @@ impl FP4 {
         self.norm();
     }
 
-    /* output to hex string */
-    pub fn tostring(&self) -> String {
-        return format!("[{},{}]", self.a.tostring(), self.b.tostring());
+    /// To String
+    ///
+    /// Converts a `FP4` to a hex string.
+    pub fn to_string(&self) -> String {
+        return format!("[{},{}]", self.a.to_string(), self.b.to_string());
     }
 
     pub fn to_hex(&self) -> String {
@@ -387,7 +389,7 @@ impl FP4 {
             if bt == 1 {
                 r.mul(&w)
             };
-            if z.iszilch() {
+            if z.is_zilch() {
                 break;
             }
             w.sqr();
@@ -651,7 +653,7 @@ impl FP4 {
     /* sqrt(a+ib) = sqrt(a+sqrt(a*a-n*b*b)/2)+ib/(2*sqrt(a+sqrt(a*a-n*b*b)/2)) */
     /* returns true if this is QR */
     pub fn sqrt(&mut self) -> bool {
-        if self.iszilch() {
+        if self.is_zilch() {
             return true;
         }
 
@@ -659,7 +661,7 @@ impl FP4 {
         let mut s = self.getb();
         let mut t = self.geta();
 
-        if s.iszilch() {
+        if s.is_zilch() {
             if t.sqrt() {
                 self.a = t.clone();
                 self.b.zero();

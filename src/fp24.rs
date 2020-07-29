@@ -40,6 +40,14 @@ pub struct FP24 {
     stype: usize,
 }
 
+impl PartialEq for FP24 {
+    fn eq(&self, other: &FP24) -> bool {
+        self.equals(other)
+    }
+}
+
+impl Eq for FP24 {}
+
 impl FP24 {
     #[inline(always)]
     pub fn new() -> FP24 {
@@ -106,8 +114,8 @@ impl FP24 {
     }
 
     /* test self=0 ? */
-    pub fn iszilch(&self) -> bool {
-        return self.a.iszilch() && self.b.iszilch() && self.c.iszilch();
+    pub fn is_zilch(&self) -> bool {
+        return self.a.is_zilch() && self.b.is_zilch() && self.c.is_zilch();
     }
 
     /* Conditional move of g to self dependant on d */
@@ -149,9 +157,9 @@ impl FP24 {
     }
 
     /* test self=1 ? */
-    pub fn isunity(&self) -> bool {
+    pub fn is_unity(&self) -> bool {
         let one = FP8::new_int(1);
-        return self.a.equals(&one) && self.b.iszilch() && self.c.iszilch();
+        return self.a.equals(&one) && self.b.is_zilch() && self.c.is_zilch();
     }
 
     /* test self=x */
@@ -1033,13 +1041,15 @@ impl FP24 {
         }
     }
 
-    /* output to hex string */
-    pub fn tostring(&self) -> String {
+    /// To String
+    ///
+    /// Converts a `FP24` to a hex string.
+    pub fn to_string(&self) -> String {
         return format!(
             "[{},{},{}]",
-            self.a.tostring(),
-            self.b.tostring(),
-            self.c.tostring()
+            self.a.to_string(),
+            self.b.to_string(),
+            self.c.to_string()
         );
     }
 
@@ -1105,7 +1115,7 @@ impl FP24 {
 
         let mut c = g1.trace();
 
-        if b.iszilch() {
+        if b.is_zilch() {
             c = c.xtr_pow(&mut a);
             return c;
         }

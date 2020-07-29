@@ -703,7 +703,7 @@ pub fn server_2(
     g = pair::ate2(&Q, &R, &sQ, &P);
     g = pair::fexp(&g);
 
-    if !g.isunity() {
+    if !g.is_unity() {
         if let Some(rxid) = xid {
             if let Some(re) = e {
                 if let Some(rf) = f {

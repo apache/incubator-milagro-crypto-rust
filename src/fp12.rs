@@ -115,9 +115,9 @@ impl FP12 {
     }
 
     /* test self=0 ? */
-    pub fn iszilch(&self) -> bool {
+    pub fn is_zilch(&self) -> bool {
         //self.reduce();
-        return self.a.iszilch() && self.b.iszilch() && self.c.iszilch();
+        return self.a.is_zilch() && self.b.is_zilch() && self.c.is_zilch();
     }
 
     /* Conditional move of g to self dependant on d */
@@ -159,9 +159,9 @@ impl FP12 {
     }
 
     /* test self=1 ? */
-    pub fn isunity(&self) -> bool {
+    pub fn is_unity(&self) -> bool {
         let one = FP4::new_int(1);
-        self.a.equals(&one) && self.b.iszilch() && self.c.iszilch()
+        self.a.equals(&one) && self.b.is_zilch() && self.c.is_zilch()
     }
 
     /* test self=x */
@@ -912,13 +912,15 @@ impl FP12 {
         }
     }
 
-    /* output to hex string */
-    pub fn tostring(&self) -> String {
+    /// To String
+    ///
+    /// Converts a `FP12` to a hex string.
+    pub fn to_string(&self) -> String {
         return format!(
             "[{},{},{}]",
-            self.a.tostring(),
-            self.b.tostring(),
-            self.c.tostring()
+            self.a.to_string(),
+            self.b.to_string(),
+            self.c.to_string()
         );
     }
 
@@ -1009,7 +1011,7 @@ impl FP12 {
 
         let mut c = g1.trace();
 
-        if b.iszilch() {
+        if b.is_zilch() {
             c = c.xtr_pow(&a);
             return c;
         }

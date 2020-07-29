@@ -32,6 +32,14 @@ pub struct ECP4 {
     z: FP4,
 }
 
+impl PartialEq for ECP4 {
+    fn eq(&self, other: &ECP4) -> bool {
+        self.equals(other)
+    }
+}
+
+impl Eq for ECP4 {}
+
 #[allow(non_snake_case)]
 impl ECP4 {
     /// New
@@ -91,7 +99,7 @@ impl ECP4 {
     pub fn is_infinity(&self) -> bool {
         let xx = self.getpx();
         let zz = self.getpz();
-        return xx.iszilch() && zz.iszilch();
+        return xx.is_zilch() && zz.is_zilch();
     }
 
     /* set self=O */
@@ -144,20 +152,20 @@ impl ECP4 {
     }
 
     /* Test if P == Q */
-    pub fn equals(&mut self, Q: &mut ECP4) -> bool {
+    pub fn equals(&self, Q: &ECP4) -> bool {
         let mut a = self.getpx();
         let mut b = Q.getpx();
 
         a.mul(&Q.z);
         b.mul(&self.z);
-        if !a.equals(&mut b) {
+        if !a.equals(&b) {
             return false;
         }
         a = self.getpy();
         a.mul(&Q.z);
         b = Q.getpy();
         b.mul(&self.z);
-        if !a.equals(&mut b) {
+        if !a.equals(&b) {
             return false;
         }
 
@@ -315,15 +323,18 @@ impl ECP4 {
         ECP4::new_fp4s(&rx, &ry)
     }
 
-    /* convert this to hex string */
-    pub fn tostring(&self) -> String {
+    /// To String
+    ///
+    /// Converts `ECP4` to a hex string.
+    pub fn to_string(&self) -> String {
         let mut W = self.clone();
         W.affine();
         if W.is_infinity() {
             return String::from("infinity");
         }
-        return format!("({},{})", W.x.tostring(), W.y.tostring());
+        return format!("({},{})", W.x.to_string(), W.y.to_string());
     }
+
 
     /* Calculate RHS of twisted curve equation x^3+B/i */
     pub fn rhs(x: &FP4) -> FP4 {

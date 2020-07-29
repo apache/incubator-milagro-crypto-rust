@@ -42,13 +42,13 @@ pub struct Big {
 
 impl fmt::Display for Big {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Big: [ {} ]", self.tostring())
+        write!(f, "Big: [ {} ]", self.to_string())
     }
 }
 
 impl fmt::Debug for Big {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Big: [ {} ]", self.tostring())
+        write!(f, "Big: [ {} ]", self.to_string())
     }
 }
 
@@ -80,12 +80,17 @@ impl PartialOrd for Big {
 }
 
 impl Big {
+    /// New
+    ///
+    /// Creates a new Big set to zero.
     #[inline(always)]
     pub fn new() -> Big {
         Big { w: [0; NLEN] }
     }
 
-    /// Convert a integer to a Big
+    /// New Int
+    ///
+    /// Convert an integer to a Big
     #[inline(always)]
     pub fn new_int(x: isize) -> Big {
         let mut s = Big::new();
@@ -93,6 +98,8 @@ impl Big {
         s
     }
 
+    /// New Ints
+    ///
     /// Takes an array of integers and converts to a Big
     #[inline(always)]
     pub fn new_ints(a: &[Chunk]) -> Big {
@@ -103,6 +110,9 @@ impl Big {
         s
     }
 
+    /// New Double Copy
+    ///
+    /// Copies the least significant bytes from a `DBig`.
     #[inline(always)]
     pub fn new_dcopy(y: &DBig) -> Big {
         let mut s = Big::new();
@@ -112,24 +122,31 @@ impl Big {
         s
     }
 
+    /// Get
+    ///
+    /// Retrives the Chunk at a given index.
     pub fn get(&self, i: usize) -> Chunk {
         self.w[i]
     }
 
+    /// Set
+    ///
+    /// Sets the chunk at a given index.
     pub fn set(&mut self, i: usize, x: Chunk) {
         self.w[i] = x;
     }
 
-    pub fn xortop(&mut self, x: Chunk) {
+    /// XOR Top
+    ///
+    /// Performs XOR on the most significant byte.
+    pub fn xor_top(&mut self, x: Chunk) {
         self.w[NLEN - 1] ^= x;
     }
 
-    pub fn ortop(&mut self, x: Chunk) {
-        self.w[NLEN - 1] |= x;
-    }
-
-    /// test for zero
-    pub fn iszilch(&self) -> bool {
+    /// Is Zilch
+    ///
+    /// self == zero
+    pub fn is_zilch(&self) -> bool {
         for i in 0..NLEN {
             if self.w[i] != 0 {
                 return false;
@@ -138,15 +155,19 @@ impl Big {
         true
     }
 
-    /// set to zero
+    /// Zero
+    ///
+    /// Set to zero.
     pub fn zero(&mut self) {
         for i in 0..NLEN {
             self.w[i] = 0
         }
     }
 
-    /// Test for equal to one
-    pub fn isunity(&self) -> bool {
+    /// Is Unity
+    ///
+    /// self == one
+    pub fn is_unity(&self) -> bool {
         for i in 1..NLEN {
             if self.w[i] != 0 {
                 return false;
@@ -158,7 +179,9 @@ impl Big {
         true
     }
 
-    /// Set to one
+    /// One
+    ///
+    /// Set to one.
     pub fn one(&mut self) {
         self.w[0] = 1;
         for i in 1..NLEN {
@@ -166,22 +189,28 @@ impl Big {
         }
     }
 
-    /// Copy from a DBig
+    /// Double Copy
+    ///
+    /// Copy least significant bytes from a `DBig`
     pub fn dcopy(&mut self, x: &DBig) {
         for i in 0..NLEN {
             self.w[i] = x.w[i]
         }
     }
 
-    /// Get top and bottom half of =x*y+c+r
-    pub fn muladd(a: Chunk, b: Chunk, c: Chunk, r: Chunk) -> (Chunk, Chunk) {
+    /// Multiply Addition
+    ///
+    /// Get top and bottom half of  = x * y + c + r
+    pub fn mul_add(a: Chunk, b: Chunk, c: Chunk, r: Chunk) -> (Chunk, Chunk) {
         let prod: DChunk = (a as DChunk) * (b as DChunk) + (c as DChunk) + (r as DChunk);
         let bot = (prod & (BMASK as DChunk)) as Chunk;
         let top = (prod >> BASEBITS) as Chunk;
         (top, bot)
     }
 
-    /// normalise Big - force all digits < 2^BASEBITS
+    /// Normalise
+    ///
+    /// Force all digits < 2^BASEBITS
     pub fn norm(&mut self) -> Chunk {
         let mut carry = 0 as Chunk;
         for i in 0..NLEN - 1 {
@@ -193,6 +222,8 @@ impl Big {
         (self.w[NLEN - 1] >> ((8 * MODBYTES) % BASEBITS)) as Chunk
     }
 
+    /// Conditional Swap
+    ///
     /// Conditional swap of two bigs depending on d using XOR - no branches
     pub fn cswap(&mut self, b: &mut Big, d: isize) {
         let mut c = d as Chunk;
@@ -204,6 +235,9 @@ impl Big {
         }
     }
 
+    /// Conditional Move
+    ///
+    /// Conditional move of two bigs depending on d using XOR - no branches
     pub fn cmove(&mut self, g: &Big, d: isize) {
         let b = -d as Chunk;
         for i in 0..NLEN {
@@ -211,7 +245,9 @@ impl Big {
         }
     }
 
-    /// Shift right by less than a word
+    /// Partial Shift Right
+    ///
+    /// Shift right by less than a word.
     pub fn fshr(&mut self, k: usize) -> isize {
         let n = k;
         let w = self.w[0] & ((1 << n) - 1); // shifted out part
@@ -222,7 +258,9 @@ impl Big {
         return w as isize;
     }
 
-    /// general shift right
+    /// Shift Right
+    ///
+    /// General shift right.
     pub fn shr(&mut self, k: usize) {
         let n = k % BASEBITS;
         let m = k / BASEBITS;
@@ -235,7 +273,9 @@ impl Big {
         }
     }
 
-    /// Shift right by less than a word
+    /// Partial Shift Left
+    ///
+    /// Shift left by less than a word.
     pub fn fshl(&mut self, k: usize) -> isize {
         let n = k;
         self.w[NLEN - 1] = (self.w[NLEN - 1] << n) | (self.w[NLEN - 2] >> (BASEBITS - n));
@@ -247,7 +287,9 @@ impl Big {
         (self.w[NLEN - 1] >> ((8 * MODBYTES) % BASEBITS)) as isize
     }
 
-    /// General shift left
+    /// Shift Left
+    ///
+    /// General shift left.
     pub fn shl(&mut self, k: usize) {
         let n = k % BASEBITS;
         let m = k / BASEBITS;
@@ -265,6 +307,8 @@ impl Big {
         }
     }
 
+    /// Number of Bits
+    ///
     /// Return number of bits
     pub fn nbits(&self) -> usize {
         let mut k = NLEN - 1;
@@ -285,8 +329,10 @@ impl Big {
         bts
     }
 
-    // Convert to Hex String
-    pub fn tostring(&self) -> String {
+    /// To String
+    ///
+    /// Converts a `Big` to a hex string.
+    pub fn to_string(&self) -> String {
         let mut s = String::new();
         let mut len = self.nbits();
 
@@ -309,9 +355,11 @@ impl Big {
         s
     }
 
-    /// From Hex String
+    /// From String
+    ///
+    /// Converts to `Big` from hex string.
     #[inline(always)]
-    pub fn fromstring(val: String) -> Big {
+    pub fn from_string(val: String) -> Big {
         let mut res = Big::new();
         let len = val.len();
         let op = &val[0..1];
@@ -326,27 +374,35 @@ impl Big {
         res
     }
 
-    // Self += r
+    /// Add
+    ///
+    /// self += r
     pub fn add(&mut self, r: &Big) {
         for i in 0..NLEN {
             self.w[i] += r.w[i]
         }
     }
 
-    //? Bitwise OR
+    /// OR
+    ///
+    /// self |= r
     pub fn or(&mut self, r: &Big) {
         for i in 0..NLEN {
             self.w[i] |= r.w[i]
         }
     }
 
-    /// Self * 2
+    /// Double
+    ///
+    /// self *= 2
     pub fn dbl(&mut self) {
         for i in 0..NLEN {
             self.w[i] += self.w[i]
         }
     }
 
+    /// Plus
+    ///
     /// Return self + x
     #[inline(always)]
     pub fn plus(&self, x: &Big) -> Big {
@@ -357,13 +413,17 @@ impl Big {
         s
     }
 
-    /// Return self + 1
+    /// Increment
+    ///
+    /// self += x
     pub fn inc(&mut self, x: isize) {
         self.norm();
         self.w[0] += x as Chunk;
     }
 
-    ///  Return self - x
+    /// Minus
+    ///
+    /// Return self - x
     #[inline(always)]
     pub fn minus(&self, x: &Big) -> Big {
         let mut d = Big::new();
@@ -373,6 +433,8 @@ impl Big {
         d
     }
 
+    /// Subtraction
+    ///
     /// self -= x
     pub fn sub(&mut self, x: &Big) {
         for i in 0..NLEN {
@@ -380,20 +442,27 @@ impl Big {
         }
     }
 
-    /// reverse subtract this=x-this
+    /// Reverse Subtraction
+    ///
+    /// self = x - self
     pub fn rsub(&mut self, x: &Big) {
         for i in 0..NLEN {
             self.w[i] = x.w[i] - self.w[i]
         }
     }
 
-    /// self-=x, where x is int
+    /// Decrement
+    ///
+    /// self -= x, where x is int
     pub fn dec(&mut self, x: isize) {
         self.norm();
         self.w[0] -= x as Chunk;
     }
 
-    /// self*=x, where x is small int<NEXCESS
+    /// Integer Multiplication
+    ///
+    /// self *= x,
+    /// Require: x < NEXCESS
     pub fn imul(&mut self, c: isize) {
         for i in 0..NLEN {
             self.w[i] *= c as Chunk;
@@ -451,25 +520,31 @@ impl Big {
         Big::frombytearray(b, 0)
     }
 
-    // self*=x, where x is >NEXCESS
+    /// P Multiply
+    ///
+    /// self *= x
+    /// Require: x > NEXCESS, returns overflow
     pub fn pmul(&mut self, c: isize) -> Chunk {
         let mut carry = 0 as Chunk;
         for i in 0..NLEN {
             let ak = self.w[i];
-            let tuple = Big::muladd(ak, c as Chunk, carry, 0 as Chunk);
+            let tuple = Big::mul_add(ak, c as Chunk, carry, 0 as Chunk);
             carry = tuple.0;
             self.w[i] = tuple.1;
         }
         carry
     }
 
-    /// self *= c and catch overflow in DBig
+    /// PX Multiply
+    ///
+    /// self *= c
+    /// Note: catches overflow in DBig
     #[inline(always)]
     pub fn pxmul(&self, c: isize) -> DBig {
         let mut m = DBig::new();
         let mut carry = 0 as Chunk;
         for j in 0..NLEN {
-            let tuple = Big::muladd(self.w[j], c as Chunk, carry, m.w[j]);
+            let tuple = Big::mul_add(self.w[j], c as Chunk, carry, m.w[j]);
             carry = tuple.0;
             m.w[j] = tuple.1;
         }
@@ -477,7 +552,10 @@ impl Big {
         m
     }
 
-    /// divide by 3
+    /// Divide 3
+    ///
+    /// self /= 3
+    /// Returns carry
     pub fn div3(&mut self) -> Chunk {
         let mut carry = 0 as Chunk;
         self.norm();
@@ -490,7 +568,10 @@ impl Big {
         carry
     }
 
-    /// return a*b where result fits in a Big
+    /// Small Multiply
+    ///
+    /// return a * b
+    /// Require: a * b to fit in a Big.
     #[inline(always)]
     pub fn smul(a: &Big, b: &Big) -> Big {
         let mut c = Big::new();
@@ -498,7 +579,7 @@ impl Big {
             let mut carry = 0 as Chunk;
             for j in 0..NLEN {
                 if i + j < NLEN {
-                    let tuple = Big::muladd(a.w[i], b.w[j], carry, c.w[i + j]);
+                    let tuple = Big::mul_add(a.w[i], b.w[j], carry, c.w[i + j]);
                     carry = tuple.0;
                     c.w[i + j] = tuple.1;
                 }
@@ -507,7 +588,10 @@ impl Big {
         c
     }
 
-    /// Compare a and b, return 0 if a==b, -1 if a<b, +1 if a>b. Inputs must be normalised
+    /// Compare
+    ///
+    /// Compare a and b, return 0 if a == b; -1 if a < b; +1 if a > b.
+    /// Require: a and b must be normalised
     pub fn comp(a: &Big, b: &Big) -> isize {
         for i in (0..NLEN).rev() {
             if a.w[i] == b.w[i] {
@@ -522,7 +606,9 @@ impl Big {
         0
     }
 
-    /// set x = x mod 2^m
+    /// Mod 2^m
+    ///
+    /// set self = self mod 2^m
     pub fn mod2m(&mut self, m: usize) {
         let wd = m / BASEBITS;
         let bt = m % BASEBITS;
@@ -533,6 +619,8 @@ impl Big {
         }
     }
 
+    /// Inverse Modulus 256
+    ///
     /// Arazi and Qi inversion mod 256
     pub fn invmod256(a: isize) -> isize {
         let mut t1: isize = 0;
@@ -572,12 +660,16 @@ impl Big {
         u
     }
 
-    /// Return parity
+    /// Parity
+    ///
+    /// Returns self % 2
     pub fn parity(&self) -> isize {
         (self.w[0] % 2) as isize
     }
 
-    /// Return n-th bit
+    /// Bit
+    ///
+    /// Returns the `n`-th bit
     pub fn bit(&self, n: usize) -> isize {
         if (self.w[n / (BASEBITS as usize)] & (1 << (n % BASEBITS))) > 0 {
             return 1;
@@ -585,13 +677,17 @@ impl Big {
         0
     }
 
-    /// Return n last bits
+    /// Last Bits
+    ///
+    /// Returns last `n` bits
     pub fn lastbits(&mut self, n: usize) -> isize {
         let msk = ((1 << n) - 1) as Chunk;
         self.norm();
         (self.w[0] & msk) as isize
     }
 
+    /// Inverse Modulu 2^m
+    ///
     /// a = 1/a mod 2^256. This is very fast!
     pub fn invmod2m(&mut self) {
         let mut u = Big::new();
@@ -747,11 +843,14 @@ impl Big {
         m
     }
 
-    /// Jacobi Symbol (this/p). Returns 0, 1 or -1
+    /// Jacobi Symbol
+    ///
+    /// Performs jacobi(self/p)
+    /// Returns 0, 1 or -1
     pub fn jacobi(&mut self, p: &Big) -> isize {
         let mut m: usize = 0;
         let one = Big::new_int(1);
-        if p.parity() == 0 || self.iszilch() || Big::comp(p, &one) <= 0 {
+        if p.parity() == 0 || self.is_zilch() || Big::comp(p, &one) <= 0 {
             return 0;
         }
         self.norm();
@@ -761,7 +860,7 @@ impl Big {
         x.rmod(p);
 
         while Big::comp(&n, &one) > 0 {
-            if x.iszilch() {
+            if x.is_zilch() {
                 return 0;
             }
             let n8 = n.lastbits(3) as usize;
@@ -1006,6 +1105,7 @@ impl Big {
         b
     }
 
+    /// SSN
     pub fn ssn(r: &mut Big, a: &Big, m: &mut Big) -> isize {
         let n = NLEN - 1;
         m.w[0] = (m.w[0] >> 1) | ((m.w[1] << (BASEBITS - 1)) & BMASK);
@@ -1072,11 +1172,139 @@ impl Big {
             if bt == 1 {
                 a = Big::modmul(&a, &s, m)
             }
-            if z.iszilch() {
+            if z.is_zilch() {
                 break;
             }
             s = Big::modsqr(&s, m);
         }
         a
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_zero() {
+        let zero = Big::new_int(0);
+        assert!(zero.is_zilch());
+
+        let zero2 = Big::new();
+        assert!(zero2.is_zilch());
+        assert_eq!(zero, zero2);
+
+        let zero2 = Big::new_ints(&[0; NLEN]);
+        assert!(zero2.is_zilch());
+
+        let mut zero2 = Big::new_int(123456789);
+        zero2.zero();
+        assert!(zero2.is_zilch());
+
+        let mut zero2 = Big::new_int(9876543210);
+        let zero_dbig = DBig::new();
+        zero2.dcopy(&zero_dbig);
+        assert!(zero2.is_zilch());
+    }
+
+    #[test]
+    fn test_one() {
+        let one = Big::new_int(1);
+        assert!(one.is_unity());
+
+        let mut one2 = Big::new();
+        one2.one();
+        assert!(one2.is_unity());
+    }
+
+    #[test]
+    fn test_add_int() {
+        // 9999 + 77 = 10076
+        let a = Big::new_int(9999);
+        let mut b = Big::new_int(77);
+        let mut c = a.clone();
+        c.add(&b);
+        assert_eq!(c, Big::new_int(10076));
+
+        // 77 + 9999 = 10076
+        b.add(&a);
+        assert_eq!(b, Big::new_int(10076));
+
+        // -1000 + 1000 = 0
+        let mut negatives = Big::new_int(-1000);
+        let positives = Big::new_int(1000);
+        negatives.add(&positives);
+        assert!(negatives.is_zilch());
+    }
+
+    #[test]
+    fn test_sub_int() {
+        // 1 - 1 = 0
+        let one = Big::new_int(1);
+        let mut zero = one.clone();
+        zero.sub(&one);
+        assert!(zero.is_zilch());
+
+        // -3 - 1 =  -4
+        let mut minus_4 = Big::new_int(-3);
+        minus_4.sub(&one);
+        assert_eq!(minus_4, Big::new_int(-4));
+
+        // -10 - (-23) = 13
+        let mut thirteen = Big::new_int(-10);
+        let minus_23 = Big::new_int(-23);
+        thirteen.sub(&minus_23);
+        assert_eq!(thirteen, Big::new_int(13));
+
+        // 1000 - 333 = 777
+        let mut sevens = Big::new_int(1000);
+        let twos = Big::new_int(223);
+        sevens.sub(&twos);
+        assert_eq!(sevens, Big::new_int(777));
+    }
+
+    #[test]
+    fn test_get_set() {
+        let mut big = Big::new();
+
+        for i in 0..NLEN {
+            assert_eq!(big.get(i), 0);
+
+            let a: Chunk = (i + 1) as Chunk;
+            big.set(i, a);
+            assert_eq!(big.get(i), a);
+        }
+    }
+
+    #[test]
+    fn test_xor_top() {
+        let mut big = Big::new();
+        let a = 0b1100_0011;
+        big.set(NLEN - 1, a);
+
+        let b = 0b1001_1001;
+        big.xor_top(b);
+
+        assert_eq!(big.get(NLEN - 1), a ^ b);
+    }
+
+    #[test]
+    fn test_dcopy() {
+        // Create DBig with words 0, 1, 2, ...
+        let mut dbig = DBig::new();
+        for (i, a) in dbig.w.iter_mut().enumerate() {
+            *a = i as Chunk;
+        }
+
+        let mut big = Big::new();
+        big.dcopy(&dbig);
+        for i in 0..NLEN {
+            assert_eq!(big.get(i), i as Chunk);
+        }
+
+        let big2 = Big::new_dcopy(&dbig);
+        for i in 0..NLEN {
+            assert_eq!(big2.get(i), i as Chunk);
+        }
     }
 }

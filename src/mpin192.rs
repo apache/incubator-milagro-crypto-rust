@@ -718,7 +718,7 @@ pub fn server_2(
     g = pair192::ate2(&Q, &R, &sQ, &P);
     g = pair192::fexp(&g);
 
-    if !g.isunity() {
+    if !g.is_unity() {
         if let Some(rxid) = xid {
             if let Some(re) = e {
                 if let Some(rf) = f {

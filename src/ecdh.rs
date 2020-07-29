@@ -442,7 +442,7 @@ pub fn public_key_validate(w: &[u8]) -> isize {
             WP.dbl();
         }
 
-        if !k.isunity() {
+        if !k.is_unity() {
             WP = WP.mul(&k)
         }
         if WP.is_infinity() {
@@ -506,7 +506,7 @@ pub fn ecpsp_dsa(
     let mut cb = Big::new();
     let mut db = Big::new();
 
-    while db.iszilch() {
+    while db.is_zilch() {
         let mut u = Big::randomnum(&r, rng);
         let w = Big::randomnum(&r, rng); // side channel masking
 
@@ -515,7 +515,7 @@ pub fn ecpsp_dsa(
         let vx = V.getx();
         cb = vx.clone();
         cb.rmod(&r);
-        if cb.iszilch() {
+        if cb.is_zilch() {
             continue;
         }
 
@@ -559,7 +559,7 @@ pub fn ecpvp_dsa(sha: usize, w: &[u8], f: &[u8], c: &[u8], d: &[u8]) -> isize {
     let cb = Big::frombytes(c); // c or &c ?
     let mut db = Big::frombytes(d); // d or &d ?
 
-    if cb.iszilch() || Big::comp(&cb, &r) >= 0 || db.iszilch() || Big::comp(&db, &r) >= 0 {
+    if cb.is_zilch() || Big::comp(&cb, &r) >= 0 || db.is_zilch() || Big::comp(&db, &r) >= 0 {
         res = INVALID;
     }
 

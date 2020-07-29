@@ -85,7 +85,7 @@ pub fn verify(sig: &[u8], m: &str, w: &[u8]) -> isize {
     //    let mut v = pair::ate2(&g, &d, &pk, &hm);
 
     v = pair::fexp(&v);
-    if v.isunity() {
+    if v.is_unity() {
         return BLS_OK;
     }
     BLS_FAIL
