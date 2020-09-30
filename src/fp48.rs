@@ -41,6 +41,14 @@ pub struct FP48 {
     stype: usize,
 }
 
+impl PartialEq for FP48 {
+    fn eq(&self, other: &FP48) -> bool {
+        self.equals(other)
+    }
+}
+
+impl Eq for FP48 {}
+
 impl FP48 {
     #[inline(always)]
     pub fn new() -> FP48 {
@@ -109,8 +117,8 @@ impl FP48 {
     }
 
     /* test self=0 ? */
-    pub fn iszilch(&self) -> bool {
-        return self.a.iszilch() && self.b.iszilch() && self.c.iszilch();
+    pub fn is_zilch(&self) -> bool {
+        return self.a.is_zilch() && self.b.is_zilch() && self.c.is_zilch();
     }
 
     /* Conditional move of g to self dependant on d */
@@ -152,9 +160,9 @@ impl FP48 {
     }
 
     /* test self=1 ? */
-    pub fn isunity(&self) -> bool {
+    pub fn is_unity(&self) -> bool {
         let one = FP16::new_int(1);
-        return self.a.equals(&one) && self.b.iszilch() && self.c.iszilch();
+        return self.a.equals(&one) && self.b.is_zilch() && self.c.is_zilch();
     }
 
     /* test self=x */
@@ -784,28 +792,28 @@ impl FP48 {
 
     /// Convert from byte array to FP48
     #[inline(always)]
-    pub fn frombytes(w: &[u8]) -> FP48 {
+    pub fn from_bytes(w: &[u8]) -> FP48 {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
 
         for i in 0..mb {
             t[i] = w[i]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 2 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 3 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let ea = FP4::new_fp2s(c, d);
@@ -813,21 +821,21 @@ impl FP48 {
         for i in 0..mb {
             t[i] = w[i + 4 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 5 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 6 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 7 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let eb = FP4::new_fp2s(c, d);
@@ -837,21 +845,21 @@ impl FP48 {
         for i in 0..mb {
             t[i] = w[i + 8 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 9 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 10 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 11 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let ea = FP4::new_fp2s(c, d);
@@ -859,21 +867,21 @@ impl FP48 {
         for i in 0..mb {
             t[i] = w[i + 12 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 13 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 14 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 15 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let eb = FP4::new_fp2s(c, d);
@@ -885,21 +893,21 @@ impl FP48 {
         for i in 0..mb {
             t[i] = w[i + 16 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 17 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 18 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 19 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let ea = FP4::new_fp2s(c, d);
@@ -907,21 +915,21 @@ impl FP48 {
         for i in 0..mb {
             t[i] = w[i + 20 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 21 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 22 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 23 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let eb = FP4::new_fp2s(c, d);
@@ -931,21 +939,21 @@ impl FP48 {
         for i in 0..mb {
             t[i] = w[i + 24 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 25 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 26 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 27 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let ea = FP4::new_fp2s(c, d);
@@ -953,21 +961,21 @@ impl FP48 {
         for i in 0..mb {
             t[i] = w[i + 28 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 29 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 30 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 31 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let eb = FP4::new_fp2s(c, d);
@@ -979,21 +987,21 @@ impl FP48 {
         for i in 0..mb {
             t[i] = w[i + 32 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 33 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 34 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 35 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let ea = FP4::new_fp2s(c, d);
@@ -1001,21 +1009,21 @@ impl FP48 {
         for i in 0..mb {
             t[i] = w[i + 36 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 37 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 38 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 39 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let eb = FP4::new_fp2s(c, d);
@@ -1025,22 +1033,22 @@ impl FP48 {
         for i in 0..mb {
             t[i] = w[i + 40 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 41 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
 
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 42 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 43 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let ea = FP4::new_fp2s(c, d);
@@ -1048,22 +1056,22 @@ impl FP48 {
         for i in 0..mb {
             t[i] = w[i + 44 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 45 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
 
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 46 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 47 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let eb = FP4::new_fp2s(c, d);
@@ -1076,222 +1084,224 @@ impl FP48 {
     }
 
     /* convert this to byte array */
-    pub fn tobytes(&self, w: &mut [u8]) {
+    pub fn to_bytes(&self, w: &mut [u8]) {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
 
-        self.a.geta().geta().geta().geta().tobytes(&mut t);
+        self.a.geta().geta().geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i] = t[i]
         }
-        self.a.geta().geta().geta().getb().tobytes(&mut t);
+        self.a.geta().geta().geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + mb] = t[i]
         }
-        self.a.geta().geta().getb().geta().tobytes(&mut t);
+        self.a.geta().geta().getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 2 * mb] = t[i]
         }
-        self.a.geta().geta().getb().getb().tobytes(&mut t);
+        self.a.geta().geta().getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 3 * mb] = t[i]
         }
 
-        self.a.geta().getb().geta().geta().tobytes(&mut t);
+        self.a.geta().getb().geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 4 * mb] = t[i]
         }
-        self.a.geta().getb().geta().getb().tobytes(&mut t);
+        self.a.geta().getb().geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 5 * mb] = t[i]
         }
-        self.a.geta().getb().getb().geta().tobytes(&mut t);
+        self.a.geta().getb().getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 6 * mb] = t[i]
         }
-        self.a.geta().getb().getb().getb().tobytes(&mut t);
+        self.a.geta().getb().getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 7 * mb] = t[i]
         }
 
-        self.a.getb().geta().geta().geta().tobytes(&mut t);
+        self.a.getb().geta().geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 8 * mb] = t[i]
         }
-        self.a.getb().geta().geta().getb().tobytes(&mut t);
+        self.a.getb().geta().geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 9 * mb] = t[i]
         }
-        self.a.getb().geta().getb().geta().tobytes(&mut t);
+        self.a.getb().geta().getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 10 * mb] = t[i]
         }
-        self.a.getb().geta().getb().getb().tobytes(&mut t);
+        self.a.getb().geta().getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 11 * mb] = t[i]
         }
 
-        self.a.getb().getb().geta().geta().tobytes(&mut t);
+        self.a.getb().getb().geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 12 * mb] = t[i]
         }
-        self.a.getb().getb().geta().getb().tobytes(&mut t);
+        self.a.getb().getb().geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 13 * mb] = t[i]
         }
-        self.a.getb().getb().getb().geta().tobytes(&mut t);
+        self.a.getb().getb().getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 14 * mb] = t[i]
         }
-        self.a.getb().getb().getb().getb().tobytes(&mut t);
+        self.a.getb().getb().getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 15 * mb] = t[i]
         }
 
-        self.b.geta().geta().geta().geta().tobytes(&mut t);
+        self.b.geta().geta().geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 16 * mb] = t[i]
         }
-        self.b.geta().geta().geta().getb().tobytes(&mut t);
+        self.b.geta().geta().geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 17 * mb] = t[i]
         }
-        self.b.geta().geta().getb().geta().tobytes(&mut t);
+        self.b.geta().geta().getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 18 * mb] = t[i]
         }
-        self.b.geta().geta().getb().getb().tobytes(&mut t);
+        self.b.geta().geta().getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 19 * mb] = t[i]
         }
 
-        self.b.geta().getb().geta().geta().tobytes(&mut t);
+        self.b.geta().getb().geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 20 * mb] = t[i]
         }
-        self.b.geta().getb().geta().getb().tobytes(&mut t);
+        self.b.geta().getb().geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 21 * mb] = t[i]
         }
-        self.b.geta().getb().getb().geta().tobytes(&mut t);
+        self.b.geta().getb().getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 22 * mb] = t[i]
         }
-        self.b.geta().getb().getb().getb().tobytes(&mut t);
+        self.b.geta().getb().getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 23 * mb] = t[i]
         }
 
-        self.b.getb().geta().geta().geta().tobytes(&mut t);
+        self.b.getb().geta().geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 24 * mb] = t[i]
         }
-        self.b.getb().geta().geta().getb().tobytes(&mut t);
+        self.b.getb().geta().geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 25 * mb] = t[i]
         }
-        self.b.getb().geta().getb().geta().tobytes(&mut t);
+        self.b.getb().geta().getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 26 * mb] = t[i]
         }
-        self.b.getb().geta().getb().getb().tobytes(&mut t);
+        self.b.getb().geta().getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 27 * mb] = t[i]
         }
 
-        self.b.getb().getb().geta().geta().tobytes(&mut t);
+        self.b.getb().getb().geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 28 * mb] = t[i]
         }
-        self.b.getb().getb().geta().getb().tobytes(&mut t);
+        self.b.getb().getb().geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 29 * mb] = t[i]
         }
-        self.b.getb().getb().getb().geta().tobytes(&mut t);
+        self.b.getb().getb().getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 30 * mb] = t[i]
         }
-        self.b.getb().getb().getb().getb().tobytes(&mut t);
+        self.b.getb().getb().getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 31 * mb] = t[i]
         }
 
-        self.c.geta().geta().geta().geta().tobytes(&mut t);
+        self.c.geta().geta().geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 32 * mb] = t[i]
         }
-        self.c.geta().geta().geta().getb().tobytes(&mut t);
+        self.c.geta().geta().geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 33 * mb] = t[i]
         }
-        self.c.geta().geta().getb().geta().tobytes(&mut t);
+        self.c.geta().geta().getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 34 * mb] = t[i]
         }
-        self.c.geta().geta().getb().getb().tobytes(&mut t);
+        self.c.geta().geta().getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 35 * mb] = t[i]
         }
 
-        self.c.geta().getb().geta().geta().tobytes(&mut t);
+        self.c.geta().getb().geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 36 * mb] = t[i]
         }
-        self.c.geta().getb().geta().getb().tobytes(&mut t);
+        self.c.geta().getb().geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 37 * mb] = t[i]
         }
-        self.c.geta().getb().getb().geta().tobytes(&mut t);
+        self.c.geta().getb().getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 38 * mb] = t[i]
         }
-        self.c.geta().getb().getb().getb().tobytes(&mut t);
+        self.c.geta().getb().getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 39 * mb] = t[i]
         }
 
-        self.c.getb().geta().geta().geta().tobytes(&mut t);
+        self.c.getb().geta().geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 40 * mb] = t[i]
         }
-        self.c.getb().geta().geta().getb().tobytes(&mut t);
+        self.c.getb().geta().geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 41 * mb] = t[i]
         }
-        self.c.getb().geta().getb().geta().tobytes(&mut t);
+        self.c.getb().geta().getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 42 * mb] = t[i]
         }
-        self.c.getb().geta().getb().getb().tobytes(&mut t);
+        self.c.getb().geta().getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 43 * mb] = t[i]
         }
 
-        self.c.getb().getb().geta().geta().tobytes(&mut t);
+        self.c.getb().getb().geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 44 * mb] = t[i]
         }
-        self.c.getb().getb().geta().getb().tobytes(&mut t);
+        self.c.getb().getb().geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 45 * mb] = t[i]
         }
-        self.c.getb().getb().getb().geta().tobytes(&mut t);
+        self.c.getb().getb().getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 46 * mb] = t[i]
         }
-        self.c.getb().getb().getb().getb().tobytes(&mut t);
+        self.c.getb().getb().getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 47 * mb] = t[i]
         }
     }
 
-    /* output to hex string */
-    pub fn tostring(&self) -> String {
+    /// To String
+    ///
+    /// Converts `FP48` to a hex string.
+    pub fn to_string(&self) -> String {
         return format!(
             "[{},{},{}]",
-            self.a.tostring(),
-            self.b.tostring(),
-            self.c.tostring()
+            self.a.to_string(),
+            self.b.to_string(),
+            self.c.to_string()
         );
     }
 
@@ -1357,7 +1367,7 @@ impl FP48 {
 
         let mut c = g1.trace();
 
-        if b.iszilch() {
+        if b.is_zilch() {
             c = c.xtr_pow(&mut a);
             return c;
         }

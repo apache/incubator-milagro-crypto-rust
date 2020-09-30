@@ -42,13 +42,13 @@ impl Eq for FP {}
 
 impl fmt::Display for FP {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "FP: [ {} ]", self.tostring())
+        write!(f, "FP: [ {} ]", self.to_string())
     }
 }
 
 impl fmt::Debug for FP {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "FP: [ {} ]", self.tostring())
+        write!(f, "FP: [ {} ]", self.to_string())
     }
 }
 
@@ -113,13 +113,20 @@ impl FP {
         }
     }
 
+    /// To String
+    ///
+    /// Converts a `FP` to a hex string.
+    pub fn to_string(&self) -> String {
+        self.redc().to_string()
+    }
+
     /// From Hex Iterator
     #[inline(always)]
     pub fn from_hex_iter(iter: &mut SplitWhitespace) -> FP {
         let xes = i32::from_str(iter.next().unwrap()).unwrap();
         let x = iter.next().unwrap();
         FP {
-            x: Big::fromstring(x.to_string()),
+            x: Big::from_string(x.to_string()),
             xes,
         }
     }
@@ -133,10 +140,13 @@ impl FP {
         FP::from_hex_iter(&mut s)
     }
 
+    /// To Hex
     pub fn to_hex(&self) -> String {
-        format!("{} {}", self.xes, self.x.tostring())
+        format!("{} {}", self.xes, self.x.to_string())
     }
 
+    /// Reduce
+    ///
     /// convert back to regular form
     pub fn redc(&self) -> Big {
         if MODTYPE != ModType::PseudoMersenne && MODTYPE != ModType::GeneralisedMersenne {
@@ -146,6 +156,8 @@ impl FP {
         self.x.clone()
     }
 
+    /// Modulo
+    ///
     /// reduce a DBig to a Big using the appropriate form of the modulus
     pub fn modulo(d: &mut DBig) -> Big {
         if MODTYPE == ModType::PseudoMersenne {
@@ -169,7 +181,7 @@ impl FP {
             for i in 0..big::NLEN {
                 let x = d.w[i];
 
-                let tuple = Big::muladd(x, rom::MCONST - 1, x, d.w[big::NLEN + i - 1]);
+                let tuple = Big::mul_add(x, rom::MCONST - 1, x, d.w[big::NLEN + i - 1]);
                 d.w[big::NLEN + i] += tuple.0;
                 d.w[big::NLEN + i - 1] = tuple.1;
             }
@@ -216,11 +228,6 @@ impl FP {
         Big::new()
     }
 
-    /// convert to string
-    pub fn tostring(&self) -> String {
-        self.redc().tostring()
-    }
-
     /// reduce this mod Modulus
     pub fn reduce(&mut self) {
         let mut m = Big::new_ints(&rom::MODULUS);
@@ -249,10 +256,10 @@ impl FP {
     }
 
     /// Check if self is 0
-    pub fn iszilch(&self) -> bool {
+    pub fn is_zilch(&self) -> bool {
         let mut a = self.clone();
         a.reduce();
-        a.x.iszilch()
+        a.x.is_zilch()
     }
 
     /// copy from Big b

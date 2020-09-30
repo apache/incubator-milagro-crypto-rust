@@ -100,7 +100,7 @@ fn bn254(mut rng: &mut RAND) {
 
     let mut g = pair::gtpow(&mut w, &mut r);
 
-    if !g.isunity() {
+    if !g.is_unity() {
         println!("FAILURE - g^r!=1");
         return;
     }
@@ -259,7 +259,7 @@ fn bls383(mut rng: &mut RAND) {
 
     let mut g = pair::gtpow(&mut w, &mut r);
 
-    if !g.isunity() {
+    if !g.is_unity() {
         println!("FAILURE - g^r!=1");
         return;
     }
@@ -418,7 +418,7 @@ fn bls24(mut rng: &mut RAND) {
 
     let mut g = pair192::gtpow(&mut w, &mut r);
 
-    if !g.isunity() {
+    if !g.is_unity() {
         println!("FAILURE - g^r!=1");
         return;
     }
@@ -577,7 +577,7 @@ fn bls48(mut rng: &mut RAND) {
 
     let mut g = pair256::gtpow(&mut w, &mut r);
 
-    if !g.isunity() {
+    if !g.is_unity() {
         println!("FAILURE - g^r!=1");
         return;
     }

@@ -32,6 +32,14 @@ pub struct ECP4 {
     z: FP4,
 }
 
+impl PartialEq for ECP4 {
+    fn eq(&self, other: &ECP4) -> bool {
+        self.equals(other)
+    }
+}
+
+impl Eq for ECP4 {}
+
 #[allow(non_snake_case)]
 impl ECP4 {
     /// New
@@ -91,7 +99,7 @@ impl ECP4 {
     pub fn is_infinity(&self) -> bool {
         let xx = self.getpx();
         let zz = self.getpz();
-        return xx.iszilch() && zz.iszilch();
+        return xx.is_zilch() && zz.is_zilch();
     }
 
     /* set self=O */
@@ -144,20 +152,20 @@ impl ECP4 {
     }
 
     /* Test if P == Q */
-    pub fn equals(&mut self, Q: &mut ECP4) -> bool {
+    pub fn equals(&self, Q: &ECP4) -> bool {
         let mut a = self.getpx();
         let mut b = Q.getpx();
 
         a.mul(&Q.z);
         b.mul(&self.z);
-        if !a.equals(&mut b) {
+        if !a.equals(&b) {
             return false;
         }
         a = self.getpy();
         a.mul(&Q.z);
         b = Q.getpy();
         b.mul(&self.z);
-        if !a.equals(&mut b) {
+        if !a.equals(&b) {
             return false;
         }
 
@@ -210,7 +218,7 @@ impl ECP4 {
     }
 
     /* convert to byte array */
-    pub fn tobytes(&self, b: &mut [u8]) {
+    pub fn to_bytes(&self, b: &mut [u8]) {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
 
@@ -218,38 +226,38 @@ impl ECP4 {
 
         W.affine();
 
-        W.x.geta().geta().tobytes(&mut t);
+        W.x.geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             b[i] = t[i]
         }
-        W.x.geta().getb().tobytes(&mut t);
+        W.x.geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             b[i + mb] = t[i]
         }
 
-        W.x.getb().geta().tobytes(&mut t);
+        W.x.getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             b[i + 2 * mb] = t[i]
         }
-        W.x.getb().getb().tobytes(&mut t);
+        W.x.getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             b[i + 3 * mb] = t[i]
         }
 
-        W.y.geta().geta().tobytes(&mut t);
+        W.y.geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             b[i + 4 * mb] = t[i]
         }
-        W.y.geta().getb().tobytes(&mut t);
+        W.y.geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             b[i + 5 * mb] = t[i]
         }
 
-        W.y.getb().geta().tobytes(&mut t);
+        W.y.getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             b[i + 6 * mb] = t[i]
         }
-        W.y.getb().getb().tobytes(&mut t);
+        W.y.getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             b[i + 7 * mb] = t[i]
         }
@@ -260,29 +268,29 @@ impl ECP4 {
     /// Convert from byte array to point
     /// Panics if insufficient bytes are given.
     #[inline(always)]
-    pub fn frombytes(b: &[u8]) -> ECP4 {
+    pub fn from_bytes(b: &[u8]) -> ECP4 {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
 
         for i in 0..mb {
             t[i] = b[i]
         }
-        let ra = Big::frombytes(&t);
+        let ra = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = b[i + mb]
         }
-        let rb = Big::frombytes(&t);
+        let rb = Big::from_bytes(&t);
 
         let ra4 = FP2::new_bigs(ra, rb);
 
         for i in 0..mb {
             t[i] = b[i + 2 * mb]
         }
-        let ra = Big::frombytes(&t);
+        let ra = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = b[i + 3 * mb]
         }
-        let rb = Big::frombytes(&t);
+        let rb = Big::from_bytes(&t);
 
         let rb4 = FP2::new_bigs(ra, rb);
 
@@ -291,22 +299,22 @@ impl ECP4 {
         for i in 0..mb {
             t[i] = b[i + 4 * mb]
         }
-        let ra = Big::frombytes(&t);
+        let ra = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = b[i + 5 * mb]
         }
-        let rb = Big::frombytes(&t);
+        let rb = Big::from_bytes(&t);
 
         let ra4 = FP2::new_bigs(ra, rb);
 
         for i in 0..mb {
             t[i] = b[i + 6 * mb]
         }
-        let ra = Big::frombytes(&t);
+        let ra = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = b[i + 7 * mb]
         }
-        let rb = Big::frombytes(&t);
+        let rb = Big::from_bytes(&t);
 
         let rb4 = FP2::new_bigs(ra, rb);
 
@@ -315,15 +323,18 @@ impl ECP4 {
         ECP4::new_fp4s(&rx, &ry)
     }
 
-    /* convert this to hex string */
-    pub fn tostring(&self) -> String {
+    /// To String
+    ///
+    /// Converts `ECP4` to a hex string.
+    pub fn to_string(&self) -> String {
         let mut W = self.clone();
         W.affine();
         if W.is_infinity() {
             return String::from("infinity");
         }
-        return format!("({},{})", W.x.tostring(), W.y.tostring());
+        return format!("({},{})", W.x.to_string(), W.y.to_string());
     }
+
 
     /* Calculate RHS of twisted curve equation x^3+B/i */
     pub fn rhs(x: &FP4) -> FP4 {
@@ -820,7 +831,7 @@ impl ECP4 {
     #[inline(always)]
     pub fn mapit(h: &[u8]) -> ECP4 {
         let mut q = Big::new_ints(&rom::MODULUS);
-        let mut x = Big::frombytes(h);
+        let mut x = Big::from_bytes(h);
         x.rmod(&mut q);
         let mut Q: ECP4;
         let one = Big::new_int(1);

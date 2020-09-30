@@ -325,7 +325,7 @@ pub fn fexp(m: &FP24) -> FP24 {
     lv = r.clone();
     r.frob(&f, 4);
     r.mul(&lv);
-    //    if r.isunity() {
+    //    if r.is_unity() {
     //	r.zero();
     //	return r;
     //    }

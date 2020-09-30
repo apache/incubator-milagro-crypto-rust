@@ -421,7 +421,7 @@ pub fn fexp(m: &FP12) -> FP12 {
     r.frob(&f);
     r.frob(&f);
     r.mul(&lv);
-    //    if r.isunity() {
+    //    if r.is_unity() {
     //	r.zero();
     //	return r;
     //    }

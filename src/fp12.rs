@@ -115,9 +115,9 @@ impl FP12 {
     }
 
     /* test self=0 ? */
-    pub fn iszilch(&self) -> bool {
+    pub fn is_zilch(&self) -> bool {
         //self.reduce();
-        return self.a.iszilch() && self.b.iszilch() && self.c.iszilch();
+        return self.a.is_zilch() && self.b.is_zilch() && self.c.is_zilch();
     }
 
     /* Conditional move of g to self dependant on d */
@@ -159,9 +159,9 @@ impl FP12 {
     }
 
     /* test self=1 ? */
-    pub fn isunity(&self) -> bool {
+    pub fn is_unity(&self) -> bool {
         let one = FP4::new_int(1);
-        self.a.equals(&one) && self.b.iszilch() && self.c.iszilch()
+        self.a.equals(&one) && self.b.is_zilch() && self.c.is_zilch()
     }
 
     /* test self=x */
@@ -781,28 +781,28 @@ impl FP12 {
 
     /* convert from byte array to FP12 */
     #[inline(always)]
-    pub fn frombytes(w: &[u8]) -> FP12 {
+    pub fn from_bytes(w: &[u8]) -> FP12 {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
 
         for i in 0..mb {
             t[i] = w[i]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 2 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 3 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let e = FP4::new_fp2s(c, d);
@@ -810,21 +810,21 @@ impl FP12 {
         for i in 0..mb {
             t[i] = w[i + 4 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 5 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 6 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 7 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let f = FP4::new_fp2s(c, d);
@@ -832,22 +832,22 @@ impl FP12 {
         for i in 0..mb {
             t[i] = w[i + 8 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 9 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
 
         let c = FP2::new_bigs(a, b);
 
         for i in 0..mb {
             t[i] = w[i + 10 * mb]
         }
-        let a = Big::frombytes(&t);
+        let a = Big::from_bytes(&t);
         for i in 0..mb {
             t[i] = w[i + 11 * mb]
         }
-        let b = Big::frombytes(&t);
+        let b = Big::from_bytes(&t);
         let d = FP2::new_bigs(a, b);
 
         let g = FP4::new_fp2s(c, d);
@@ -856,69 +856,71 @@ impl FP12 {
     }
 
     /* convert this to byte array */
-    pub fn tobytes(&self, w: &mut [u8]) {
+    pub fn to_bytes(&self, w: &mut [u8]) {
         let mut t: [u8; big::MODBYTES as usize] = [0; big::MODBYTES as usize];
         let mb = big::MODBYTES as usize;
 
-        self.a.geta().geta().tobytes(&mut t);
+        self.a.geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i] = t[i]
         }
-        self.a.geta().getb().tobytes(&mut t);
+        self.a.geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + mb] = t[i]
         }
-        self.a.getb().geta().tobytes(&mut t);
+        self.a.getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 2 * mb] = t[i]
         }
-        self.a.getb().getb().tobytes(&mut t);
+        self.a.getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 3 * mb] = t[i]
         }
 
-        self.b.geta().geta().tobytes(&mut t);
+        self.b.geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 4 * mb] = t[i]
         }
-        self.b.geta().getb().tobytes(&mut t);
+        self.b.geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 5 * mb] = t[i]
         }
-        self.b.getb().geta().tobytes(&mut t);
+        self.b.getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 6 * mb] = t[i]
         }
-        self.b.getb().getb().tobytes(&mut t);
+        self.b.getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 7 * mb] = t[i]
         }
 
-        self.c.geta().geta().tobytes(&mut t);
+        self.c.geta().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 8 * mb] = t[i]
         }
-        self.c.geta().getb().tobytes(&mut t);
+        self.c.geta().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 9 * mb] = t[i]
         }
-        self.c.getb().geta().tobytes(&mut t);
+        self.c.getb().geta().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 10 * mb] = t[i]
         }
-        self.c.getb().getb().tobytes(&mut t);
+        self.c.getb().getb().to_bytes(&mut t);
         for i in 0..mb {
             w[i + 11 * mb] = t[i]
         }
     }
 
-    /* output to hex string */
-    pub fn tostring(&self) -> String {
+    /// To String
+    ///
+    /// Converts a `FP12` to a hex string.
+    pub fn to_string(&self) -> String {
         return format!(
             "[{},{},{}]",
-            self.a.tostring(),
-            self.b.tostring(),
-            self.c.tostring()
+            self.a.to_string(),
+            self.b.to_string(),
+            self.c.to_string()
         );
     }
 
@@ -1009,7 +1011,7 @@ impl FP12 {
 
         let mut c = g1.trace();
 
-        if b.iszilch() {
+        if b.is_zilch() {
             c = c.xtr_pow(&a);
             return c;
         }
