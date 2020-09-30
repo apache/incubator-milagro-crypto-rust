@@ -42,13 +42,13 @@ pub const DST_POP_G2: &[u8] = b"BLS_POP_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
 /*************************************************************************************************
 * Functions for Proof of Possession - signatures on either G1 or G2
 *
-* https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3
+* https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3
 *************************************************************************************************/
 
 /// Proof of Possession - KeyGenerate
 ///
 /// Generate a new Secret Key based off Initial Keying Material (IKM) and Key Info (salt).
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.3
 pub fn key_generate(ikm: &[u8], key_info: &[u8]) -> [u8; SECRET_KEY_BYTES] {
     core::key_generate(ikm, key_info)
 }
@@ -56,7 +56,7 @@ pub fn key_generate(ikm: &[u8], key_info: &[u8]) -> [u8; SECRET_KEY_BYTES] {
 /*************************************************************************************************
 * Functions for Proof of Possession - signatures on G1
 *
-* https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3
+* https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3
 *************************************************************************************************/
 
 /// Generate key pair - (secret key, public key)
@@ -66,42 +66,42 @@ pub fn key_pair_generate_g1(rng: &mut RAND) -> ([u8; SECRET_KEY_BYTES], [u8; G2_
 
 /// Secret Key To Public Key
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.4
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.4
 pub fn secret_key_to_public_key_g1(secret_key: &[u8]) -> Result<[u8; G2_BYTES], AmclError> {
     core::secret_key_to_public_key_g1(secret_key)
 }
 
 /// Proof of Possession - Sign
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3
 pub fn sign_g1(secret_key: &[u8], msg: &[u8]) -> Result<[u8; G1_BYTES], AmclError> {
     core::core_sign_g1(secret_key, msg, DST_G1)
 }
 
 /// Proof of Possession - Verify
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3
 pub fn verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8]) -> bool {
     core::core_verify_g1(public_key, msg, signature, DST_G1)
 }
 
 /// Aggregate
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.8
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.8
 pub fn aggregate_g1(points: &[&[u8]]) -> Result<[u8; G1_BYTES], AmclError> {
     core::aggregate_g1(points)
 }
 
 /// Proof of Possession - AggregateVerify
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3
 pub fn aggregate_verify_g1(public_keys: &[&[u8]], msgs: &[&[u8]], signature: &[u8]) -> bool {
     core::core_aggregate_verify_g1(public_keys, msgs, signature, DST_G1)
 }
 
 /// Proof of Possession - PopProve
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.2
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3.2
 pub fn pop_prove_g1(secret_key: &[u8]) -> Result<[u8; G1_BYTES], AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
     let g = ECP2::generator();
@@ -116,7 +116,7 @@ pub fn pop_prove_g1(secret_key: &[u8]) -> Result<[u8; G1_BYTES], AmclError> {
 
 /// Proof of Possession - PopVerify
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3.3
 pub fn pop_verify_g1(public_key_bytes: &[u8], proof_bytes: &[u8]) -> bool {
     let proof = deserialize_g1(proof_bytes);
     let public_key = deserialize_g2(public_key_bytes);
@@ -128,7 +128,7 @@ pub fn pop_verify_g1(public_key_bytes: &[u8], proof_bytes: &[u8]) -> bool {
     let proof = proof.unwrap();
     let public_key = public_key.unwrap();
 
-    if !subgroup_check_g1(&proof) || !subgroup_check_g2(&public_key) {
+    if !subgroup_check_g1(&proof) || !subgroup_check_g2(&public_key) || public_key.is_infinity() {
         return false;
     }
 
@@ -149,7 +149,7 @@ pub fn pop_verify_g1(public_key_bytes: &[u8], proof_bytes: &[u8]) -> bool {
 
 /// Proof of Possession - FastAggregateVerify
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.4
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3.4
 pub fn fast_aggregate_verify_g1(public_keys: &[&[u8]], msg: &[u8], signature: &[u8]) -> bool {
     if public_keys.len() == 0 {
         return false;
@@ -190,7 +190,7 @@ pub fn fast_aggregate_verify_g1(public_keys: &[&[u8]], msg: &[u8], signature: &[
 /*************************************************************************************************
 * Functions for Proof of Possession - signatures on G2
 *
-* https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3
+* https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3
 *************************************************************************************************/
 
 /// Generate key pair - (secret key, public key)
@@ -200,42 +200,42 @@ pub fn key_pair_generate_g2(rng: &mut RAND) -> ([u8; SECRET_KEY_BYTES], [u8; G1_
 
 /// Secret Key To Public Key
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.4
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.4
 pub fn secret_key_to_public_key_g2(secret_key: &[u8]) -> Result<[u8; G1_BYTES], AmclError> {
     core::secret_key_to_public_key_g2(secret_key)
 }
 
 /// Proof of Possession - Sign
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3
 pub fn sign_g2(secret_key: &[u8], msg: &[u8]) -> Result<[u8; G2_BYTES], AmclError> {
     core::core_sign_g2(secret_key, msg, DST_G2)
 }
 
 /// Proof of Possession - Verify
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3
 pub fn verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8]) -> bool {
     core::core_verify_g2(public_key, msg, signature, DST_G2)
 }
 
 /// Aggregate
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.8
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.8
 pub fn aggregate_g2(points: &[&[u8]]) -> Result<[u8; G2_BYTES], AmclError> {
     core::aggregate_g2(points)
 }
 
 /// Proof of Possession - AggregateVerify
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3
 pub fn aggregate_verify_g2(public_keys: &[&[u8]], msgs: &[&[u8]], signature: &[u8]) -> bool {
     core::core_aggregate_verify_g2(public_keys, msgs, signature, DST_G2)
 }
 
 /// Proof of Possession - PopProve
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.2
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3.2
 pub fn pop_prove_g2(secret_key: &[u8]) -> Result<[u8; G2_BYTES], AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
     let g = ECP::generator();
@@ -250,7 +250,7 @@ pub fn pop_prove_g2(secret_key: &[u8]) -> Result<[u8; G2_BYTES], AmclError> {
 
 /// Proof of Possession - PopVerify
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3.3
 pub fn pop_verify_g2(public_key_bytes: &[u8], proof_bytes: &[u8]) -> bool {
     let proof = deserialize_g2(proof_bytes);
     let public_key = deserialize_g1(public_key_bytes);
@@ -262,7 +262,7 @@ pub fn pop_verify_g2(public_key_bytes: &[u8], proof_bytes: &[u8]) -> bool {
     let proof = proof.unwrap();
     let public_key = public_key.unwrap();
 
-    if !subgroup_check_g1(&public_key) || !subgroup_check_g2(&proof) {
+    if !subgroup_check_g1(&public_key) || public_key.is_infinity() || !subgroup_check_g2(&proof) {
         return false;
     }
 
@@ -283,7 +283,7 @@ pub fn pop_verify_g2(public_key_bytes: &[u8], proof_bytes: &[u8]) -> bool {
 
 /// Proof of Possession - FastAggregateVerify
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-3.3.4
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.3.4
 pub fn fast_aggregate_verify_g2(public_keys: &[&[u8]], msg: &[u8], signature: &[u8]) -> bool {
     if public_keys.len() == 0 {
         return false;

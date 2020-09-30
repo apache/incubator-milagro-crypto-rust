@@ -2,7 +2,7 @@
 
 ## Updates
 
-BLS12-381 has been updated to the the most recent standards being [bls-signatures-02](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02) and [hash-to-curve-08](https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08).
+BLS12-381 has been updated to the the most recent standards being [bls-signatures-04](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04) and [hash-to-curve-08](https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-09).
 
 Updated to Rust 2018.
 

@@ -52,23 +52,34 @@ const Y_FLAG: u8 = 0b_0010_0000;
 /// KeyGenerate
 ///
 /// Generate a new Secret Key based off Initial Keying Material (IKM) and Key Info (salt).
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.3
 pub(crate) fn key_generate(ikm: &[u8], key_info: &[u8]) -> [u8; SECRET_KEY_BYTES] {
-    // PRK = HKDF-Extract("BLS-SIG-KEYGEN-SALT-", IKM || I2OSP(0, 1))
-    let mut prk = Vec::<u8>::with_capacity(1 + ikm.len());
-    prk.extend_from_slice(ikm);
-    prk.push(0);
-    let prk = HASH256::hkdf_extract(KEY_SALT, &prk);
+    let mut secret_key = Big::new();
+    let mut salt = KEY_SALT.to_vec();
 
-    // OKM = HKDF-Expand(PRK, key_info || I2OSP(L, 2), L)
-    let mut info = key_info.to_vec();
-    info.extend_from_slice(&[0, KEY_GENERATION_L]);
-    let okm = HASH256::hkdf_extend(&prk, &info, KEY_GENERATION_L);
+    while secret_key.iszilch() {
+        // salt = H(salt)
+        let mut hash256 = HASH256::new();
+        hash256.init();
+        hash256.process_array(&salt);
+        salt = hash256.hash().to_vec();
 
-    // SK = OS2IP(OKM) mod r
-    let r = Big::new_ints(&CURVE_ORDER);
-    let mut secret_key = Big::frombytes(&okm);
-    secret_key.rmod(&r);
+        // PRK = HKDF-Extract(salt, IKM || I2OSP(0, 1))
+        let mut prk = Vec::<u8>::with_capacity(1 + ikm.len());
+        prk.extend_from_slice(ikm);
+        prk.push(0);
+        let prk = HASH256::hkdf_extract(&salt, &prk);
+
+        // OKM = HKDF-Expand(PRK, key_info || I2OSP(L, 2), L)
+        let mut info = key_info.to_vec();
+        info.extend_from_slice(&[0, KEY_GENERATION_L]);
+        let okm = HASH256::hkdf_extend(&prk, &info, KEY_GENERATION_L);
+
+        // SK = OS2IP(OKM) mod r
+        let r = Big::new_ints(&CURVE_ORDER);
+        secret_key = Big::frombytes(&okm);
+        secret_key.rmod(&r);
+    }
 
     secret_key_to_bytes(&secret_key)
 }
@@ -477,7 +488,7 @@ fn deserialize_uncompressed_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
 /*************************************************************************************************
 * Core BLS Functions when signatures are on G1
 *
-* https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2
+* https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2
 *************************************************************************************************/
 
 /// Generate key pair - (secret key, public key)
@@ -498,7 +509,7 @@ pub(crate) fn key_pair_generate_g1(rng: &mut RAND) -> ([u8; SECRET_KEY_BYTES], [
 
 /// Secret Key To Public Key
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.4
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.4
 pub(crate) fn secret_key_to_public_key_g1(secret_key: &[u8]) -> Result<[u8; G2_BYTES], AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
     let g = ECP2::generator();
@@ -509,7 +520,7 @@ pub(crate) fn secret_key_to_public_key_g1(secret_key: &[u8]) -> Result<[u8; G2_B
 
 // CoreSign
 //
-// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.7
+// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.7
 pub(crate) fn core_sign_g1(
     secret_key: &[u8],
     msg: &[u8],
@@ -524,7 +535,7 @@ pub(crate) fn core_sign_g1(
 
 // CoreVerify
 //
-// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.7
+// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.7
 pub(crate) fn core_verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8], dst: &[u8]) -> bool {
     let public_key = deserialize_g2(public_key);
     let signature = deserialize_g1(signature);
@@ -537,7 +548,7 @@ pub(crate) fn core_verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8], ds
     let signature = signature.unwrap();
 
     // Subgroup checks for signature and public key
-    if !subgroup_check_g1(&signature) || !subgroup_check_g2(&public_key) {
+    if !subgroup_check_g1(&signature) || !subgroup_check_g2(&public_key) || public_key.is_infinity() {
         return false;
     }
 
@@ -559,7 +570,7 @@ pub(crate) fn core_verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8], ds
 
 /// Aggregate
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.8
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.8
 pub(crate) fn aggregate_g1(points: &[&[u8]]) -> Result<[u8; G1_BYTES], AmclError> {
     if points.len() == 0 {
         return Err(AmclError::AggregateEmptyPoints);
@@ -575,7 +586,7 @@ pub(crate) fn aggregate_g1(points: &[&[u8]]) -> Result<[u8; G1_BYTES], AmclError
 
 // CoreAggregateVerify
 //
-// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.9
+// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.9
 pub(crate) fn core_aggregate_verify_g1(
     public_keys: &[&[u8]],
     msgs: &[&[u8]],
@@ -611,7 +622,7 @@ pub(crate) fn core_aggregate_verify_g1(
         }
         let public_key = public_key.unwrap();
 
-        if !subgroup_check_g2(&public_key) {
+        if !subgroup_check_g2(&public_key) || public_key.is_infinity() {
             return false;
         }
 
@@ -629,7 +640,7 @@ pub(crate) fn core_aggregate_verify_g1(
 /*************************************************************************************************
 * Core BLS Functions when signatures are on G2
 *
-* https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2
+* https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2
 *************************************************************************************************/
 
 /// Generate key pair - (secret key, public key)
@@ -650,7 +661,7 @@ pub(crate) fn key_pair_generate_g2(rng: &mut RAND) -> ([u8; SECRET_KEY_BYTES], [
 
 /// Secret Key To Public Key
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.4
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.4
 pub(crate) fn secret_key_to_public_key_g2(secret_key: &[u8]) -> Result<[u8; G1_BYTES], AmclError> {
     let secret_key = secret_key_from_bytes(secret_key)?;
     let g = ECP::generator();
@@ -662,7 +673,7 @@ pub(crate) fn secret_key_to_public_key_g2(secret_key: &[u8]) -> Result<[u8; G1_B
 
 // CoreSign
 //
-// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.7
+// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.7
 pub(crate) fn core_sign_g2(
     secret_key: &[u8],
     msg: &[u8],
@@ -678,7 +689,7 @@ pub(crate) fn core_sign_g2(
 
 // CoreVerify
 //
-// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.7
+// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.7
 pub(crate) fn core_verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8], dst: &[u8]) -> bool {
     let public_key = deserialize_g1(public_key);
     let signature = deserialize_g2(signature);
@@ -691,7 +702,7 @@ pub(crate) fn core_verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8], ds
     let signature = signature.unwrap();
 
     // Subgroup checks for signature and public key
-    if !subgroup_check_g1(&public_key) || !subgroup_check_g2(&signature) {
+    if !subgroup_check_g1(&public_key) || public_key.is_infinity() || !subgroup_check_g2(&signature) {
         return false;
     }
 
@@ -713,7 +724,7 @@ pub(crate) fn core_verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8], ds
 
 /// Aggregate
 ///
-/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.8
+/// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.8
 pub(crate) fn aggregate_g2(points: &[&[u8]]) -> Result<[u8; G2_BYTES], AmclError> {
     if points.len() == 0 {
         return Err(AmclError::AggregateEmptyPoints);
@@ -729,7 +740,7 @@ pub(crate) fn aggregate_g2(points: &[&[u8]]) -> Result<[u8; G2_BYTES], AmclError
 
 // CoreAggregateVerify
 //
-// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#section-2.9
+// https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.9
 pub(crate) fn core_aggregate_verify_g2(
     public_keys: &[&[u8]],
     msgs: &[&[u8]],
@@ -766,7 +777,7 @@ pub(crate) fn core_aggregate_verify_g2(
         let public_key = public_key.unwrap();
 
         // Subgroup check for public key
-        if !subgroup_check_g1(&public_key) {
+        if !subgroup_check_g1(&public_key) || public_key.is_infinity() {
             return false;
         }
 
@@ -788,7 +799,7 @@ pub(crate) fn core_aggregate_verify_g2(
 /// Hash to Curve
 ///
 /// Takes a message as input and converts it to a Curve Point
-/// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-09#section-3
 pub fn hash_to_curve_g1(msg: &[u8], dst: &[u8]) -> ECP {
     let u =
         hash_to_field_fp(msg, 2, dst).expect("hash to field should not fail for given parameters");
@@ -802,8 +813,8 @@ pub fn hash_to_curve_g1(msg: &[u8], dst: &[u8]) -> ECP {
 // Simplified SWU for Pairing-Friendly Curves
 //
 // Take a field point and map it to a Curve Point.
-// SSWU - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-6.6.2
-// ISO11 - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#appendix-C.2
+// SSWU - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-09#section-6.6.2
+// ISO11 - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-09#appendix-C.2
 fn map_to_curve_g1(u: FP) -> ECP {
     let (x, y) = simplified_swu_fp(u);
     iso11_to_ecp(&x, &y)
@@ -816,7 +827,7 @@ fn map_to_curve_g1(u: FP) -> ECP {
 /// Hash to Curve
 ///
 /// Takes a message as input and converts it to a Curve Point
-/// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-3
+/// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-09#section-3
 pub fn hash_to_curve_g2(msg: &[u8], dst: &[u8]) -> ECP2 {
     let u =
         hash_to_field_fp2(msg, 2, dst).expect("hash to field should not fail for given parameters");
@@ -830,8 +841,8 @@ pub fn hash_to_curve_g2(msg: &[u8], dst: &[u8]) -> ECP2 {
 // Simplified SWU for Pairing-Friendly Curves
 //
 // Take a field point and map it to a Curve Point.
-// SSWU - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-6.6.2
-// ISO3 - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#appendix-C.3
+// SSWU - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-09#section-6.6.2
+// ISO3 - https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-09#appendix-C.3
 fn map_to_curve_g2(u: FP2) -> ECP2 {
     let (x, y) = simplified_swu_fp2(u);
     iso3_to_ecp2(&x, &y)

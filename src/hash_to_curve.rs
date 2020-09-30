@@ -85,7 +85,7 @@ pub fn hash(msg: &[u8], hash_function: HashAlgorithm) -> Vec<u8> {
 // Hash To Field - Fp
 //
 // Take a message as bytes and convert it to a Field Point
-// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-5.2
+// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-09#section-5.3
 pub fn hash_to_field_fp(msg: &[u8], count: usize, dst: &[u8]) -> Result<Vec<FP>, AmclError> {
     let m = 1;
     let p = Big::new_ints(&MODULUS);
@@ -107,7 +107,7 @@ pub fn hash_to_field_fp(msg: &[u8], count: usize, dst: &[u8]) -> Result<Vec<FP>,
 // Hash To Field - Fp2
 //
 // Take a message as bytes and convert it to a vector of Field Points with extension degree 2.
-// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-5.2
+// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-09#section-5.3
 pub fn hash_to_field_fp2(msg: &[u8], count: usize, dst: &[u8]) -> Result<Vec<FP2>, AmclError> {
     let m = 2;
     let p = Big::new_ints(&MODULUS);
@@ -133,7 +133,7 @@ pub fn hash_to_field_fp2(msg: &[u8], count: usize, dst: &[u8]) -> Result<Vec<FP2
 // Expand Message XMD
 //
 // Take a message and convert it to pseudo random bytes of specified length
-// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-5.3.1
+// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-09#section-5.4
 fn expand_message_xmd(msg: &[u8], len_in_bytes: usize, dst: &[u8]) -> Result<Vec<u8>, AmclError> {
     // ell = ceiling(len_in_bytes / b_in_bytes)
     let ell = (len_in_bytes + HASH_ALGORITHM.length() - 1) / HASH_ALGORITHM.length();
@@ -203,7 +203,7 @@ fn expand_message_xmd(msg: &[u8], len_in_bytes: usize, dst: &[u8]) -> Result<Vec
 // Simplified Shallue-van de Woestijne-Ulas Method - Fp
 //
 // Returns projectives as (XZ, YZ, Z)
-// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-6.6.2
+// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-09#section-6.6.2
 pub fn simplified_swu_fp(u: FP) -> (FP, FP) {
     let sswu_a = FP::new_big(Big::new_ints(&SSWU_A1));
     let sswu_b = FP::new_big(Big::new_ints(&SSWU_B1));
@@ -279,7 +279,7 @@ pub fn simplified_swu_fp(u: FP) -> (FP, FP) {
 // Simplified Shallue-van de Woestijne-Ulas Method - Fp2
 //
 // Returns projectives as (X, Y)
-// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-6.6.2
+// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-09#section-6.6.2
 pub fn simplified_swu_fp2(u: FP2) -> (FP2, FP2) {
     let sswu_a = FP2::new_bigs(Big::new_ints(&SSWU_A2_A), Big::new_ints(&SSWU_A2_B));
     let sswu_b = FP2::new_bigs(Big::new_ints(&SSWU_B2_A), Big::new_ints(&SSWU_B2_B));
