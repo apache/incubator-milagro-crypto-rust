@@ -742,7 +742,7 @@ impl FP {
     /// false if Positive, if a % 2 == 0
     ///
     /// Not constant time.
-    /// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08#section-4.1
+    /// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-09#section-4.1
     pub fn sgn0(&self) -> bool {
         let x = self.redc();
         if x.parity() == 0 {
