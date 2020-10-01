@@ -57,7 +57,7 @@ pub(crate) fn key_generate(ikm: &[u8], key_info: &[u8]) -> [u8; SECRET_KEY_BYTES
     let mut secret_key = Big::new();
     let mut salt = KEY_SALT.to_vec();
 
-    while secret_key.iszilch() {
+    while secret_key.is_zilch() {
         // salt = H(salt)
         let mut hash256 = HASH256::new();
         hash256.init();
@@ -77,7 +77,7 @@ pub(crate) fn key_generate(ikm: &[u8], key_info: &[u8]) -> [u8; SECRET_KEY_BYTES
 
         // SK = OS2IP(OKM) mod r
         let r = Big::new_ints(&CURVE_ORDER);
-        secret_key = Big::frombytes(&okm);
+        secret_key = Big::from_bytes(&okm);
         secret_key.rmod(&r);
     }
 
@@ -95,7 +95,7 @@ pub fn secret_key_from_bytes(secret_key: &[u8]) -> Result<Big, AmclError> {
     secret_key_bytes[MODBYTES - SECRET_KEY_BYTES..].copy_from_slice(secret_key);
 
     // Ensure secret key is in the range [0, r-1].
-    let secret_key = Big::frombytes(&secret_key_bytes);
+    let secret_key = Big::from_bytes(&secret_key_bytes);
     if secret_key >= Big::new_ints(&CURVE_ORDER) {
         return Err(AmclError::InvalidSecretKeyRange);
     }
@@ -106,7 +106,7 @@ pub fn secret_key_from_bytes(secret_key: &[u8]) -> Result<Big, AmclError> {
 // Converts secret key Big to bytes
 pub fn secret_key_to_bytes(secret_key: &Big) -> [u8; SECRET_KEY_BYTES] {
     let mut big_bytes = [0u8; MODBYTES];
-    secret_key.tobytes(&mut big_bytes);
+    secret_key.to_bytes(&mut big_bytes);
     let mut secret_key_bytes = [0u8; SECRET_KEY_BYTES];
     secret_key_bytes.copy_from_slice(&big_bytes[MODBYTES - SECRET_KEY_BYTES..]);
     secret_key_bytes
@@ -153,7 +153,7 @@ pub fn serialize_g1(g1: &ECP) -> [u8; G1_BYTES] {
 
     // Convert x-coordinate to bytes
     let mut result = [0u8; G1_BYTES];
-    g1.getx().tobytes(&mut result);
+    g1.getx().to_bytes(&mut result);
 
     // Evaluate if y > -y
     let mut tmp = g1.clone();
@@ -183,8 +183,8 @@ pub fn serialize_uncompressed_g1(g1: &ECP) -> [u8; G1_BYTES * 2] {
     }
 
     // Convert x-coordinate to bytes
-    g1.getx().tobytes(&mut result[..MODBYTES]);
-    g1.gety().tobytes(&mut result[MODBYTES..]);
+    g1.getx().to_bytes(&mut result[..MODBYTES]);
+    g1.gety().to_bytes(&mut result[MODBYTES..]);
 
     result
 }
@@ -232,7 +232,7 @@ fn deserialize_compressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
     // Zero flags
     let mut g1_bytes = g1_bytes.to_owned();
     g1_bytes[0] = g1_bytes[0] & 0b_0001_1111;
-    let x = Big::frombytes(&g1_bytes);
+    let x = Big::from_bytes(&g1_bytes);
 
     // Require element less than field modulus
     let m = Big::new_ints(&MODULUS);
@@ -288,8 +288,8 @@ fn deserialize_uncompressed_g1(g1_bytes: &[u8]) -> Result<ECP, AmclError> {
     // Zero flags
     let mut g1_bytes = g1_bytes.to_owned();
     g1_bytes[0] = g1_bytes[0] & 0b_0001_1111;
-    let x = Big::frombytes(&g1_bytes[..MODBYTES]);
-    let y = Big::frombytes(&g1_bytes[MODBYTES..]);
+    let x = Big::from_bytes(&g1_bytes[..MODBYTES]);
+    let y = Big::from_bytes(&g1_bytes[MODBYTES..]);
 
     // Require elements less than field modulus
     let m = Big::new_ints(&MODULUS);
@@ -321,8 +321,8 @@ pub fn serialize_g2(g2: &ECP2) -> [u8; G2_BYTES] {
     // Note: Zcash uses (x_im, x_re)
     let mut result = [0u8; G2_BYTES];
     let x = g2.getx();
-    x.geta().tobytes(&mut result[MODBYTES..(MODBYTES * 2)]);
-    x.getb().tobytes(&mut result[0..MODBYTES]);
+    x.geta().to_bytes(&mut result[MODBYTES..(MODBYTES * 2)]);
+    x.getb().to_bytes(&mut result[0..MODBYTES]);
 
     // Check y value
     let mut y = g2.gety();
@@ -353,12 +353,12 @@ pub fn serialize_uncompressed_g2(g2: &ECP2) -> [u8; G2_BYTES * 2] {
     // Convert to bytes
     // Note: Zcash uses (x_im, x_re), (y_im, y_re)
     let x = g2.getx();
-    x.getb().tobytes(&mut result[0..MODBYTES]);
-    x.geta().tobytes(&mut result[MODBYTES..(MODBYTES * 2)]);
+    x.getb().to_bytes(&mut result[0..MODBYTES]);
+    x.geta().to_bytes(&mut result[MODBYTES..(MODBYTES * 2)]);
     let x = g2.gety();
     x.getb()
-        .tobytes(&mut result[(MODBYTES * 2)..(MODBYTES * 3)]);
-    x.geta().tobytes(&mut result[(MODBYTES * 3)..]);
+        .to_bytes(&mut result[(MODBYTES * 2)..(MODBYTES * 3)]);
+    x.geta().to_bytes(&mut result[(MODBYTES * 3)..]);
 
     result
 }
@@ -406,8 +406,8 @@ fn deserialize_compressed_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
     g2_bytes[0] = g2_bytes[0] & 0b_0001_1111;
 
     // Convert from array to FP2
-    let x_imaginary = Big::frombytes(&g2_bytes[0..MODBYTES]);
-    let x_real = Big::frombytes(&g2_bytes[MODBYTES..]);
+    let x_imaginary = Big::from_bytes(&g2_bytes[0..MODBYTES]);
+    let x_real = Big::from_bytes(&g2_bytes[MODBYTES..]);
 
     // Require elements less than field modulus
     let m = Big::new_ints(&MODULUS);
@@ -463,10 +463,10 @@ fn deserialize_uncompressed_g2(g2_bytes: &[u8]) -> Result<ECP2, AmclError> {
     g2_bytes[0] = g2_bytes[0] & 0b_0001_1111;
 
     // Convert from array to FP2
-    let x_imaginary = Big::frombytes(&g2_bytes[..MODBYTES]);
-    let x_real = Big::frombytes(&g2_bytes[MODBYTES..(MODBYTES * 2)]);
-    let y_imaginary = Big::frombytes(&g2_bytes[(MODBYTES * 2)..(MODBYTES * 3)]);
-    let y_real = Big::frombytes(&g2_bytes[(MODBYTES * 3)..]);
+    let x_imaginary = Big::from_bytes(&g2_bytes[..MODBYTES]);
+    let x_real = Big::from_bytes(&g2_bytes[MODBYTES..(MODBYTES * 2)]);
+    let y_imaginary = Big::from_bytes(&g2_bytes[(MODBYTES * 2)..(MODBYTES * 3)]);
+    let y_real = Big::from_bytes(&g2_bytes[(MODBYTES * 3)..]);
 
     // Require elements less than field modulus
     let m = Big::new_ints(&MODULUS);
@@ -565,7 +565,7 @@ pub(crate) fn core_verify_g1(public_key: &[u8], msg: &[u8], signature: &[u8], ds
     v = pair::fexp(&v);
 
     // True if pairing output is 1
-    v.isunity()
+    v.is_unity()
 }
 
 /// Aggregate
@@ -634,7 +634,7 @@ pub(crate) fn core_aggregate_verify_g1(
     // True if pairing output is 1
     let mut v = pair::miller(&r);
     v = pair::fexp(&v);
-    v.isunity()
+    v.is_unity()
 }
 
 /*************************************************************************************************
@@ -719,7 +719,7 @@ pub(crate) fn core_verify_g2(public_key: &[u8], msg: &[u8], signature: &[u8], ds
     v = pair::fexp(&v);
 
     // True if pairing output is 1
-    v.isunity()
+    v.is_unity()
 }
 
 /// Aggregate
@@ -789,7 +789,7 @@ pub(crate) fn core_aggregate_verify_g2(
     // True if pairing output is 1
     let mut v = pair::miller(&r);
     v = pair::fexp(&v);
-    v.isunity()
+    v.is_unity()
 }
 
 /*************************************************************************************************
@@ -884,8 +884,8 @@ mod tests {
             for (i, u_str) in case.u.iter().enumerate() {
                 // Convert case 'u[i]' to FP2
                 let u_str_parts: Vec<&str> = u_str.split(',').collect();
-                let a = Big::frombytes(&hex::decode(&u_str_parts[0].get(2..).unwrap()).unwrap());
-                let b = Big::frombytes(&hex::decode(&u_str_parts[1].get(2..).unwrap()).unwrap());
+                let a = Big::from_bytes(&hex::decode(&u_str_parts[0].get(2..).unwrap()).unwrap());
+                let b = Big::from_bytes(&hex::decode(&u_str_parts[1].get(2..).unwrap()).unwrap());
                 let expected_u_i = FP2::new_bigs(a, b);
 
                 // Verify u[i]
@@ -894,13 +894,13 @@ mod tests {
 
             // Check Q0
             let x_str_parts: Vec<&str> = case.Q0.x.split(',').collect();
-            let a = Big::frombytes(&hex::decode(&x_str_parts[0].get(2..).unwrap()).unwrap());
-            let b = Big::frombytes(&hex::decode(&x_str_parts[1].get(2..).unwrap()).unwrap());
+            let a = Big::from_bytes(&hex::decode(&x_str_parts[0].get(2..).unwrap()).unwrap());
+            let b = Big::from_bytes(&hex::decode(&x_str_parts[1].get(2..).unwrap()).unwrap());
             let expected_x = FP2::new_bigs(a, b);
 
             let y_str_parts: Vec<&str> = case.Q0.y.split(',').collect();
-            let a = Big::frombytes(&hex::decode(&y_str_parts[0].get(2..).unwrap()).unwrap());
-            let b = Big::frombytes(&hex::decode(&y_str_parts[1].get(2..).unwrap()).unwrap());
+            let a = Big::from_bytes(&hex::decode(&y_str_parts[0].get(2..).unwrap()).unwrap());
+            let b = Big::from_bytes(&hex::decode(&y_str_parts[1].get(2..).unwrap()).unwrap());
             let expected_y = FP2::new_bigs(a, b);
 
             let expected_q0 = ECP2::new_fp2s(expected_x, expected_y);
@@ -908,13 +908,13 @@ mod tests {
 
             // Check Q1
             let x_str_parts: Vec<&str> = case.Q1.x.split(',').collect();
-            let a = Big::frombytes(&hex::decode(&x_str_parts[0].get(2..).unwrap()).unwrap());
-            let b = Big::frombytes(&hex::decode(&x_str_parts[1].get(2..).unwrap()).unwrap());
+            let a = Big::from_bytes(&hex::decode(&x_str_parts[0].get(2..).unwrap()).unwrap());
+            let b = Big::from_bytes(&hex::decode(&x_str_parts[1].get(2..).unwrap()).unwrap());
             let expected_x = FP2::new_bigs(a, b);
 
             let y_str_parts: Vec<&str> = case.Q1.y.split(',').collect();
-            let a = Big::frombytes(&hex::decode(&y_str_parts[0].get(2..).unwrap()).unwrap());
-            let b = Big::frombytes(&hex::decode(&y_str_parts[1].get(2..).unwrap()).unwrap());
+            let a = Big::from_bytes(&hex::decode(&y_str_parts[0].get(2..).unwrap()).unwrap());
+            let b = Big::from_bytes(&hex::decode(&y_str_parts[1].get(2..).unwrap()).unwrap());
             let expected_y = FP2::new_bigs(a, b);
 
             let expected_q1 = ECP2::new_fp2s(expected_x, expected_y);
@@ -922,13 +922,13 @@ mod tests {
 
             // Check P
             let x_str_parts: Vec<&str> = case.P.x.split(',').collect();
-            let a = Big::frombytes(&hex::decode(&x_str_parts[0].get(2..).unwrap()).unwrap());
-            let b = Big::frombytes(&hex::decode(&x_str_parts[1].get(2..).unwrap()).unwrap());
+            let a = Big::from_bytes(&hex::decode(&x_str_parts[0].get(2..).unwrap()).unwrap());
+            let b = Big::from_bytes(&hex::decode(&x_str_parts[1].get(2..).unwrap()).unwrap());
             let expected_x = FP2::new_bigs(a, b);
 
             let y_str_parts: Vec<&str> = case.P.y.split(',').collect();
-            let a = Big::frombytes(&hex::decode(&y_str_parts[0].get(2..).unwrap()).unwrap());
-            let b = Big::frombytes(&hex::decode(&y_str_parts[1].get(2..).unwrap()).unwrap());
+            let a = Big::from_bytes(&hex::decode(&y_str_parts[0].get(2..).unwrap()).unwrap());
+            let b = Big::from_bytes(&hex::decode(&y_str_parts[1].get(2..).unwrap()).unwrap());
             let expected_y = FP2::new_bigs(a, b);
 
             let expected_p = ECP2::new_fp2s(expected_x, expected_y);
@@ -964,7 +964,7 @@ mod tests {
             assert_eq!(case.u.len(), u.len());
             for (i, u_str) in case.u.iter().enumerate() {
                 // Convert case 'u[i]' to FP
-                let a = Big::frombytes(&hex::decode(&u_str.get(2..).unwrap()).unwrap());
+                let a = Big::from_bytes(&hex::decode(&u_str.get(2..).unwrap()).unwrap());
                 let expected_u_i = FP::new_big(a);
 
                 // Verify u[i]
@@ -972,30 +972,30 @@ mod tests {
             }
 
             // Check Q0
-            let a = Big::frombytes(&hex::decode(&case.Q0.x.get(2..).unwrap()).unwrap());
+            let a = Big::from_bytes(&hex::decode(&case.Q0.x.get(2..).unwrap()).unwrap());
             let expected_x = FP::new_big(a);
 
-            let a = Big::frombytes(&hex::decode(&case.Q0.y.get(2..).unwrap()).unwrap());
+            let a = Big::from_bytes(&hex::decode(&case.Q0.y.get(2..).unwrap()).unwrap());
             let expected_y = FP::new_big(a);
 
             let expected_q0 = ECP::new_fps(expected_x, expected_y);
             assert_eq!(expected_q0, q0);
 
             // Check Q1
-            let a = Big::frombytes(&hex::decode(&case.Q1.x.get(2..).unwrap()).unwrap());
+            let a = Big::from_bytes(&hex::decode(&case.Q1.x.get(2..).unwrap()).unwrap());
             let expected_x = FP::new_big(a);
 
-            let a = Big::frombytes(&hex::decode(&case.Q1.y.get(2..).unwrap()).unwrap());
+            let a = Big::from_bytes(&hex::decode(&case.Q1.y.get(2..).unwrap()).unwrap());
             let expected_y = FP::new_big(a);
 
             let expected_q1 = ECP::new_fps(expected_x, expected_y);
             assert_eq!(expected_q1, q1);
 
             // Check P
-            let a = Big::frombytes(&hex::decode(&case.P.x.get(2..).unwrap()).unwrap());
+            let a = Big::from_bytes(&hex::decode(&case.P.x.get(2..).unwrap()).unwrap());
             let expected_x = FP::new_big(a);
 
-            let a = Big::frombytes(&hex::decode(&case.P.y.get(2..).unwrap()).unwrap());
+            let a = Big::from_bytes(&hex::decode(&case.P.y.get(2..).unwrap()).unwrap());
             let expected_y = FP::new_big(a);
 
             let expected_p = ECP::new_fps(expected_x, expected_y);

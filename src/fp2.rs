@@ -137,8 +137,8 @@ impl FP2 {
     }
 
     /* test self=0 ? */
-    pub fn iszilch(&self) -> bool {
-        return self.a.iszilch() && self.b.iszilch();
+    pub fn is_zilch(&self) -> bool {
+        return self.a.is_zilch() && self.b.is_zilch();
     }
 
     pub fn cmove(&mut self, g: &FP2, d: isize) {
@@ -147,9 +147,9 @@ impl FP2 {
     }
 
     /* test self=1 ? */
-    pub fn isunity(&self) -> bool {
+    pub fn is_unity(&self) -> bool {
         let one = FP::new_int(1);
-        return self.a.equals(&one) && self.b.iszilch();
+        return self.a.equals(&one) && self.b.is_zilch();
     }
 
     /* test self=x */
@@ -302,7 +302,7 @@ impl FP2 {
     /* sqrt(a+ib) = sqrt(a+sqrt(a*a-n*b*b)/2)+ib/(2*sqrt(a+sqrt(a*a-n*b*b)/2)) */
     /* returns true if this is QR */
     pub fn sqrt(&mut self) -> bool {
-        if self.iszilch() {
+        if self.is_zilch() {
             return true;
         }
         let mut w1 = self.b.clone();
@@ -338,11 +338,14 @@ impl FP2 {
         return true;
     }
 
-    /* output to hex string */
-    pub fn tostring(&self) -> String {
-        return format!("[{},{}]", self.a.tostring(), self.b.tostring());
+    /// To String
+    ///
+    /// Converts a `FP2` to a hex string.
+    pub fn to_string(&self) -> String {
+        return format!("[{},{}]", self.a.to_string(), self.b.to_string());
     }
 
+    /// To Hex
     pub fn to_hex(&self) -> String {
         format!("{} {}", self.a.to_hex(), self.b.to_hex())
     }
@@ -444,7 +447,7 @@ impl FP2 {
     /// Not constant time.
     /// https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-09#section-4.1
     pub fn sgn0(&self) -> bool {
-        if self.a.iszilch() {
+        if self.a.is_zilch() {
             self.b.sgn0()
         } else {
             self.a.sgn0()

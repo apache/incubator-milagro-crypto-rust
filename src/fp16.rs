@@ -27,6 +27,14 @@ pub struct FP16 {
     b: FP8,
 }
 
+impl PartialEq for FP16 {
+    fn eq(&self, other: &FP16) -> bool {
+        self.equals(other)
+    }
+}
+
+impl Eq for FP16 {}
+
 impl FP16 {
     #[inline(always)]
     pub fn new() -> FP16 {
@@ -87,19 +95,19 @@ impl FP16 {
     }
 
     /* test self=0 ? */
-    pub fn iszilch(&self) -> bool {
-        return self.a.iszilch() && self.b.iszilch();
+    pub fn is_zilch(&self) -> bool {
+        return self.a.is_zilch() && self.b.is_zilch();
     }
 
     /* test self=1 ? */
-    pub fn isunity(&self) -> bool {
+    pub fn is_unity(&self) -> bool {
         let one = FP8::new_int(1);
-        return self.a.equals(&one) && self.b.iszilch();
+        return self.a.equals(&one) && self.b.is_zilch();
     }
 
     /// Test is w real? That is in a+ib test b is zero */
     pub fn isreal(&self) -> bool {
-        return self.b.iszilch();
+        return self.b.is_zilch();
     }
 
     /// Extract real part a
@@ -276,9 +284,11 @@ impl FP16 {
         self.norm();
     }
 
-    /* output to hex string */
-    pub fn tostring(&self) -> String {
-        return format!("[{},{}]", self.a.tostring(), self.b.tostring());
+    /// To String
+    ///
+    /// Converts a `FP16` to a hex string.
+    pub fn to_string(&self) -> String {
+        return format!("[{},{}]", self.a.to_string(), self.b.to_string());
     }
 
     /* self=1/self */
@@ -345,7 +355,7 @@ impl FP16 {
             if bt == 1 {
                 r.mul(&w)
             };
-            if z.iszilch() {
+            if z.is_zilch() {
                 break;
             }
             w.sqr();

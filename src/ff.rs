@@ -6,7 +6,7 @@ regarding copyright ownership.  The ASF licenses this file
 to you under the Apache License, Version 2.0 (the
 "License"); you may not use this file except in compliance
 with the License.  You may obtain a copy of the License at
-if debug {println!("sf2= {}",self.tostring())}
+if debug {println!("sf2= {}",self.to_string())}
   http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing,
@@ -131,9 +131,9 @@ impl FF {
     }
 
     /* test equals 0 */
-    pub fn iszilch(&mut self) -> bool {
+    pub fn is_zilch(&mut self) -> bool {
         for i in 0..self.length {
-            if !self.v[i].iszilch() {
+            if !self.v[i].is_zilch() {
                 return false;
             }
         }
@@ -252,12 +252,12 @@ impl FF {
         }
         for i in 0..nn - 1 {
             carry = self.v[vp + i].norm();
-            self.v[vp + i].xortop(carry << P_TBITS);
+            self.v[vp + i].xor_top(carry << P_TBITS);
             self.v[vp + i + 1].w[0] += carry;
         }
         carry = self.v[vp + nn - 1].norm();
         if trunc {
-            self.v[vp + nn - 1].xortop(carry << P_TBITS);
+            self.v[vp + nn - 1].xor_top(carry << P_TBITS);
         }
     }
 
@@ -283,7 +283,7 @@ impl FF {
         for i in 0..self.length - 1 {
             let carry = self.v[i].fshl(1);
             self.v[i].inc(delay_carry);
-            self.v[i].xortop((carry as Chunk) << P_TBITS);
+            self.v[i].xor_top((carry as Chunk) << P_TBITS);
             delay_carry = carry;
         }
         self.v[self.length - 1].fshl(1);
@@ -296,19 +296,21 @@ impl FF {
         let mut i = self.length - 1;
         while i > 0 {
             let carry = self.v[i].fshr(1);
-            self.v[i - 1].xortop((carry as Chunk) << P_TBITS);
+            self.v[i - 1].xor_top((carry as Chunk) << P_TBITS);
             i -= 1;
         }
         self.v[0].fshr(1);
     }
 
-    /* Convert to Hex String */
-    pub fn tostring(&mut self) -> String {
+    /// To String
+    ///
+    /// Converts `FF` to a hex string.
+    pub fn to_string(&mut self) -> String {
         self.norm();
         let mut s = String::new();
         let mut i: usize = self.length - 1;
         loop {
-            s = s + self.v[i].tostring().as_ref();
+            s = s + self.v[i].to_string().as_ref();
             if i == 0 {
                 break;
             }
@@ -318,15 +320,15 @@ impl FF {
     }
 
     /* Convert FFs to/from byte arrays */
-    pub fn tobytes(&mut self, b: &mut [u8]) {
+    pub fn to_bytes(&mut self, b: &mut [u8]) {
         for i in 0..self.length {
-            self.v[i].tobytearray(b, (self.length - i - 1) * (big::MODBYTES as usize))
+            self.v[i].to_byte_array(b, (self.length - i - 1) * (big::MODBYTES as usize))
         }
     }
 
-    pub fn frombytes(x: &mut FF, b: &[u8]) {
+    pub fn from_bytes(x: &mut FF, b: &[u8]) {
         for i in 0..x.length {
-            x.v[i] = Big::frombytearray(b, (x.length - i - 1) * (big::MODBYTES as usize))
+            x.v[i] = Big::from_byte_array(b, (x.length - i - 1) * (big::MODBYTES as usize))
         }
     }
 
@@ -976,14 +978,14 @@ impl FF {
         x.sub(&y);
         x.norm();
 
-        while !x.iszilch() && x.parity() == 0 {
+        while !x.is_zilch() && x.parity() == 0 {
             x.shr()
         }
 
         while FF::comp(&x, &y) > 0 {
             x.sub(&y);
             x.norm();
-            while !x.iszilch() && x.parity() == 0 {
+            while !x.is_zilch() && x.parity() == 0 {
                 x.shr()
             }
         }

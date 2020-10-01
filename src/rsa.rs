@@ -432,9 +432,9 @@ pub fn encrypt(pbc: &RsaPublicKey, f: &[u8], g: &mut [u8]) {
     let m = pbc.n.getlen();
     let mut r = FF::new_int(m);
 
-    FF::frombytes(&mut r, f);
+    FF::from_bytes(&mut r, f);
     r.power(pbc.e, &pbc.n);
-    r.tobytes(g);
+    r.to_bytes(g);
 }
 
 /* RSA decryption with the private key */
@@ -442,7 +442,7 @@ pub fn decrypt(prv: &RsaPrivateKey, g: &[u8], f: &mut [u8]) {
     let n = prv.p.getlen();
     let mut r = FF::new_int(2 * n);
 
-    FF::frombytes(&mut r, g);
+    FF::from_bytes(&mut r, g);
     let mut jp = r.dmod(&prv.p);
     let mut jq = r.dmod(&prv.q);
 
@@ -465,7 +465,7 @@ pub fn decrypt(prv: &RsaPrivateKey, g: &[u8], f: &mut [u8]) {
     r.add(&t);
     r.norm();
 
-    r.tobytes(f);
+    r.to_bytes(f);
 }
 
 #[cfg(test)]
