@@ -94,9 +94,9 @@ pub fn secret_key_from_bytes(secret_key: &[u8]) -> Result<Big, AmclError> {
     let mut secret_key_bytes = [0u8; MODBYTES];
     secret_key_bytes[MODBYTES - SECRET_KEY_BYTES..].copy_from_slice(secret_key);
 
-    // Ensure secret key is in the range [0, r-1].
+    // Ensure secret key is in the range [1, r-1].
     let secret_key = Big::from_bytes(&secret_key_bytes);
-    if secret_key >= Big::new_ints(&CURVE_ORDER) {
+    if secret_key.is_zilch() || secret_key >= Big::new_ints(&CURVE_ORDER) {
         return Err(AmclError::InvalidSecretKeyRange);
     }
 
@@ -1001,6 +1001,32 @@ mod tests {
             let expected_p = ECP::new_fps(expected_x, expected_y);
             assert_eq!(expected_p, p);
         }
+    }
+
+    #[test]
+    fn test_secret_key_from_bytes() {
+        let bytes = [0u8; 32];
+        let sk = secret_key_from_bytes(&bytes);
+        assert_eq!(sk, Err(AmclError::InvalidSecretKeyRange));
+
+        let bytes = [255u8; 32];
+        let sk = secret_key_from_bytes(&bytes);
+        assert_eq!(sk, Err(AmclError::InvalidSecretKeyRange));
+
+        let mut bytes = [0u8; 32];
+        bytes[31] = 1;
+        let sk = secret_key_from_bytes(&bytes).unwrap();
+        assert!(sk.is_unity());
+
+        let mut bytes = [255u8; 32];
+        bytes[0] = 0;
+        let sk = secret_key_from_bytes(&bytes).unwrap();
+
+        let mut sk_check = Big::new_int(1);
+        sk_check.shl(31 * 8);
+        sk_check.dec(1);
+        sk_check.norm();
+        assert_eq!(sk, sk_check);
     }
 
     #[test]
