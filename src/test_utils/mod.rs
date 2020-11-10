@@ -50,7 +50,9 @@ pub fn create_rng() -> RAND {
 // Reads the json test files
 pub fn json_reader(file_name: &str) -> BufReader<File> {
     let mut file_path_buf = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    file_path_buf.push("src/test_utils/hash_to_curve_vectors/");
+    file_path_buf.push("src");
+    file_path_buf.push("test_utils");
+    file_path_buf.push("hash_to_curve_vectors");
     let mut file_name = String::from(file_name);
     file_name.push_str(".json");
     file_path_buf.push(file_name);
